@@ -28,7 +28,7 @@ export default function Footer() {
           </div>
 
           {/* Product Links */}
-          <div className="space-y-4 lg:pt-[60px]">
+          <div className="space-y-4 pt-[60px]">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Product</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/#features" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Features</Link></li>
