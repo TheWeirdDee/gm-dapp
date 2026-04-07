@@ -53,7 +53,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-[var(--color-border)] bg-[var(--color-background)]/80 backdrop-blur-md">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-12">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105 mt-1">
           <img src="/logo.png" alt="Gm Logo" className="h-9 w-9 rounded-full object-cover shadow-[0_0_10px_var(--color-accent)]" />
