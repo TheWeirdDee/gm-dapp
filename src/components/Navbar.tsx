@@ -149,7 +149,7 @@ export default function Navbar() {
       </div>
       
       {/* Mobile Nav Tabs */}
-      <div className="md:hidden flex flex-wrap items-center justify-around border-t border-[var(--color-border)] bg-[#0a0a0a] p-2 fixed bottom-0 w-full z-50 gap-y-2">
+      <div className="md:hidden flex flex-wrap items-center justify-around bg-[#0a0a0a] p-2 fixed bottom-0 w-full z-50 gap-y-2">
         {displayLinks.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href) && !link.href.includes('#'));

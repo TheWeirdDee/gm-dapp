@@ -12,7 +12,7 @@ export default function Home() {
   const sectionsRef = useRef<HTMLElement[]>([]);
 
   useEffect(() => {
-    // Reveal animations on scroll
+   
     sectionsRef.current.forEach((section) => {
       if (!section) return;
       gsap.fromTo(
@@ -43,7 +43,7 @@ export default function Home() {
       
       {/* 1. Hero Section */}
       <section className="relative py-12 md:py-20 lg:py-8 px-6 lg:px-12 xl:px-16 overflow-hidden flex justify-center">
-        {/* Abstract Background Elements */}
+        
         <div className="absolute top-0 right-0 -z-10 w-full h-full max-w-4xl opacity-50 hidden lg:block left-1/2 -translate-x-1/2">
            <img src="/hero_hands.png" alt="Digital connection" className="w-full h-full object-cover mix-blend-screen opacity-60" />
         </div>
@@ -72,8 +72,8 @@ export default function Home() {
       </section>
 
       {/* 2. Bento Grid Section */}
-      <section id="features" ref={addToRefs} className="py-24 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
-        <div className="mb-16 max-w-3xl text-center md:text-left mx-auto md:mx-0">
+      <section id="features" ref={addToRefs} className="py-10 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
+        <div className="mb-16 max-w-3xl text-left md:text-left mx-auto md:mx-0">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Gamify Your <br /> Daily Engagement</h2>
           <p className="text-gray-400 text-lg leading-relaxed">
             Every interaction is a blockchain transaction. Your streak, points, and following network are entirely owned by you.
@@ -129,8 +129,8 @@ export default function Home() {
       </section>
 
       {/* 3. Keepers of the Hidden Grid */}
-      <section ref={addToRefs} className="py-24 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
-         <div className="flex flex-col lg:flex-row items-center gap-16 text-center lg:text-left">
+      <section ref={addToRefs} className="py-10 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
+         <div className="flex flex-col lg:flex-row items-center gap-16 text-left">
             <div className="lg:w-1/2 space-y-8 flex flex-col items-center lg:items-start">
                <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">Your Social Hub, <br/>Secured on Stacks</h2>
                <p className="text-xl text-[var(--color-accent)] font-mono">Secured by Bitcoin finality.</p>
@@ -200,7 +200,7 @@ export default function Home() {
       </section>
 
       {/* 5. Decode Your Path (Footer Features) */}
-      <section ref={addToRefs} id="how-it-works" className="py-24 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
+      <section ref={addToRefs} id="how-it-works" className="pt-24 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
          <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 text-center lg:text-left">
             <div className="lg:w-1/3 flex flex-col items-center lg:items-start">
                <h2 className="text-4xl md:text-5xl font-bold mb-8">Why Build <br className="hidden lg:block"/>on Gm?</h2>
