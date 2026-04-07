@@ -39,7 +39,7 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-[#050505] min-h-screen text-white overflow-hidden pb-32">
+    <div className="bg-[#050505] min-h-screen text-white overflow-hidden pb-12 md:pb-32">
       
       {/* 1. Hero Section */}
       <section className="relative py-12 md:py-20 lg:py-8 px-6 lg:px-12 xl:px-16 overflow-hidden flex justify-center">
@@ -72,7 +72,7 @@ export default function Home() {
       </section>
 
       {/* 2. Bento Grid Section */}
-      <section id="features" ref={addToRefs} className="py-10 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
+      <section id="features" ref={addToRefs} className="py-14 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
         <div className="mb-16 max-w-3xl text-left md:text-left mx-auto md:mx-0">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Gamify Your <br /> Daily Engagement</h2>
           <p className="text-gray-400 text-lg leading-relaxed">
@@ -131,7 +131,7 @@ export default function Home() {
       
       <section ref={addToRefs} className="py-10 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
          <div className="flex flex-col lg:flex-row items-center gap-16 text-left">
-            <div className="lg:w-1/2 space-y-8 flex flex-col items-center lg:items-start">
+            <div className="lg:w-1/2 space-y-8 flex flex-col items-start text-left">
                <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">Your Social Hub, <br/>Secured on Stacks</h2>
                <p className="text-xl text-[var(--color-accent)] font-mono">Secured by Bitcoin finality.</p>
                <p className="text-gray-400 text-lg leading-relaxed max-w-lg">
@@ -200,13 +200,13 @@ export default function Home() {
 
       {/* 5. Decode Your Path (Footer Features) */}
       <section ref={addToRefs} id="how-it-works" className="pt-24 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
-         <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 text-center lg:text-left">
-            <div className="lg:w-1/3 flex flex-col items-center lg:items-start">
+         <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 text-left">
+            <div className="lg:w-1/3 flex flex-col items-start">
                <h2 className="text-4xl md:text-5xl font-bold mb-8">Why Build <br className="hidden lg:block"/>on Gm?</h2>
                <Link href="/dashboard" className="inline-block bg-[var(--color-accent)] text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all">Connect Wallet</Link>
             </div>
             <div className="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-12 text-left">
-               <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+               <div className="flex flex-col items-start text-left">
                   <div className="bg-[var(--color-accent)]/20 w-12 h-12 rounded-full flex items-center justify-center mb-6">
                     <CheckCircle2 className="text-[var(--color-accent)]" />
                   </div>
