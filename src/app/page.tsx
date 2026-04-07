@@ -42,7 +42,7 @@ export default function Home() {
     <div className="bg-[#050505] min-h-screen text-white overflow-hidden pb-32">
       
       {/* 1. Hero Section */}
-      <section className="relative py-12 md:py-20 lg:py-10 px-6 lg:px-12 xl:px-16 overflow-hidden flex justify-center">
+      <section className="relative py-12 md:py-20 lg:py-8 px-6 lg:px-12 xl:px-16 overflow-hidden flex justify-center">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 right-0 -z-10 w-full h-full max-w-4xl opacity-50 hidden lg:block left-1/2 -translate-x-1/2">
            <img src="/hero_hands.png" alt="Digital connection" className="w-full h-full object-cover mix-blend-screen opacity-60" />
@@ -93,12 +93,10 @@ export default function Home() {
 
           {/* Card 2: Small middle */}
           <div className="card lg:col-span-1 rounded-3xl overflow-hidden relative group bg-gradient-to-b from-[#111] to-[#050505]">
-             <div className="relative z-10 p-8 h-full flex flex-col items-center justify-center text-center">
-               <h3 className="text-xl font-bold mb-8">Build Your Social Graph</h3>
-               <div className="flex -space-x-4 mb-4">
-                  <div className="w-12 h-12 rounded-full border-2 border-black bg-blue-500 z-30"></div>
-                  <div className="w-12 h-12 rounded-full border-2 border-black bg-purple-500 z-20"></div>
-                  <div className="w-12 h-12 rounded-full border-2 border-black bg-orange-500 z-10"></div>
+             <div className="relative z-10 p-8 h-full flex flex-col justify-center w-full grow">
+               <h3 className="text-xl font-bold mb-4 text-center">Build Your Social Graph</h3>
+               <div className="w-full mt-auto mb-[-32px] mx-[-32px] w-[calc(100%+64px)]">
+                 <img src="/SocialGraph.png" alt="Social Graph" className="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                </div>
              </div>
           </div>
