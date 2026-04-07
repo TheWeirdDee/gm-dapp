@@ -71,7 +71,7 @@ export const MOCK_POSTS: Post[] = [
   {
     id: "post_2",
     authorAddress: "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
-    content: "I just hit a 12-day streak on GM dApp! Who's going for 30? 👀",
+    content: "I just hit a 12-day streak on Gm! Who's going for 30? 👀",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
     reactions: {
       gm: 45,
