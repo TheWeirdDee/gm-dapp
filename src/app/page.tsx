@@ -128,7 +128,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. Keepers of the Hidden Grid */}
+      
       <section ref={addToRefs} className="py-10 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
          <div className="flex flex-col lg:flex-row items-center gap-16 text-left">
             <div className="lg:w-1/2 space-y-8 flex flex-col items-center lg:items-start">
@@ -146,7 +146,6 @@ export default function Home() {
                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--color-secondary)] to-transparent opacity-20 blur-3xl rounded-full"></div>
                <img src="/phone_mockup.png" alt="App Mockup" className="relative z-10 w-full max-w-md mx-auto drop-shadow-[0_0_50px_rgba(99,102,241,0.2)]" />
                
-               {/* Floating stat card */}
                <div className="absolute bottom-12 -left-8 md:left-0 z-20 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl hidden md:flex items-center gap-4 shadow-2xl">
                   <div className="bg-[var(--color-accent)] text-black font-bold rounded-lg p-2 text-center leading-none">
                      <span className="block text-xs uppercase opacity-80">Rank</span>
@@ -161,7 +160,7 @@ export default function Home() {
          </div>
       </section>
 
-      {/* 4. Marquee Carousel Section */}
+     
       <section ref={addToRefs} className="py-24 overflow-hidden border-y border-white/5 bg-[#0a0a0a]">
         <div className="container mx-auto px-6 max-w-4xl text-center mb-12">
            <h2 className="text-3xl md:text-5xl font-bold mb-6">Real-time Global Feed</h2>
