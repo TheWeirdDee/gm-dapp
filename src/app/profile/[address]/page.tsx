@@ -12,9 +12,22 @@ export default function ProfilePage({ params }: { params: Promise<{ address: str
   const address = unwrappedParams.address;
   const feed = useSelector((state: RootState) => state.posts.feed);
   const allUsers = useSelector((state: RootState) => state.user.allUsers);
+  const isConnected = useSelector((state: RootState) => state.user.isConnected);
   
   // Filter posts to only show this user's posts
   const userPosts = feed.filter(post => post.authorAddress === address);
+
+  if (!isConnected) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center max-w-2xl">
+        <div className="card p-12 bg-[#0A0A0A] border-[var(--color-border)]">
+          <h1 className="text-3xl font-black text-white mb-4">Connect Wallet Required</h1>
+          <p className="text-gray-400 mb-8">Please connect your wallet to view user profiles and follow other users on the network.</p>
+          <Link href="/" className="inline-block bg-[var(--color-secondary)] text-white font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all">Go Home</Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!allUsers[address]) {
     return (
