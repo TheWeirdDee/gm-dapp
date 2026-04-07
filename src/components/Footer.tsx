@@ -1,0 +1,93 @@
+'use client';
+
+import Link from 'next/link';
+import { Globe, Code, Cpu } from 'lucide-react';
+
+export default function Footer() {
+  return (
+    <footer className="relative bg-[#050505] border-t border-white/5 pt-24 pb-12 overflow-hidden">
+      {/* Background Faded Text */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none">
+        <h2 className="text-[15rem] md:text-[25rem] font-black text-white/[0.02] whitespace-nowrap tracking-tighter uppercase leading-none">
+          GM GM
+        </h2>
+      </div>
+
+      <div className="container mx-auto px-6 lg:px-12 xl:px-16 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8 mb-20">
+          
+          {/* Brand Column */}
+          <div className="lg:col-span-2 space-y-6">
+            <Link href="/" className="flex items-center gap-3">
+              <img src="/logo.png" alt="Gm Logo" className="h-8 w-8 rounded-full shadow-[0_0_10px_var(--color-accent)]" />
+              <span className="text-xl font-bold tracking-tight text-white">Gm</span>
+            </Link>
+            <p className="text-gray-500 max-w-xs text-sm leading-relaxed">
+              The decentralized social engagement protocol on Stacks. Say GM, maintain streaks, and own your social capital.
+            </p>
+          </div>
+
+          {/* Product Links */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Product</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/#features" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Features</Link></li>
+              <li><Link href="/#how-it-works" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">How It Works</Link></li>
+              <li><Link href="/feed" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Feed</Link></li>
+              <li><Link href="/leaderboard" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Leaderboard</Link></li>
+            </ul>
+          </div>
+
+          {/* Developers Links */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Developers</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="https://github.com/TheWeirdDee/gm-dapp" target="_blank" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">GitHub</Link></li>
+              <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Contract</Link></li>
+              <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Documentation</Link></li>
+              <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">API Reference</Link></li>
+            </ul>
+          </div>
+
+          {/* Legal Links */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Legal</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Privacy Policy</Link></li>
+              <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Terms of Service</Link></li>
+              <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Cookie Policy</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <p className="text-xs text-gray-600 font-medium tracking-tight">
+              © {new Date().getFullYear()} Gm, Inc. All rights reserved.
+            </p>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <Cpu className="h-3 w-3 text-[var(--color-accent)]" />
+                Built on Stacks
+              </span>
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                Secured by Bitcoin
+              </span>
+            </div>
+          </div>
+
+          {/* Socials */}
+          <div className="flex items-center gap-4">
+            <Link href="#" className="text-gray-600 hover:text-white transition-colors">
+              <Globe className="h-5 w-5" />
+            </Link>
+            <Link href="https://github.com/TheWeirdDee/gm-dapp" target="_blank" className="text-gray-600 hover:text-white transition-colors">
+              <Code className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
