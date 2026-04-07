@@ -5,7 +5,7 @@ import { Globe, Code, Cpu } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="relative bg-[#050505] border-t border-white/5 pt-24 pb-12 overflow-hidden">
+    <footer className="relative bg-[#050505] border-t border-white/5 pt-24 pb-6 md:pb-12 overflow-hidden">
       {/* Background Faded Text */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none">
         <h2 className="text-[15rem] md:text-[25rem] font-black text-white/[0.02] whitespace-nowrap tracking-tighter uppercase leading-none">
@@ -28,7 +28,7 @@ export default function Footer() {
           </div>
 
           {/* Product Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:pt-[60px]">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Product</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/#features" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Features</Link></li>
@@ -39,7 +39,7 @@ export default function Footer() {
           </div>
 
           {/* Developers Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:pt-[60px]">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Developers</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="https://github.com/TheWeirdDee/gm-dapp" target="_blank" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">GitHub</Link></li>
@@ -50,7 +50,7 @@ export default function Footer() {
           </div>
 
           {/* Legal Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:pt-[60px]">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Privacy Policy</Link></li>
