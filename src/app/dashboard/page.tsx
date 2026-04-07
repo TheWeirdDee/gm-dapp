@@ -10,9 +10,22 @@ import Link from 'next/link';
 
 export default function DashboardPage() {
   const feed = useSelector((state: RootState) => state.posts.feed);
+  const isConnected = useSelector((state: RootState) => state.user.isConnected);
   
   // Show only 2 most recent posts on dashboard
   const miniFeed = feed.slice(0, 2);
+
+  if (!isConnected) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center max-w-2xl">
+        <div className="card p-12 bg-[#0A0A0A] border-[var(--color-border)]">
+          <h1 className="text-3xl font-black text-white mb-4">Connect Wallet Required</h1>
+          <p className="text-gray-400 mb-8">Please connect your wallet using the button in the top right to access your dashboard, track streaks, and view your reputation.</p>
+          <Link href="/" className="inline-block bg-[var(--color-secondary)] text-white font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all">Go Home</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
