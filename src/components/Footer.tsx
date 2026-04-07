@@ -14,21 +14,25 @@ export default function Footer() {
       </div>
 
       <div className="container mx-auto px-6 lg:px-12 xl:px-16 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-y-12 gap-x-8 lg:gap-8 mb-16">
           
-          {/* Brand Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <Link href="/" className="flex items-center gap-3">
+          {/* Logo Row - Full Width on Desktop, Spans 2 on Mobile */}
+          <div className="col-span-2 lg:col-span-5">
+            <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 inline-flex">
               <img src="/logo.png" alt="Gm Logo" className="h-8 w-8 rounded-full shadow-[0_0_10px_var(--color-accent)]" />
               <span className="text-xl font-bold tracking-tight text-white">Gm</span>
             </Link>
+          </div>
+
+          {/* Brand Description Column */}
+          <div className="col-span-2 lg:col-span-2 space-y-6">
             <p className="text-gray-500 max-w-xs text-sm leading-relaxed">
               The decentralized social engagement protocol on Stacks. Say GM, maintain streaks, and own your social capital.
             </p>
           </div>
 
           {/* Product Links */}
-          <div className="space-y-4 pt-[56px]">
+          <div className="space-y-4">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Product</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/#features" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Features</Link></li>
@@ -39,7 +43,7 @@ export default function Footer() {
           </div>
 
           {/* Developers Links */}
-          <div className="space-y-4 pt-[56px]">
+          <div className="space-y-4">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Developers</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="https://github.com/TheWeirdDee/gm-dapp" target="_blank" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">GitHub</Link></li>
@@ -50,7 +54,7 @@ export default function Footer() {
           </div>
 
           {/* Legal Links */}
-          <div className="space-y-4 pt-[56px]">
+          <div className="space-y-4">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Privacy Policy</Link></li>
