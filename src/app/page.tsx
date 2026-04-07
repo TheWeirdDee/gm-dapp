@@ -1,65 +1,52 @@
-import Image from "next/image";
+'use client';
+
+import Link from 'next/link';
+import { Wallet, ArrowRight } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 export default function Home() {
+  const headlineRef = useRef(null);
+  const subtitleRef = useRef(null);
+  const ctaRef = useRef(null);
+
+  useEffect(() => {
+    const tl = gsap.timeline();
+    tl.fromTo(headlineRef.current, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' })
+      .fromTo(subtitleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }, '-=0.5')
+      .fromTo(ctaRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' }, '-=0.4');
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Gradients */}
+      <div className="absolute top-1/4 -left-32 h-96 w-96 rounded-full bg-[var(--color-accent)] opacity-20 blur-[120px]"></div>
+      <div className="absolute bottom-1/4 -right-32 h-96 w-96 rounded-full bg-[var(--color-secondary)] opacity-20 blur-[120px]"></div>
+      
+      {/* Hero Content */}
+      <div className="z-10 text-center max-w-4xl mx-auto space-y-8">
+        <h1 ref={headlineRef} className="text-5xl md:text-7xl font-black tracking-tight leading-tight text-white mb-6">
+          <span className="block">Say GM. Build streaks.</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-secondary)]">
+            Own your social graph.
+          </span>
+        </h1>
+        
+        <p ref={subtitleRef} className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          The decentralized social app built on Stacks. Every interaction builds your on-chain reputation.
+        </p>
+
+        <div ref={ctaRef} className="pt-8">
+          <Link href="/dashboard" className="group relative inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-black font-extrabold text-lg transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+            <Wallet className="h-6 w-6" />
+            <span>Connect Wallet</span>
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </Link>
+          <div className="mt-4 text-sm text-gray-500 font-mono italic">
+            * Currently running on mocked testnet data for Phase 1
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
