@@ -51,16 +51,16 @@ export default function PostCard({ post }: PostCardProps) {
         {/* Content Section */}
         <div className="flex-1 min-w-0">
           {/* Header Info */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Link href={`/profile/${post.authorAddress}`} className="font-bold text-white hover:text-[var(--color-accent)] transition-colors">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link href={`/profile/${post.authorAddress}`} className="font-bold text-white hover:text-[var(--color-accent)] transition-colors text-sm md:text-base">
                 {displayUsername}
               </Link>
-              <span className="text-xs text-gray-600 font-mono tracking-tighter">{displayAddress}</span>
-              <span className="text-gray-700">·</span>
-              <span className="text-xs text-gray-600 font-medium">{displayTime}</span>
+              <span className="text-[10px] md:text-xs text-gray-600 font-mono tracking-tighter truncate max-w-[100px] sm:max-w-none">{displayAddress}</span>
+              <span className="text-gray-700 hidden sm:inline">·</span>
+              <span className="text-[10px] md:text-xs text-gray-600 font-medium">{displayTime}</span>
             </div>
-            <button className="text-gray-700 hover:text-white transition-colors">
+            <button className="text-gray-700 hover:text-white transition-colors absolute top-6 right-6 sm:static">
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </div>
