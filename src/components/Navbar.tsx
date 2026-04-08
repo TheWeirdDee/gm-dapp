@@ -5,13 +5,14 @@ import { usePathname } from 'next/navigation';
 import { Wallet, LayoutDashboard, Rss, Trophy, User as UserIcon, Star, Info, ChevronDown, LogOut } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../lib/store';
-import { connectWallet, disconnectWallet } from '../lib/features/userSlice';
+import { authenticate, userSession, getUserData } from '../lib/stacks';
+import { setUserData, logout } from '../lib/features/userSlice';
 import { useState, useRef, useEffect } from 'react';
 
 export default function Navbar() {
   const pathname = usePathname();
   const dispatch = useDispatch();
-  const { currentUser, isConnected } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, mockData } = useSelector((state: RootState) => state.user);
   
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -36,18 +37,18 @@ export default function Navbar() {
 
   const authLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Profile', href: `/profile/${currentUser.address}`, icon: UserIcon },
+    { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
   ];
 
   const displayLinks = isConnected ? [...publicLinks, ...authLinks] : publicLinks;
 
   const handleWalletSelect = () => {
-    dispatch(connectWallet());
+    authenticate();
     setShowWalletDropdown(false);
   };
 
   const handleDisconnect = () => {
-    dispatch(disconnectWallet());
+    dispatch(logout());
     setShowWalletDropdown(false);
   };
 
@@ -83,14 +84,20 @@ export default function Navbar() {
         {/* Wallet Connection */}
         <div className="relative" ref={dropdownRef}>
           <button 
-            onClick={() => setShowWalletDropdown(!showWalletDropdown)}
-            className="flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-opacity-90 hover:shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+            onClick={() => {
+              if (isConnected) {
+                setShowWalletDropdown(!showWalletDropdown);
+              } else {
+                authenticate();
+              }
+            }}
+            className="flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-black text-white transition-all hover:bg-opacity-90 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] active:scale-95"
           >
             <Wallet className="h-4 w-4" />
-            <span className="hidden sm:inline">
+            <span>
               {isConnected ? (
                 <>
-                  {currentUser.address.substring(0, 4)}...{currentUser.address.substring(currentUser.address.length - 4)}
+                  {address?.substring(0, 4)}...{address?.substring(address.length - 4)}
                   <ChevronDown className="inline h-4 w-4 ml-1" />
                 </>
               ) : (
@@ -99,50 +106,27 @@ export default function Navbar() {
             </span>
           </button>
 
-          {/* Wallet Dropdown Menu */}
-          {showWalletDropdown && (
-            <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-2xl py-2 overflow-hidden z-50">
-              {!isConnected ? (
-                <>
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Select Wallet</div>
-                  <button 
-                    onClick={handleWalletSelect}
-                    className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-colors text-white"
-                  >
-                    <div className="h-8 w-8 bg-[#321B00] rounded-lg flex items-center justify-center border border-orange-500/30">
-                      <span className="text-orange-500 font-bold text-xs">LW</span>
-                    </div>
-                    <span className="font-medium">Leather Wallet</span>
-                  </button>
-                  <button 
-                    onClick={handleWalletSelect}
-                    className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-colors text-white"
-                  >
-                    <div className="h-8 w-8 bg-blue-900/30 rounded-lg flex items-center justify-center border border-blue-500/30">
-                      <span className="text-blue-400 font-bold text-xs">XV</span>
-                    </div>
-                    <span className="font-medium">Xverse</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link 
-                    href={`/profile/${currentUser.address}`}
-                    onClick={() => setShowWalletDropdown(false)}
-                    className="w-full text-left px-4 py-2.5 flex items-center gap-2 hover:bg-white/5 transition-colors text-white md:hidden"
-                  >
-                    <UserIcon className="h-4 w-4 text-gray-400" />
-                    My Profile
-                  </Link>
-                  <button 
-                    onClick={handleDisconnect}
-                    className="w-full text-left px-4 py-2.5 flex items-center gap-2 hover:bg-red-500/10 transition-colors text-red-400"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span className="font-medium">Disconnect</span>
-                  </button>
-                </>
-              )}
+          {/* Wallet Dropdown Menu (Authenticated Only) */}
+          {showWalletDropdown && isConnected && (
+            <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/5 bg-[#0A0A0A] shadow-[0_10px_40px_rgba(0,0,0,0.5)] py-3 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+               <div className="px-5 py-2 text-[10px] font-black text-gray-600 uppercase tracking-widest border-b border-white/[0.03] mb-2">Account</div>
+               
+               <Link 
+                 href={`/profile/${address}`}
+                 onClick={() => setShowWalletDropdown(false)}
+                 className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-white/[0.03] transition-colors text-white group"
+               >
+                 <UserIcon className="h-4 w-4 text-gray-500 group-hover:text-[var(--color-accent)]" />
+                 <span className="font-bold text-sm">My Profile</span>
+               </Link>
+
+               <button 
+                 onClick={handleDisconnect}
+                 className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-red-500/10 transition-colors text-red-400 group"
+               >
+                 <LogOut className="h-4 w-4 opacity-50 group-hover:opacity-100" />
+                 <span className="font-bold text-sm text-red-500/80 group-hover:text-red-400">Disconnect</span>
+               </button>
             </div>
           )}
         </div>
