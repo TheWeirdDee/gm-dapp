@@ -5,14 +5,25 @@ import { ArrowRight, Sparkles, CheckCircle2, Shield, Layers, Users } from 'lucid
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/store';
+import { authenticate } from '@/lib/stacks';
+import { useRouter } from 'next/navigation';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
   const sectionsRef = useRef<HTMLElement[]>([]);
+  const { isConnected } = useSelector((state: RootState) => state.user);
+  const router = useRouter();
 
   useEffect(() => {
-   
+    if (isConnected) {
+      router.push('/dashboard');
+    }
+  }, [isConnected, router]);
+
+  useEffect(() => {
     sectionsRef.current.forEach((section) => {
       if (!section) return;
       gsap.fromTo(
@@ -38,6 +49,15 @@ export default function Home() {
     }
   };
 
+  const handleHeroAction = (e: React.MouseEvent) => {
+    if (!isConnected) {
+      e.preventDefault();
+      authenticate();
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
   return (
     <div className="bg-[#050505] min-h-screen text-white overflow-hidden pb-12 md:pb-32">
       
@@ -59,11 +79,15 @@ export default function Home() {
             <p className="text-lg md:text-xl text-gray-400 font-light leading-relaxed max-w-2xl">
               The decentralized social engagement protocol on Stacks. Every daily check-in and interaction builds your permanent, immutable reputation.
             </p>
-
+            
             <div className="pt-4 flex flex-col sm:flex-row items-center gap-6 justify-center">
-              <Link href="/dashboard" className="group rounded-full bg-[var(--color-accent)] px-8 py-4 text-black font-extrabold text-lg transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,197,94,0.4)] flex items-center gap-2">
-                Start GMing <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+              <button 
+                onClick={handleHeroAction}
+                className="group rounded-full bg-[var(--color-accent)] px-10 py-5 text-black font-extrabold text-xl transition-all hover:scale-110 hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] flex items-center gap-2 active:scale-95"
+              >
+                {isConnected ? 'Go to Dashboard' : 'Start GMing'}
+                <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
+              </button>
               <div className="h-[1px] w-12 bg-gray-600 hidden sm:block"></div>
               <span className="text-sm text-gray-500 font-mono tracking-wider uppercase">Built on Stacks</span>
             </div>
@@ -138,8 +162,11 @@ export default function Home() {
                  Unlike web2 platforms where your followers are locked in a database, Gm writes your relationships directly to the decentralized ledger. 
                  Post, react, and comment knowing your social capital is cryptographically secured.
                </p>
-               <button className="bg-[var(--color-accent)] text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all flex items-center gap-2">
-                 Connect Wallet <ArrowRight className="h-4 w-4" />
+               <button 
+                 onClick={handleHeroAction}
+                 className="bg-[var(--color-accent)] text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all flex items-center gap-2"
+               >
+                 {isConnected ? 'Go to Dashboard' : 'Connect Wallet'} <ArrowRight className="h-4 w-4" />
                </button>
             </div>
             <div className="lg:w-1/2 relative w-full flex justify-center">
@@ -201,10 +228,15 @@ export default function Home() {
       {/* 5. Decode Your Path (Footer Features) */}
       <section ref={addToRefs} id="how-it-works" className="pt-24 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
          <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 text-left">
-            <div className="lg:w-1/3 flex flex-col items-start">
-               <h2 className="text-4xl md:text-5xl font-bold mb-8">Why Build <br className="hidden lg:block"/>on Gm?</h2>
-               <Link href="/dashboard" className="inline-block bg-[var(--color-accent)] text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all">Connect Wallet</Link>
-            </div>
+             <div className="lg:w-1/3 flex flex-col items-start">
+                <h2 className="text-4xl md:text-5xl font-bold mb-8">Why Build <br className="hidden lg:block"/>on Gm?</h2>
+                <button 
+                  onClick={handleHeroAction}
+                  className="inline-block bg-[var(--color-accent)] text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all font-black uppercase tracking-widest text-xs"
+                >
+                  {isConnected ? 'View Dashboard' : 'Secure Your Identity'}
+                </button>
+             </div>
             <div className="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-12 text-left">
                <div className="flex flex-col items-start text-left">
                   <div className="bg-[var(--color-accent)]/20 w-12 h-12 rounded-full flex items-center justify-center mb-6">
