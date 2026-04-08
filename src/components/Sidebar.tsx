@@ -9,12 +9,18 @@ import {
   Trophy, 
   Settings, 
   PlusCircle,
-  Home
+  Home,
+  X
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { address, isConnected } = useSelector((state: RootState) => state.user);
 
@@ -28,47 +34,90 @@ export default function Sidebar() {
   if (!isConnected) return null;
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-[calc(100vh-64px)] sticky top-16 border-r border-[var(--color-border)] bg-[var(--color-background)] p-6 gap-8">
-      <nav className="flex flex-col gap-2">
-        {navLinks.map((link) => {
-          const Icon = link.icon;
-          const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href) && !link.href.includes('#'));
-          
-          return (
-            <Link
-              key={link.name}
-              href={link.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                isActive 
-                  ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)] font-bold' 
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-              <span>{link.name}</span>
-            </Link>
-          );
-        })}
-      </nav>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      <div className="mt-auto flex flex-col gap-6">
-        <button className="w-full bg-[var(--color-accent)] text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-          <PlusCircle className="h-5 w-5" />
-          Create Post
-        </button>
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 bg-[#050505] border-r border-white/5 p-6 flex flex-col gap-8 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 lg:h-[calc(100vh-64px)] lg:sticky lg:top-16
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        w-72 xl:w-24 xl:px-4 xl:items-center
+      `}>
+        {/* Mobile Header (inside sidebar) */}
+        <div className="flex items-center justify-between lg:hidden mb-4 w-full">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Gm" className="h-6 w-6 rounded-full" />
+            <span className="font-bold">Navigation</span>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-white">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
 
-        <Link
-          href="/settings"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-            pathname === '/settings' 
-              ? 'bg-white/10 text-white font-bold' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Settings className="h-5 w-5" />
-          <span>Settings</span>
-        </Link>
-      </div>
-    </aside>
+        <nav className="flex flex-col gap-4 w-full">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href) && !link.href.includes('#'));
+            
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={onClose}
+                className={`group relative flex items-center gap-3 px-4 py-3 xl:px-0 xl:justify-center rounded-2xl transition-all ${
+                  isActive 
+                    ? 'bg-white text-black shadow-xl scale-105' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
+                }`}
+              >
+                <Icon className={`h-5 w-5 ${isActive ? 'text-black' : 'group-hover:text-white transition-colors'}`} />
+                <span className={`font-bold transition-all xl:hidden truncate`}>
+                  {link.name}
+                </span>
+
+                {/* Tooltip for XL */}
+                <div className="hidden xl:group-hover:block absolute left-full ml-4 px-3 py-1 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-lg pointer-events-none z-50 whitespace-nowrap shadow-2xl">
+                  {link.name}
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="mt-auto flex flex-col gap-6 w-full">
+          <button className={`
+            flex items-center justify-center gap-2 bg-[var(--color-accent)] text-black font-black transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,197,94,0.3)]
+            w-full py-4 rounded-2xl
+            xl:w-12 xl:h-12 xl:p-0 xl:rounded-xl xl:mx-auto
+          `}>
+            <PlusCircle className="h-5 w-5" />
+            <span className="xl:hidden">Create Post</span>
+          </button>
+
+          <Link
+            href="/settings"
+            onClick={onClose}
+            className={`group relative flex items-center gap-3 px-4 py-3 xl:px-0 xl:justify-center rounded-2xl transition-all ${
+              pathname === '/settings' 
+                ? 'bg-white/10 text-white font-bold' 
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Settings className="h-5 w-5" />
+            <span className="xl:hidden">Settings</span>
+            
+            {/* Tooltip for XL */}
+            <div className="hidden xl:group-hover:block absolute left-full ml-4 px-3 py-1 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-lg pointer-events-none z-50 whitespace-nowrap shadow-2xl">
+              Settings
+            </div>
+          </Link>
+        </div>
+      </aside>
+    </>
   );
 }
