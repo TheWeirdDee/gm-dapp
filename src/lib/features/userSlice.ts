@@ -54,9 +54,14 @@ const userSlice = createSlice({
         if (action.payload.streak !== undefined) state.mockData.streak = action.payload.streak;
         if (action.payload.points !== undefined) state.mockData.points = action.payload.points;
       }
+    },
+    setUsername(state, action: PayloadAction<string>) {
+      if (state.mockData) {
+        state.mockData.username = action.payload;
+      }
     }
   },
 });
 
-export const { setUserData, logout, updateStats } = userSlice.actions;
+export const { setUserData, logout, updateStats, setUsername } = userSlice.actions;
 export default userSlice.reducer;
