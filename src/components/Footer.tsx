@@ -16,7 +16,6 @@ export default function Footer() {
       <div className="container mx-auto px-6 lg:px-12 xl:px-16 relative z-10">
         <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-y-12 gap-x-4 lg:gap-8 mb-16">
           
-          {/* Logo Row - Spans All on Mobile/Tablet, All on Desktop */}
           <div className="col-span-3 lg:col-span-5">
             <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 inline-flex">
               <img src="/logo.png" alt="Gm Logo" className="h-8 w-8 rounded-full shadow-[0_0_10px_var(--color-accent)]" />

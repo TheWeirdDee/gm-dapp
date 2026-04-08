@@ -1,44 +1,62 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { MOCK_USERS, CURRENT_USER_ADDRESS, User } from '../mock-data';
+import { User } from '../mock-data';
+import { userSession } from '../stacks';
 
 interface UserState {
-  currentUser: User;
-  allUsers: Record<string, User>;
+  address: string | null;
+  profile: any | null;
   isConnected: boolean;
+  mockData: User | null; // Keep for UI placeholders
 }
 
 const initialState: UserState = {
-  currentUser: MOCK_USERS[CURRENT_USER_ADDRESS],
-  allUsers: MOCK_USERS,
+  address: null,
+  profile: null,
   isConnected: false,
+  mockData: null,
 };
 
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    sayGM(state) {
-      if (!state.isConnected) return;
-      state.currentUser.streak += 1;
-      state.currentUser.points += 50;
-      state.allUsers[state.currentUser.address] = state.currentUser;
-    },
-    followUser(state, action: PayloadAction<string>) {
-      if (!state.isConnected) return;
-      const addressToFollow = action.payload;
-      state.currentUser.following += 1;
-      if (state.allUsers[addressToFollow]) {
-        state.allUsers[addressToFollow].followers += 1;
-      }
-    },
-    connectWallet(state) {
+    setUserData(state, action: PayloadAction<{ address: string; profile: any }>) {
+      const stxAddressObj = action.payload.profile.stxAddress;
+      const usernameString = typeof stxAddressObj === 'string' 
+        ? stxAddressObj 
+        : (stxAddressObj?.mainnet || stxAddressObj?.testnet || 'User');
+
+      state.address = action.payload.address;
+      state.profile = action.payload.profile;
       state.isConnected = true;
+      // Initialize mock data structure for the real address
+      state.mockData = {
+        address: action.payload.address,
+        username: usernameString,
+        avatar: action.payload.profile.image?.[0]?.contentUrl || '',
+        streak: 0,
+        points: 0,
+        followers: 0,
+        following: 0,
+        bio: 'Stacks GM Enthusiast',
+      };
     },
-    disconnectWallet(state) {
+    logout(state) {
+      state.address = null;
+      state.profile = null;
       state.isConnected = false;
+      state.mockData = null;
+      userSession.signUserOut();
+    },
+    // Keep internal UI actions for now
+    updateStats(state, action: PayloadAction<{ streak?: number; points?: number }>) {
+      if (state.mockData) {
+        if (action.payload.streak !== undefined) state.mockData.streak = action.payload.streak;
+        if (action.payload.points !== undefined) state.mockData.points = action.payload.points;
+      }
     }
   },
 });
 
-export const { sayGM, followUser, connectWallet, disconnectWallet } = userSlice.actions;
+export const { setUserData, logout, updateStats } = userSlice.actions;
 export default userSlice.reducer;

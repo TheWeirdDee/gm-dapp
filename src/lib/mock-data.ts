@@ -6,6 +6,7 @@ export interface User {
   points: number;
   following: number;
   followers: number;
+  bio?: string;
 }
 
 export interface Post {
@@ -33,6 +34,7 @@ export const MOCK_USERS: Record<string, User> = {
     points: 2400,
     following: 45,
     followers: 128,
+    bio: "Saying GM every day since block 1.",
   },
   "ST2CY5V39NHDPWSXWH9QLS3MPDW5A8GWH3RYXQZ00": {
     address: "ST2CY5V39NHDPWSXWH9QLS3MPDW5A8GWH3RYXQZ00",
@@ -42,6 +44,7 @@ export const MOCK_USERS: Record<string, User> = {
     points: 8900,
     following: 300,
     followers: 550,
+    bio: "Building on Bitcoin via Stacks.",
   },
   "ST33ZY8T6F2DBF3W74ZJ2D83C5GZ9W8Z8T8X0T8CQ": {
     address: "ST33ZY8T6F2DBF3W74ZJ2D83C5GZ9W8Z8T8X0T8CQ",
@@ -51,6 +54,7 @@ export const MOCK_USERS: Record<string, User> = {
     points: 400,
     following: 12,
     followers: 5,
+    bio: "New to the Gm community!",
   },
 };
 

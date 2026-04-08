@@ -1,99 +1,137 @@
 'use client';
 
-import { UserPlus, UserCheck, Flame, Star, Activity } from 'lucide-react';
+import { UserPlus, UserCheck, Flame, Star, Activity, Settings, Link as LinkIcon, Calendar } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { followUser } from '../lib/features/userSlice';
 import { RootState } from '../lib/store';
+import { MOCK_USERS } from '../lib/mock-data';
 
 export default function ProfileHeader({ targetAddress }: { targetAddress: string }) {
   const dispatch = useDispatch();
-  const allUsers = useSelector((state: RootState) => state.user.allUsers);
-  const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  const { address: currentAddress, isConnected } = useSelector((state: RootState) => state.user);
   
-  const user = allUsers[targetAddress];
-  const isSelf = currentUser.address === targetAddress;
+  // Use MOCK_USERS for the demo if it's not the current user
+  const user = MOCK_USERS[targetAddress] || (currentAddress === targetAddress ? useSelector((state: RootState) => state.user.mockData) : null);
+  const isSelf = currentAddress === targetAddress;
   
   if (!user) {
-    return <div className="card p-8 text-center text-gray-500">User not found</div>;
+    return (
+      <div className="bg-[#0A0A0A] border border-dashed border-white/10 rounded-[2.5rem] p-12 text-center text-gray-600">
+        <Activity className="h-10 w-10 mx-auto mb-4 opacity-20" />
+        <p className="font-bold uppercase tracking-widest text-xs">Principal not found in our indices</p>
+      </div>
+    );
   }
 
-  // To simulate follow state visually quickly without complex lists.
-  const isFollowing = currentUser.following > 45 && !isSelf; // Mock trick
-
-  const handleFollow = () => {
-    dispatch(followUser(targetAddress));
-  };
+  // To simulate follow state visually 
+  const isFollowing = user.followers > 100 && !isSelf; 
 
   return (
-    <div className="card overflow-hidden">
-      <div className="h-32 bg-gradient-to-r from-[var(--color-secondary)] to-[var(--color-accent)] opacity-20"></div>
-      <div className="px-6 pb-6 relative">
-        <div className="flex justify-between items-end -mt-12 mb-4">
-          <div className="h-24 w-24 rounded-full bg-gray-900 border-4 border-black overflow-hidden flex-shrink-0">
-            <img src={user.avatar} alt="avatar" className="h-full w-full object-cover" />
+    <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in duration-700">
+      {/* Dynamic Banner */}
+      <div className="h-32 bg-gradient-to-r from-[var(--color-accent)]/20 via-[var(--color-secondary)]/10 to-transparent relative">
+         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+      </div>
+      
+      <div className="px-8 pb-10 relative">
+        <div className="flex justify-between items-end -mt-12 mb-6">
+          <div className="h-28 w-28 rounded-[2rem] bg-black border-4 border-[#0A0A0A] overflow-hidden flex-shrink-0 shadow-2xl">
+            <img src={`https://api.dicebear.com/7.x/builder/svg?seed=${targetAddress}`} alt="avatar" className="h-full w-full object-cover" />
           </div>
           
-          {!isSelf && (
-            <button 
-              onClick={handleFollow}
-              className={`flex items-center gap-2 px-5 py-2 rounded-full font-bold text-sm transition-all shadow-lg ${
-                isFollowing 
-                  ? 'bg-transparent border border-gray-600 text-white hover:bg-white/5 hover:text-red-400 hover:border-red-400 group' 
-                  : 'bg-[var(--color-foreground)] text-black hover:bg-gray-200'
-              }`}
-            >
-              {isFollowing ? (
-                <>
-                  <UserCheck className="h-4 w-4 group-hover:hidden" />
-                  <span className="group-hover:hidden">Following</span>
-                  <span className="hidden group-hover:inline">Unfollow</span>
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-4 w-4" />
-                  Follow
-                </>
-              )}
-            </button>
-          )}
-          {isSelf && (
-            <button className="px-5 py-2 rounded-full font-bold text-sm bg-white/10 hover:bg-white/20 transition-colors border border-white/10">
-              Edit Profile
-            </button>
-          )}
-        </div>
-        
-        <div>
-          <h1 className="text-2xl font-black text-white">{user.username}</h1>
-          <p className="text-gray-400 font-mono text-sm mt-1">{user.address}</p>
-        </div>
-        
-        <div className="flex items-center gap-6 mt-6">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-bold text-white">{user.following}</span> 
-            <span className="text-gray-500">Following</span>
+          <div className="flex gap-3">
+            {isSelf ? (
+              <button className="flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs bg-white text-black hover:opacity-90 transition-all uppercase tracking-widest shadow-xl">
+                <Settings className="h-4 w-4" />
+                Customize
+              </button>
+            ) : (
+              <button 
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs transition-all uppercase tracking-widest shadow-xl ${
+                  isFollowing 
+                    ? 'bg-transparent border border-white/10 text-white hover:bg-white/5 hover:text-red-400 hover:border-red-400 group' 
+                    : 'bg-[var(--color-accent)] text-black hover:bg-green-400'
+                }`}
+              >
+                {isFollowing ? (
+                  <>
+                    <UserCheck className="h-4 w-4 group-hover:hidden" />
+                    <span className="group-hover:hidden">Signed</span>
+                    <span className="hidden group-hover:inline">Revoke</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4" />
+                    Connect
+                  </>
+                )}
+              </button>
+            )}
           </div>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-bold text-white">{user.followers}</span> 
-            <span className="text-gray-500">Followers</span>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tighter">{user.username}</h1>
+            <div className="flex items-center gap-4 mt-1">
+               <p className="text-gray-500 font-mono text-xs opacity-60 tracking-tighter">{targetAddress}</p>
+               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                  <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Verified</span>
+               </div>
+            </div>
+          </div>
+          
+          <p className="text-gray-400 font-medium text-sm max-w-xl leading-relaxed">
+             {user.bio || "This user hasn't set their on-chain identity yet."}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-6 pt-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
+               <Calendar className="h-4 w-4" />
+               Joined Mar 2024
+            </div>
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
+               <LinkIcon className="h-4 w-4" />
+               <a href="#" className="hover:text-[var(--color-accent)] transition-colors">gm.social/{user.username}</a>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-8 pt-4 border-t border-white/[0.03]">
+            <div className="flex items-center gap-2">
+              <span className="font-black text-white text-xl">{user.following}</span> 
+              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Connections</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-black text-white text-xl">{user.followers}</span> 
+              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Connectors</span>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mt-6">
-          <div className="bg-white/5 rounded-lg p-3 text-center border border-white/5">
-            <Flame className="h-5 w-5 text-orange-500 mx-auto mb-1" />
-            <div className="font-bold text-white text-lg">{user.streak}</div>
-            <div className="text-xs text-gray-500">Streak</div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-10">
+          <div className="bg-white/[0.02] rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
+            <div className="absolute -right-2 -bottom-2 opacity-[0.03] transition-transform group-hover:scale-110">
+               <Flame className="h-20 w-20 text-orange-500" />
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2">Max Streak</div>
+            <div className="text-3xl font-black text-orange-500">{user.streak} <span className="text-sm">Days</span></div>
           </div>
-          <div className="bg-white/5 rounded-lg p-3 text-center border border-white/5">
-            <Star className="h-5 w-5 text-yellow-500 mx-auto mb-1" />
-            <div className="font-bold text-white text-lg">{user.points}</div>
-            <div className="text-xs text-gray-500">Points</div>
+          
+          <div className="bg-white/[0.02] rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
+            <div className="absolute -right-2 -bottom-2 opacity-[0.03] transition-transform group-hover:scale-110">
+               <Star className="h-20 w-20 text-yellow-500" />
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2">Reputation</div>
+            <div className="text-3xl font-black text-yellow-500">{user.points.toLocaleString()}</div>
           </div>
-          <div className="bg-white/5 rounded-lg p-3 text-center border border-white/5">
-            <Activity className="h-5 w-5 text-blue-500 mx-auto mb-1" />
-            <div className="font-bold text-white text-lg">Daily</div>
-            <div className="text-xs text-gray-500">Active</div>
+
+          <div className="bg-white/[0.02] rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
+            <div className="absolute -right-2 -bottom-2 opacity-[0.03] transition-transform group-hover:scale-110">
+               <Activity className="h-20 w-20 text-blue-500" />
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2">Protocol Status</div>
+            <div className="text-3xl font-black text-blue-500 uppercase tracking-tighter">Active</div>
           </div>
         </div>
       </div>
