@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const FeedContent = dynamic(() => import('./FeedContent'), {
+const FeedContent = dynamic(() => import('@/app/(app)/feed/FeedContent'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center min-h-[60vh]">
