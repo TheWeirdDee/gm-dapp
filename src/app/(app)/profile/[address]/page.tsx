@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const ProfileContent = dynamic(() => import('./ProfileContent'), {
+const ProfileContent = dynamic(() => import('@/app/(app)/profile/[address]/ProfileContent'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center min-h-[60vh]">
