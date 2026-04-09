@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { Providers } from "@/components/Providers";
 
-const LandingContent = dynamic(() => import('./LandingContent'), {
+const LandingContent = dynamic(() => import('@/app/LandingContent'), {
   ssr: false,
   loading: () => (
     <div className="bg-[#050505] min-h-screen flex items-center justify-center">
