@@ -7,7 +7,7 @@ import { RootState } from '@/lib/store';
 import Link from 'next/link';
 
 // Use dynamic import with ssr: false to bypass prerendering issues for the dashboard
-const DashboardContent = dynamic(() => import('./DashboardContent'), { 
+const DashboardContent = dynamic(() => import('@/app/(app)/dashboard/DashboardContent'), { 
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center min-h-[60vh]">
