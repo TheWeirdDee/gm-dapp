@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Wallet, LayoutDashboard, Rss, Trophy, User as UserIcon, Star, Info, ChevronDown, LogOut } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../lib/store';
-import { authenticate, userSession, getUserData } from '../lib/stacks';
+import { authenticate, getUserSession, getUserData } from '../lib/stacks';
 import { setUserData, logout } from '../lib/features/userSlice';
 import { useState, useRef, useEffect } from 'react';
 
