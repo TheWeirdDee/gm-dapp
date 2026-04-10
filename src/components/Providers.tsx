@@ -21,9 +21,21 @@ function AuthHydrator({ children }: { children: React.ReactNode }) {
         ? stxAddress 
         : (stxAddress?.mainnet || stxAddress?.testnet || userData.authResponseToken);
 
+      // Hydration: Check for cached profile in localStorage
+      let cachedData = null;
+      try {
+        const saved = localStorage.getItem(`gm_profile_${addressString}`);
+        if (saved) {
+          cachedData = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.warn('Failed to load cached profile');
+      }
+
       dispatch(setUserData({
         address: addressString,
-        profile: userData.profile
+        profile: userData.profile,
+        cachedData
       }));
       
       // HYDRATION: Fetch real data from the blockchain immediately on mount
