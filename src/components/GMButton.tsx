@@ -1,10 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import gsap from 'gsap';
-import { Sun, CheckCircle2, Loader2, Wallet as WalletIcon, AlertCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Loader2, Wallet as WalletIcon, AlertCircle, ArrowRight } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateStats, fetchOnChainStats } from '../lib/features/userSlice';
+import { updateStats, fetchOnChainStats, resetStats } from '../lib/features/userSlice';
 import { RootState } from '../lib/store';
 import { callContract } from '../lib/stacks';
 import { APP_CONFIG, getExplorerLink } from '../lib/config';
@@ -18,32 +18,44 @@ export default function GMButton() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<'idle' | 'wallet_open' | 'pending' | 'success' | 'error'>('idle');
   const [txId, setTxId] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [localCooldown, setLocalCooldown] = useState(false);
   const dispatch = useDispatch();
-  const { mockData, address } = useSelector((state: RootState) => state.user);
+  const { mockData, address, isPro, currentBlockHeight } = useSelector((state: RootState) => state.user);
+
+  // 1. CALENDAR-DAY COOLDOWN (LocalStorage)
+  useEffect(() => {
+    if (!address) return;
+    const today = new Date().toISOString().split('T')[0];
+    const savedDate = localStorage.getItem(`gm_date_${address}`);
+    if (savedDate === today) {
+      setLocalCooldown(true);
+    }
+  }, [address]);
+
+  // 2. BLOCK-HEIGHT COOLDOWN
+  const lastGm = mockData?.lastGm || 0;
+  const blocksToWait = lastGm > 0 ? 144 - (currentBlockHeight - lastGm) : 0;
+  const isChainCooldown = lastGm > 0 && (currentBlockHeight === 0 || blocksToWait > 0);
+  
+  // Final decision: if either local or chain says we're cooling down
+  const isCooldownActive = localCooldown || isChainCooldown;
+
+  const handleReset = () => {
+    if (!address) return;
+    localStorage.removeItem(`gm_date_${address}`);
+    setLocalCooldown(false);
+    dispatch(resetStats());
+    console.log('RESET: Local stats and daily lock cleared for testing.');
+  };
 
   const handleGM = async () => {
-    // DIAGNOSTIC ALERT: Prove the click reached the code
-    if (typeof window !== 'undefined') window.alert('GM TRIGGERED');
-    
-    console.error('CRITICAL: GM Button Click Registered');
-    console.log('GM Button Details - State:', state, 'Addr:', address);
-    if (state !== 'idle') {
-      console.log('Button blocked: State is', state);
-      return;
-    }
-
-    if (!address) {
-      console.log('Button blocked: No wallet address found');
-      return;
-    }
+    if (state !== 'idle' || isCooldownActive) return;
+    if (!address) return;
 
     setState('wallet_open');
-    console.log('Transitioning to wallet_open...');
 
     try {
-      console.log('Invoking callContract-say-gm...');
-      await callContract({
+      const options = {
         anchorMode: AnchorMode.Any,
         contractAddress: APP_CONFIG.contractAddress,
         contractName: APP_CONFIG.contractName,
@@ -52,107 +64,136 @@ export default function GMButton() {
         postConditionMode: PostConditionMode.Deny,
         postConditions: [],
         onFinish: (data: any) => {
-          console.log('GM Transaction Success! TXID:', data.txId);
           setTxId(data.txId);
           setState('pending');
           
-          dispatch(fetchOnChainStats(address) as any);
+          const today = new Date().toISOString().split('T')[0];
+          localStorage.setItem(`gm_date_${address}`, today);
+          setLocalCooldown(true);
+
+          const pointsToAdd = isPro ? 10 : 5;
+          dispatch(updateStats({
+            streak: (mockData?.streak || 0) + 1,
+            points: (mockData?.points || 0) + pointsToAdd
+          }));
+          
+          dispatch(fetchOnChainStats(address!) as any);
           
           setTimeout(() => {
             setState('success');
-            const tl = gsap.timeline();
-            tl.to(buttonRef.current, { scale: 1.1, duration: 0.2, ease: 'back.out' })
-              .to(buttonRef.current, { scale: 1, duration: 0.2 });
-
             setTimeout(() => {
               setState('idle');
               setTxId(null);
             }, 8000);
           }, 3000);
         },
-        onCancel: () => {
-          console.log('GM Transaction Cancelled by user');
-          setState('idle');
-        },
-      });
+        onCancel: () => setState('idle'),
+      };
+
+      await callContract(options);
     } catch (error: any) {
-      console.error('GM ERROR TRAP:', error);
-      setState('error');
-      setErrorMessage(error.message || 'Transaction failed');
-      setTimeout(() => setState('idle'), 3000);
+      if (error.message?.includes('u101')) {
+        const today = new Date().toISOString().split('T')[0];
+        localStorage.setItem(`gm_date_${address}`, today);
+        setLocalCooldown(true);
+        setState('error');
+      } else {
+        setState('error');
+      }
+      setTimeout(() => setState('idle'), 4000);
     }
   };
 
   return (
     <div ref={containerRef} className="relative group flex flex-col items-center gap-4">
-      <div className={`absolute -inset-1 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200 ${
-        state === 'error' ? 'bg-red-500' : 'bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-secondary)]'
-      }`}></div>
+      <div className={`absolute -inset-1 rounded-full blur opacity-[0.02] transition duration-1000 group-hover:opacity-[0.05] pointer-events-none bg-white`}></div>
       
       <button
         ref={buttonRef}
         onClick={handleGM}
-        disabled={state !== 'idle'}
-        className={`relative flex h-56 w-56 flex-col items-center justify-center gap-2 rounded-full border-4 transition-all duration-500 shadow-2xl ${
-          state === 'success' ? 'border-green-500 bg-green-500/10 text-green-500' :
-          state === 'pending' ? 'border-orange-500 bg-orange-500/10 text-orange-500 animate-pulse' :
-          state === 'wallet_open' ? 'border-blue-500 bg-blue-500/10 text-blue-500' :
-          state === 'error' ? 'border-red-500 bg-red-500/10 text-red-500' :
-          'border-[var(--color-accent)] bg-black hover:border-white text-[var(--color-accent)]'
+        disabled={state !== 'idle' || isCooldownActive}
+        className={`relative z-10 flex h-56 w-56 flex-col items-center justify-center gap-2 rounded-full border transition-all duration-1000 shadow-inner ${
+          isCooldownActive ? 'border-white/[0.04] bg-[#0c0c0e] text-white/5' :
+          state === 'success' ? 'border-emerald-900/10 bg-emerald-950/2 text-emerald-500/10' :
+          state === 'pending' ? 'border-white/5 bg-zinc-950/5 text-zinc-700 animate-pulse' :
+          state === 'wallet_open' ? 'border-white/5 bg-slate-950/5 text-slate-600' :
+          state === 'error' ? 'border-red-900/10 bg-red-950/5 text-red-900/30' :
+          'border-white/[0.05] bg-[#020202] hover:border-white/10 text-gray-500'
         }`}
       >
-        {state === 'idle' && (
+        {state === 'idle' && !isCooldownActive && (
           <>
-            <span className="text-6xl font-black transition-transform group-hover:scale-110">GM</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Say GM</span>
+            <span className="text-6xl font-black transition-transform group-hover:scale-[1.01] tracking-tighter opacity-70">GM</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.5em] opacity-20 mt-1">Say GM</span>
+          </>
+        )}
+        {state === 'idle' && isCooldownActive && (
+          <>
+            <CheckCircle2 className="h-8 w-8 mb-2 opacity-[0.02]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-[0.05]">Confirmed</span>
           </>
         )}
         {state === 'wallet_open' && (
           <>
-            <WalletIcon className="h-12 w-12 mb-2 animate-bounce" />
-            <span className="text-xs font-black uppercase tracking-widest text-center px-4">Confirm in Wallet</span>
+            <WalletIcon className="h-10 w-10 mb-2 opacity-20 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-center px-4 opacity-40">Confirm</span>
           </>
         )}
         {state === 'pending' && (
           <>
-            <Loader2 className="h-12 w-12 animate-spin mb-2" />
-            <span className="text-xs font-black uppercase tracking-widest">Sending GM...</span>
+            <Loader2 className="h-10 w-10 animate-spin mb-2 opacity-20" />
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-30">Indexing...</span>
           </>
         )}
         {state === 'success' && (
           <>
-            <CheckCircle2 className="h-16 w-16 mb-2" />
-            <span className="text-xl font-black uppercase tracking-widest">✅ GM Sent</span>
+            <CheckCircle2 className="h-12 w-12 mb-2 opacity-20" />
+            <span className="text-lg font-black uppercase tracking-widest opacity-30">GM SENT</span>
           </>
         )}
         {state === 'error' && (
           <>
-            <AlertCircle className="h-12 w-12 mb-2" />
-            <span className="text-xs font-black uppercase tracking-widest">Error</span>
+            <AlertCircle className="h-10 w-10 mb-2 opacity-20" />
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-30">FAILED</span>
           </>
         )}
       </button>
 
-      {/* Task 6: Transaction Hash & Explorer Link */}
+      {/* COUNTDOWN UI */}
+      {isCooldownActive && (
+        <div className="flex flex-col items-center gap-1.5 animate-in fade-in slide-in-from-top-4 duration-700">
+           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 opacity-60">
+             Next window opens in:
+           </p>
+           <p className="text-xl font-mono font-black text-white/20 tracking-widest">
+             {blocksToWait > 0 ? blocksToWait : 144} BLOCKS
+           </p>
+           <p className="text-[9px] text-gray-800 italic opacity-40">
+             ~{Math.ceil((blocksToWait > 0 ? blocksToWait : 144) * 10 / 60)} hours remaining
+           </p>
+        </div>
+      )}
+
       {txId && (
         <a 
           href={getExplorerLink(txId)} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-[10px] font-mono font-bold text-gray-500 hover:text-[var(--color-accent)] transition-colors flex items-center gap-1.5 animate-in fade-in slide-in-from-top-2"
+          className="text-[9px] font-mono font-bold text-gray-700 hover:text-white transition-colors flex items-center gap-1.5 opacity-40 hover:opacity-100"
         >
-          TX: {txId.substring(0, 10)}... <ArrowRight className="h-3 w-3" />
+          {txId.substring(0, 10)}... <ArrowRight className="h-3 w-3" />
         </a>
       )}
+
+      {/* DEV RESET BUTTON */}
+      <button 
+        onClick={handleReset}
+        className="mt-8 text-[8px] font-black uppercase tracking-[0.3em] text-gray-900 hover:text-red-900/40 transition-colors"
+      >
+        [ Dev: Reset Local Stats ]
+      </button>
       
-      {/* Decorative Glow */}
-      <div className={`absolute -inset-4 rounded-full blur-2xl opacity-10 transition-colors duration-1000 ${
-        state === 'success' ? 'bg-green-500' : 
-        state === 'pending' ? 'bg-orange-500' : 
-        state === 'wallet_open' ? 'bg-blue-500' :
-        state === 'error' ? 'bg-red-500' :
-        'bg-[var(--color-accent)]'
-      }`}></div>
+      <div className={`absolute -inset-8 rounded-full blur-3xl opacity-[0.01] pointer-events-none bg-white`}></div>
     </div>
   );
 }
