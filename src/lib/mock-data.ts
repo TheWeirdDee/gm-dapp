@@ -4,6 +4,7 @@ export interface User {
   avatar: string;
   streak: number;
   points: number;
+  lastGm: number;
   following: number;
   followers: number;
   bio?: string;
@@ -32,6 +33,7 @@ export const MOCK_USERS: Record<string, User> = {
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=alice",
     streak: 12,
     points: 2400,
+    lastGm: 0,
     following: 45,
     followers: 128,
     bio: "Saying GM every day since block 1.",
@@ -42,6 +44,7 @@ export const MOCK_USERS: Record<string, User> = {
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=builder",
     streak: 45,
     points: 8900,
+    lastGm: 0,
     following: 300,
     followers: 550,
     bio: "Building on Bitcoin via Stacks.",
@@ -52,6 +55,7 @@ export const MOCK_USERS: Record<string, User> = {
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=bob",
     streak: 3,
     points: 400,
+    lastGm: 0,
     following: 12,
     followers: 5,
     bio: "New to the Gm community!",
