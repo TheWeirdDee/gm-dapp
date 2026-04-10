@@ -9,6 +9,7 @@ interface LeaderboardUser {
   avatar: string;
   streak: number;
   points: number;
+  isPro?: boolean;
 }
 
 interface LeaderboardTableProps {
@@ -47,12 +48,18 @@ export default function LeaderboardTable({ users, type }: LeaderboardTableProps)
                   </td>
                   <td className="px-8 py-5">
                     <Link href={`/profile/${user.address}`} className="flex items-center gap-4 group/user">
-                      <div className="h-11 w-11 rounded-2xl overflow-hidden bg-white/5 border border-white/5 group-hover/user:border-[var(--color-accent)]/50 transition-colors">
+                      <div className="h-11 w-11 rounded-2xl overflow-hidden bg-white/5 border border-white/5 group-hover/user:border-[var(--color-accent)]/50 transition-colors relative">
                         <img src={`https://api.dicebear.com/7.x/builder/svg?seed=${user.address}`} alt="avatar" className="h-full w-full object-cover" />
+                        {user.isPro && (
+                          <div className="absolute inset-0 border-2 border-indigo-500/50 rounded-2xl pointer-events-none"></div>
+                        )}
                       </div>
                       <div>
-                        <div className="font-bold text-white flex items-center gap-1.5 group-hover/user:text-[var(--color-accent)] transition-colors">
+                        <div className="font-bold text-white flex items-center gap-2 group-hover/user:text-[var(--color-accent)] transition-colors">
                           {user.username || `user_${user.address.substring(user.address.length - 4)}`}
+                          {user.isPro && (
+                            <span className="bg-indigo-600 text-[8px] px-1.5 py-0.5 rounded-md text-white font-black uppercase tracking-tighter">PRO</span>
+                          )}
                           <ArrowUpRight className="h-3 w-3 opacity-0 group-hover/user:opacity-100 transition-all" />
                         </div>
                         <div className="text-[10px] text-gray-600 font-mono tracking-tighter uppercase">
