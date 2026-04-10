@@ -1,9 +1,28 @@
 'use client';
 
-import { UserPlus, UserCheck, Flame, Star, Activity, Settings, Link as LinkIcon, Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { 
+  UserPlus, 
+  UserCheck, 
+  Flame, 
+  Star, 
+  Activity, 
+  Settings, 
+  Link as LinkIcon, 
+  Calendar,
+  Loader2
+} from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
 import { MOCK_USERS } from '../lib/mock-data';
+import { callContract } from '../lib/stacks';
+import { fetchOnChainStats } from '../lib/features/userSlice';
+import { APP_CONFIG } from '../lib/config';
+import { 
+  AnchorMode, 
+  PostConditionMode, 
+  principalCV 
+} from '@stacks/transactions';
 
 export default function ProfileHeader({ targetAddress }: { targetAddress: string }) {
   const dispatch = useDispatch();
@@ -11,19 +30,43 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
   
   // Use MOCK_USERS for the demo if it's not the current user
   const user = MOCK_USERS[targetAddress] || (currentAddress === targetAddress ? useSelector((state: RootState) => state.user.mockData) : null);
+  const [isFollowPending, setIsFollowPending] = useState(false);
   const isSelf = currentAddress === targetAddress;
-  
-  if (!user) {
-    return (
-      <div className="bg-[#0A0A0A] border border-dashed border-white/10 rounded-[2.5rem] p-12 text-center text-gray-600">
-        <Activity className="h-10 w-10 mx-auto mb-4 opacity-20" />
-        <p className="font-bold uppercase tracking-widest text-xs">Principal not found in our indices</p>
-      </div>
-    );
-  }
+  const isFollowing = (user?.followers || 0) > 100 && !isSelf; 
 
-  // To simulate follow state visually 
-  const isFollowing = user.followers > 100 && !isSelf; 
+  const handleFollow = async () => {
+    if (!isConnected || !currentAddress || isSelf || isFollowPending) return;
+    
+    setIsFollowPending(true);
+    try {
+      console.log('Initiating Follow Transaction:', { from: currentAddress, to: targetAddress });
+
+      await callContract({
+        anchorMode: AnchorMode.Any,
+        contractAddress: APP_CONFIG.contractAddress,
+        contractName: APP_CONFIG.contractName,
+        functionName: 'follow',
+        functionArgs: [principalCV(targetAddress)],
+        postConditionMode: PostConditionMode.Deny, // Security best practice
+        postConditions: [],
+        onFinish: (data: any) => {
+          console.log('Follow Success - TXID:', data.txId);
+          
+          // Re-fetch stats for both users to ensure UI sync
+          dispatch(fetchOnChainStats(targetAddress) as any);
+          dispatch(fetchOnChainStats(currentAddress) as any);
+
+          setTimeout(() => {
+            setIsFollowPending(false);
+          }, 4000);
+        },
+        onCancel: () => setIsFollowPending(false),
+      });
+    } catch (e: any) {
+      console.error('Follow Error:', e);
+      setIsFollowPending(false);
+    }
+  };
 
   return (
     <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in duration-700">
@@ -46,16 +89,23 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
               </button>
             ) : (
               <button 
+                onClick={handleFollow}
+                disabled={isFollowPending}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs transition-all uppercase tracking-widest shadow-xl ${
                   isFollowing 
                     ? 'bg-transparent border border-white/10 text-white hover:bg-white/5 hover:text-red-400 hover:border-red-400 group' 
                     : 'bg-[var(--color-accent)] text-black hover:bg-green-400'
-                }`}
+                } ${isFollowPending ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {isFollowing ? (
+                {isFollowPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Pending...
+                  </>
+                ) : isFollowing ? (
                   <>
                     <UserCheck className="h-4 w-4 group-hover:hidden" />
-                    <span className="group-hover:hidden">Signed</span>
+                    <span className="group-hover:hidden">Connected</span>
                     <span className="hidden group-hover:inline">Revoke</span>
                   </>
                 ) : (
