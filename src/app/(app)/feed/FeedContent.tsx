@@ -97,11 +97,41 @@ export default function FeedContent() {
 
       {/* Feed List */}
       <div className="flex flex-col gap-6">
+        {/* Activity Highlight (New) */}
+        <div className="bg-gradient-to-r from-orange-500/10 to-transparent p-6 rounded-[2.5rem] border border-orange-500/10 mb-4 animate-in fade-in slide-in-from-left-4 duration-1000">
+           <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-orange-500/20 flex items-center justify-center">
+                 <Flame className="h-6 w-6 text-orange-500 animate-pulse" />
+              </div>
+              <div>
+                 <p className="text-white font-bold text-sm">Divine just said GM! 🔥</p>
+                 <p className="text-gray-500 text-xs font-medium">Currently on a 12-day streak</p>
+              </div>
+              <div className="ml-auto">
+                 <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-500/10 px-3 py-1 rounded-full">Recent Activity</span>
+              </div>
+           </div>
+        </div>
+
         {feed.map(post => (
           <div key={post.id} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             <PostCard post={post} />
           </div>
         ))}
+        
+        {/* Simulated Global Live Activity */}
+        <div className="bg-white/[0.02] border border-white/5 p-6 rounded-[2.5rem] opacity-60">
+           <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-xl overflow-hidden bg-white/5">
+                 <img src="https://api.dicebear.com/7.x/builder/svg?seed=satoshi" alt="avatar" />
+              </div>
+              <div>
+                 <p className="text-gray-400 font-bold text-sm">satoshi.btc maintained their status</p>
+                 <p className="text-gray-600 text-xs">5 minutes ago • 142 day total streak</p>
+              </div>
+           </div>
+        </div>
+
         {feed.length === 0 && (
           <div className="py-20 text-center space-y-4">
              <div className="h-20 w-20 bg-white/[0.02] rounded-full flex items-center justify-center mx-auto border border-white/5">
