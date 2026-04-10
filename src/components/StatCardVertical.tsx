@@ -9,16 +9,24 @@ interface StatCardVerticalProps {
   icon: LucideIcon;
   subtext: string;
   accentColor?: string;
+  isLoading?: boolean;
 }
 
-export default function StatCardVertical({ label, value, icon: Icon, subtext, accentColor = 'var(--color-accent)' }: StatCardVerticalProps) {
+export default function StatCardVertical({ label, value, icon: Icon, subtext, accentColor = 'var(--color-accent)', isLoading }: StatCardVerticalProps) {
   return (
     <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-6 flex flex-col gap-4 relative overflow-hidden group hover:border-white/10 transition-all shadow-xl">
       <div className="flex items-center justify-between">
         <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 group-hover:scale-110 transition-transform">
           <Icon className="h-6 w-6" style={{ color: accentColor }} />
         </div>
-        <ChevronRight className="h-4 w-4 text-gray-700 group-hover:text-white transition-colors" />
+        {isLoading ? (
+          <div className="flex items-center gap-1.5">
+             <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+             <span className="text-[8px] font-black uppercase text-blue-500 tracking-tighter">Syncing</span>
+          </div>
+        ) : (
+          <ChevronRight className="h-4 w-4 text-gray-700 group-hover:text-white transition-colors" />
+        )}
       </div>
       
       <div>
