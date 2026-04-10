@@ -5,6 +5,7 @@ import PostCard from '@/components/PostCard';
 import AnalyticsGraph from '@/components/AnalyticsGraph';
 import StatCardVertical from '@/components/StatCardVertical';
 import SetUsernameModal from '@/components/SetUsernameModal';
+import ProPlanModal from '@/components/ProPlanModal';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import Link from 'next/link';
@@ -22,25 +23,30 @@ import {
 } from 'lucide-react';
 
 export default function DashboardContent() {
-  const { address, isConnected, mockData } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, mockData, isLoading, followers, following, isPro } = useSelector((state: RootState) => state.user);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
   const dismissed = useRef(false);
   
   useEffect(() => {
     // Only show modal if: connected, no username set on-chain, and user hasn't dismissed it
-    if (isConnected && !mockData?.username && !dismissed.current) {
+    // Wait until loading is finished to decide whether to show onboarding
+    if (!isLoading && isConnected && !mockData?.username && !dismissed.current) {
       setShowOnboarding(true);
     } else if (mockData?.username) {
       setShowOnboarding(false);
     }
-  }, [isConnected, mockData?.username]);
+  }, [isConnected, mockData?.username, isLoading]);
 
   const handleCloseOnboarding = () => {
     dismissed.current = true;
     setShowOnboarding(false);
   };
 
-  const greeting = mockData?.username || (address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'GM User');
+  const addressShort = address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'GM User';
+  const greeting = isLoading && !mockData?.username 
+    ? "Loading profile..." 
+    : (mockData?.username || addressShort);
 
   if (!isConnected) {
     return (
@@ -61,6 +67,7 @@ export default function DashboardContent() {
     <div className="p-6 lg:p-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 max-w-[1600px] mx-auto">
       
       <SetUsernameModal isOpen={showOnboarding} onClose={handleCloseOnboarding} />
+      <ProPlanModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
 
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10">
         
@@ -74,9 +81,14 @@ export default function DashboardContent() {
             </div>
             
             <div className="relative z-10 max-w-xl">
-               <h1 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight truncate">
-                  Hi, {greeting}.
-               </h1>
+               <div className="flex items-center gap-3 mb-4">
+                  <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight truncate">
+                    Hi, {greeting}.
+                  </h1>
+                  {isPro && (
+                    <span className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]">PRO</span>
+                  )}
+               </div>
                <p className="text-gray-400 text-lg md:text-xl font-medium mb-8 leading-relaxed">
                   Welcome back! Your streak is active and your reputation is growing. Inspire the network today.
                </p>
@@ -104,21 +116,30 @@ export default function DashboardContent() {
                 label="Days Streak" 
                 value={mockData?.streak || 0} 
                 icon={History} 
-                subtext="Keep it up to multiply points!"
+                subtext={isPro ? "Streak protection active" : "Keep it up for bonuses!"}
+                isLoading={isLoading}
              />
              <StatCardVertical 
                 label="Social Reputation" 
-                value={mockData?.points || 0} 
+                value={((mockData?.points || 0) / 10).toFixed(1)} 
                 icon={Award} 
-                subtext="Top 15% of all users"
+                subtext={
+                  isPro 
+                    ? "2x Rep Multiplier active" 
+                    : (mockData?.points || 0) > 100 ? "Top 5% of all users" :
+                      (mockData?.points || 0) > 50 ? "Top 15% of all users" :
+                      (mockData?.points || 0) > 10 ? "Top 30% of all users" : "New Network Member"
+                }
                 accentColor="#818cf8"
+                isLoading={isLoading}
              />
              <StatCardVertical 
                 label="Total Followers" 
-                value={mockData?.followers || 0} 
+                value={followers || 0} 
                 icon={Users} 
-                subtext="+12 new this week"
+                subtext={`${following} following`}
                 accentColor="#f472b6"
+                isLoading={isLoading}
              />
           </section>
 
@@ -155,19 +176,26 @@ export default function DashboardContent() {
                     alt="Follower"
                   />
                 ))}
-                <div className="h-10 w-10 rounded-full border-4 border-black bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-400">
-                  +24
-                </div>
+                {followers > 5 && (
+                  <div className="h-10 w-10 rounded-full border-4 border-black bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-400">
+                    +{followers - 5}
+                  </div>
+                )}
              </div>
           </div>
 
           {/* Pro Account CTA */}
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-2xl order-6">
              <Zap className="absolute top-[-20px] right-[-20px] h-32 w-32 opacity-20 rotate-12 transition-transform group-hover:scale-110" />
-             <h4 className="text-xl font-black text-white mb-2 relative z-10">Go Pro.</h4>
-             <p className="text-indigo-100 text-sm mb-6 relative z-10 opacity-80">Unlock custom avatars, higher streak multipliers, and exclusive badges.</p>
-             <button className="w-full bg-white text-indigo-600 font-black py-4 rounded-2xl relative z-10 transition-transform active:scale-95 shadow-xl">
-                Purchase Now
+             <h4 className="text-xl font-black text-white mb-2 relative z-10">{isPro ? "Welcome Pro" : "Go Pro."}</h4>
+             <p className="text-indigo-100 text-sm mb-6 relative z-10 opacity-80">
+                {isPro ? "You are enjoying double reputation points and streak protection." : "Unlock custom avatars, higher streak multipliers, and exclusive badges."}
+             </p>
+             <button 
+                onClick={() => setShowProModal(true)}
+                className="w-full bg-white text-indigo-600 font-black py-4 rounded-2xl relative z-10 transition-transform active:scale-95 shadow-xl disabled:opacity-50"
+             >
+                {isPro ? "View Membership" : "Purchase Now"}
              </button>
           </div>
 
