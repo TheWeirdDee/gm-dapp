@@ -8,6 +8,7 @@ export interface User {
   following: number;
   followers: number;
   bio?: string;
+  isPro?: boolean;
 }
 
 export interface Post {

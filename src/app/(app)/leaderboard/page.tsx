@@ -26,18 +26,59 @@ export default function LeaderboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-6 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      {/* Header Section */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/5 mb-2">
-           <Trophy className="h-4 w-4 text-yellow-500" />
-           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Global Rankings</span>
+      {/* Header Hero Section */}
+      <section className="relative bg-gradient-to-br from-[#0047FF] via-[#4F46E5] to-[#7C3AED] rounded-[3.5rem] overflow-hidden p-10 md:p-16 text-left group shadow-[0_40px_100px_rgba(0,71,255,0.2)]">
+        {/* Decorative Patterns */}
+        
+        {/* Left: Concentric Circles */}
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 opacity-20 pointer-events-none transition-transform group-hover:scale-110 duration-1000">
+           <div className="absolute inset-0 border-[1.5rem] border-white rounded-full"></div>
+           <div className="absolute inset-[3rem] border-[1rem] border-white rounded-full"></div>
+           <div className="absolute inset-[6rem] border-[0.7rem] border-white rounded-full"></div>
+           <div className="absolute inset-[9rem] border-[0.5rem] border-white rounded-full"></div>
         </div>
-        <h1 className="text-5xl font-black text-white tracking-tighter">The Hall of GM</h1>
-        <p className="text-gray-500 max-w-xl mx-auto font-medium">
-          The most consistent and influential collectors in the Stacks ecosystem. 
-          Build your streak to rise.
-        </p>
-      </div>
+
+        {/* Right: Diagonal Stripes */}
+        <div className="absolute -top-10 -right-10 w-64 h-64 opacity-20 rotate-45 pointer-events-none transition-transform group-hover:-translate-y-4 duration-1000"
+             style={{ backgroundImage: 'linear-gradient(90deg, transparent 50%, white 50%)', backgroundSize: '20px 100%' }}>
+        </div>
+        
+        {/* Top-right pattern (small dots/strips) */}
+        <div className="absolute top-10 right-20 flex gap-2 opacity-30 pointer-events-none">
+           {[1,2,3,4,5,6].map(i => (
+             <div key={i} className="w-1 h-8 bg-white/50 rounded-full"></div>
+           ))}
+        </div>
+
+        <div className="relative z-10 space-y-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
+             <Trophy className="h-4 w-4 text-yellow-300" />
+             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">The Global Stage</span>
+          </div>
+          
+          <div className="space-y-4">
+            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.9]">
+              The Hall <br/> of <span className="text-white/60">GM.</span>
+            </h1>
+            <p className="text-blue-100/70 max-w-lg font-medium text-lg leading-relaxed">
+              Celebrating the most consistent and influential collectors in the Stacks ecosystem. 
+              Only the elite thrive here.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 pt-4">
+             <button className="bg-white text-[#0047FF] font-black px-8 py-4 rounded-2xl flex items-center gap-2 hover:bg-blue-50 transition-all active:scale-95 shadow-2xl">
+                Get Active
+                <Flame className="h-4 w-4" />
+             </button>
+             <button className="bg-transparent border-2 border-white/20 text-white font-black px-8 py-4 rounded-2xl hover:bg-white/10 transition-all active:scale-95">
+                View Rules
+             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Overview */}
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
