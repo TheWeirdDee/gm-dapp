@@ -8,6 +8,7 @@ import { RootState } from '../lib/store';
 import { authenticate, getUserSession, getUserData } from '../lib/stacks';
 import { setUserData, logout } from '../lib/features/userSlice';
 import { useState, useRef, useEffect } from 'react';
+import BrandLogo from './BrandLogo';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -56,9 +57,8 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-[var(--color-border)] bg-[var(--color-background)]/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-12">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105 mt-1">
-          <img src="/logo.png" alt="Gm Logo" className="h-9 w-9 rounded-full object-cover shadow-[0_0_10px_var(--color-accent)]" />
-          <span className="text-2xl font-black tracking-tight font-logo">Gm</span>
+        <Link href="/" className="transition-transform hover:scale-105">
+           <BrandLogo size={32} />
         </Link>
 
         {/* Desktop Nav */}
