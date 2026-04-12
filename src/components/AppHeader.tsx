@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { logout } from '@/lib/features/userSlice';
 import { useState, useRef, useEffect } from 'react';
+import BrandLogo from './BrandLogo';
 
 interface AppHeaderProps {
   onMenuClick: () => void;
@@ -32,22 +33,25 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
       <div className="max-w-[1800px] mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
         
         {/* Left: Logo & Burger */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center">
           <button 
             onClick={onMenuClick}
-            className="p-2 text-gray-400 hover:text-white transition-colors lg:hidden"
+            className="p-2 text-gray-400 hover:text-white transition-colors lg:hidden mr-4"
           >
             <Menu className="h-6 w-6" />
           </button>
           
-          <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105">
-            <img src="/logo.png" alt="Gm" className="h-8 w-8 rounded-full shadow-[0_0_10px_var(--color-accent)]" />
-            <span className="text-xl font-black hidden sm:block font-logo">Gm</span>
+          <Link href="/" className="transition-transform hover:scale-105 hidden lg:block lg:pl-8 shrink-0">
+            <BrandLogo size={24} />
+          </Link>
+          
+          <Link href="/" className="transition-transform hover:scale-105 lg:hidden">
+            <BrandLogo size={24} />
           </Link>
         </div>
 
-        {/* Center: Search (Visible on both Mobile & Desktop with responsive scaling) */}
-        <div className="flex-1 max-w-md mx-2 md:mx-8">
+        {/* Center: Search */}
+        <div className="flex-1 max-w-2xl mx-2 md:mx-8">
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-[var(--color-accent)] transition-colors" />
             <input 
