@@ -14,13 +14,15 @@ export default function AppLayout({
 
   return (
     <Providers>
-      <div className="flex flex-col min-h-screen bg-black overflow-x-hidden">
+      <div className="flex flex-col h-screen bg-black overflow-hidden">
+        {/* AppHeader is at the top of the flex-col container, effectively acting as fixed/sticky top-0 */}
         <AppHeader onMenuClick={() => setIsSidebarOpen(true)} />
         
-        <div className="flex flex-1 max-w-[1800px] mx-auto w-full lg:px-6 relative">
+        <div className="flex flex-1 max-w-[1800px] mx-auto w-full lg:px-6 relative overflow-hidden">
+          {/* Sidebar will take full height of its parent (flex-1) on desktop */}
           <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
           
-          <main className="flex-1 w-full min-h-[calc(100vh-64px)] overflow-x-hidden">
+          <main className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden pb-20 lg:pb-10 scrollbar-hide">
             {children}
           </main>
         </div>
