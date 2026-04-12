@@ -41,7 +41,7 @@ yarn-error.log*
 mainnet.toml
 testnet.toml
 deployments/
-settings/
+/settings/
 .stacks/
 *.tsbuildinfo
 next-env.d.ts
