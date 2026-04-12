@@ -201,25 +201,19 @@ export default function DashboardContent() {
              )}
           </div>
 
-          {/* Pro Account CTA — compact horizontal */}
-          <div className="relative overflow-hidden rounded-2xl border border-indigo-500/20 bg-gradient-to-r from-indigo-600/20 to-purple-700/10 group order-6">
-            <div className="flex items-center gap-4 p-4">
-              <div className="shrink-0 h-10 w-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-indigo-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-black text-white truncate">{isPro ? '✦ Pro Member' : 'Go Pro'}</p>
-                <p className="text-[10px] text-indigo-300/50 leading-tight truncate">
-                  {isPro ? '2× multiplier active' : 'Unlock streak multipliers'}
-                </p>
-              </div>
-              <button
+          {/* Pro Account CTA */}
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-2xl order-6">
+             <Zap className="absolute top-[-20px] right-[-20px] h-32 w-32 opacity-20 rotate-12 transition-transform group-hover:scale-110" />
+             <h4 className="text-xl font-black text-white mb-2 relative z-10">{isPro ? "Welcome Pro" : "Go Pro."}</h4>
+             <p className="text-indigo-100 text-sm mb-6 relative z-10 opacity-80">
+                {isPro ? "You are enjoying double reputation points and streak protection." : "Unlock custom avatars, higher streak multipliers, and exclusive badges."}
+             </p>
+             <button 
                 onClick={() => setShowProModal(true)}
-                className="shrink-0 bg-indigo-500 hover:bg-indigo-400 text-white font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all active:scale-95 whitespace-nowrap"
-              >
-                {isPro ? 'Manage' : 'Upgrade'}
-              </button>
-            </div>
+                className="w-full bg-white text-indigo-600 font-black py-4 rounded-2xl relative z-10 transition-transform active:scale-95 shadow-xl"
+             >
+                {isPro ? "View Membership" : "Purchase Now"}
+             </button>
           </div>
 
         </div>
