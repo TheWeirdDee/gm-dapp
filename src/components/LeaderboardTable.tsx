@@ -1,6 +1,6 @@
 'use client';
 
-import { Trophy, Flame, Star, Medal, ArrowUpRight } from 'lucide-react';
+import { Trophy, Flame, Star, Medal, ArrowUpRight, Crown } from 'lucide-react';
 import Link from 'next/link';
 
 interface LeaderboardUser {
@@ -58,7 +58,7 @@ export default function LeaderboardTable({ users, type }: LeaderboardTableProps)
                         <div className="font-bold text-white flex items-center gap-2 group-hover/user:text-[var(--color-accent)] transition-colors">
                           {user.username || `user_${user.address.substring(user.address.length - 4)}`}
                           {user.isPro && (
-                            <span className="bg-indigo-600 text-[8px] px-1.5 py-0.5 rounded-md text-white font-black uppercase tracking-tighter">PRO</span>
+                            <Crown className="w-4 h-4 text-yellow-500 fill-yellow-500/20" />
                           )}
                           <ArrowUpRight className="h-3 w-3 opacity-0 group-hover/user:opacity-100 transition-all" />
                         </div>
