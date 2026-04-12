@@ -224,7 +224,7 @@ export default function SettingsContent() {
                 description="Shared contract deployed by the Gm protocol — same for all users"
               >
                 <a
-                  href="https://explorer.hiro.so/address/ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF?chain=testnet"
+                  href="https://explorer.hiro.so/address/ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF.gm-social-v2?chain=testnet"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-1.5 text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest whitespace-nowrap"
