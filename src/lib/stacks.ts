@@ -131,6 +131,7 @@ export const getUserOnChainData = async (userAddress: string) => {
       username: extractOptional(unwrapped?.username),
       isPro: unwrapped?.['is-pro'] === true,
       proExpiry: getNum(unwrapped?.['pro-expiry']),
+      healCount: getNum(unwrapped?.['heal-count']),
       followers: getNum(unwrapped?.['followers']),
       following: getNum(unwrapped?.['following'])
     };
