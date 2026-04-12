@@ -97,7 +97,7 @@ export default function LandingContent() {
             <div className="pt-4 flex flex-col sm:flex-row items-center gap-6 justify-center">
               <button 
                 onClick={handleHeroAction}
-                className="group rounded-full bg-[var(--color-accent)] px-10 py-5 text-black font-extrabold text-xl transition-all hover:scale-110 hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] flex items-center gap-2 active:scale-95"
+                className="group rounded-full bg-blue-400/60 px-10 py-5 text-black font-extrabold text-xl transition-all hover:scale-110 flex items-center gap-2 active:scale-95"
               >
                 {isConnected ? 'Go to Dashboard' : 'Start GMing'}
                 <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
@@ -152,7 +152,7 @@ export default function LandingContent() {
                <h3 className="text-3xl lg:text-4xl font-bold mb-4 max-w-md">Composability First</h3>
                <p className="text-gray-300 max-w-md mb-8">Other dApps can read your global GM state. Let your on-chain identity transcend single platforms.</p>
                <div>
-                  <button className="bg-[var(--color-accent)] text-black font-bold px-6 py-2 rounded-full hover:bg-opacity-80 transition-colors">Explore Documentation</button>
+                  <button className="bg-blue-400/60 text-black font-bold px-6 py-2 rounded-full hover:bg-opacity-80 transition-colors">Explore Documentation</button>
                </div>
              </div>
           </div>
@@ -170,7 +170,7 @@ export default function LandingContent() {
                </p>
                <button 
                  onClick={handleHeroAction}
-                 className="bg-[var(--color-accent)] text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all flex items-center gap-2"
+                 className="bg-blue-400/60 text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all flex items-center gap-2"
                >
                  {isConnected ? 'Go to Dashboard' : 'Connect Wallet'} <ArrowRight className="h-4 w-4" />
                </button>
@@ -179,7 +179,7 @@ export default function LandingContent() {
                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--color-secondary)] to-transparent opacity-20 blur-3xl rounded-full"></div>
                <img src="/phone_mockup.png" alt="App Mockup" className="relative z-10 w-full max-w-md mx-auto drop-shadow-[0_0_50px_rgba(99,102,241,0.2)]" />
                <div className="absolute bottom-12 -left-8 md:left-0 z-20 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl hidden md:flex items-center gap-4 shadow-2xl">
-                  <div className="bg-[var(--color-accent)] text-black font-bold rounded-lg p-2 text-center leading-none">
+                  <div className="bg-blue-400/60 text-black font-bold rounded-lg p-2 text-center leading-none">
                      <span className="block text-xs uppercase opacity-80">Rank</span>
                      <span className="block text-2xl">8</span>
                   </div>
@@ -221,7 +221,7 @@ export default function LandingContent() {
                 <h2 className="text-4xl md:text-5xl font-bold mb-8">Why Build <br className="hidden lg:block"/>on Gm?</h2>
                 <button 
                   onClick={handleHeroAction}
-                  className="inline-block bg-[var(--color-accent)] text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all font-black uppercase tracking-widest text-xs"
+                  className="inline-block bg-blue-400/60 text-black font-bold px-8 py-3 rounded-full hover:bg-opacity-90 transition-all font-black uppercase tracking-widest text-xs"
                 >
                   {isConnected ? 'View Dashboard' : 'Secure Your Identity'}
                 </button>
