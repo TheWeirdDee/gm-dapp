@@ -10,7 +10,8 @@ import {
   Settings, 
   PlusCircle,
   Home,
-  X
+  X,
+  Gift
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
@@ -29,6 +30,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: 'Feed', href: '/feed', icon: Rss },
     { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
+    ...(address && useSelector((state: RootState) => state.user.isPro) ? [{ name: 'Rewards', href: '/rewards', icon: Gift }] : []),
   ];
 
   if (!isConnected) return null;
