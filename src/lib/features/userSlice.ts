@@ -10,6 +10,7 @@ interface UserState {
   mockData: User | null;
   isPro: boolean;
   proExpiry: number;
+  healCount: number;
   followers: number;
   following: number;
   currentBlockHeight: number;
@@ -24,6 +25,7 @@ const initialState: UserState = {
   mockData: null,
   isPro: false,
   proExpiry: 0,
+  healCount: 0,
   followers: 0,
   following: 0,
   currentBlockHeight: 0,
@@ -85,11 +87,13 @@ const userSlice = createSlice({
       username?: string | null;
       isPro?: boolean;
       proExpiry?: number;
+      healCount?: number;
       followers?: number;
       following?: number;
     }>) {
       if (action.payload.isPro !== undefined) state.isPro = action.payload.isPro;
       if (action.payload.proExpiry !== undefined) state.proExpiry = action.payload.proExpiry;
+      if (action.payload.healCount !== undefined) state.healCount = action.payload.healCount;
       if (action.payload.followers !== undefined) state.followers = action.payload.followers;
       if (action.payload.following !== undefined) state.following = action.payload.following;
 
