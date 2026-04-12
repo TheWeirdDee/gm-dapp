@@ -10,7 +10,9 @@ import {
   Settings, 
   Link as LinkIcon, 
   Calendar,
-  Loader2
+  Loader2,
+  MessageSquare,
+  Crown
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
@@ -121,7 +123,14 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
         
         <div className="space-y-4">
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tighter">{user.username}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-black text-white tracking-tighter">{user.username}</h1>
+              {user.isPro && (
+                <div className="flex items-center justify-center p-1.5 bg-yellow-500/10 rounded-lg border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                  <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500/20" />
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-4 mt-1">
                <p className="text-gray-500 font-mono text-xs opacity-60 tracking-tighter">{targetAddress}</p>
                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-green-500/10 border border-green-500/20">
