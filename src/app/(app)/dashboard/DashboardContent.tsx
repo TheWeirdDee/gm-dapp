@@ -31,8 +31,7 @@ import toast from 'react-hot-toast';
 
 export default function DashboardContent() {
   const dispatch = useDispatch();
-  const [isHealing, setIsHealing] = useState(false);
-  const { address, isConnected, mockData, isLoading, followers, following, isPro, healCount, isOptimisticPro } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, mockData, isLoading, followers, following, isPro, isOptimisticPro } = useSelector((state: RootState) => state.user);
   const activePro = isPro || isOptimisticPro;
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
@@ -53,34 +52,18 @@ export default function DashboardContent() {
     setShowOnboarding(false);
   };
 
-  const handleHealStreak = async () => {
-    if (isHealing) return;
-    setIsHealing(true);
-    
-    try {
-      await callContract({
-        contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '',
-        contractName: process.env.NEXT_PUBLIC_CONTRACT_NAME || '',
-        functionName: 'heal-streak',
-        functionArgs: [],
-        onFinish: (data: any) => {
-          toast.success("Streak Healed!");
-          // Trigger refresh
-          setTimeout(async () => {
-            const freshData = await getUserOnChainData(address!);
-            if (freshData) {
-              dispatch(updateStats(freshData));
-            }
-          }, 5000);
-        }
-      });
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to heal streak");
-    } finally {
-      setIsHealing(false);
+
+
+  const [isConfirmedToday, setIsConfirmedToday] = useState(false);
+  
+  useEffect(() => {
+    if (!address) return;
+    const today = new Date().toISOString().split('T')[0];
+    const savedDate = localStorage.getItem(`gm_date_${address}`);
+    if (savedDate === today) {
+      setIsConfirmedToday(true);
     }
-  };
+  }, [address, isConnected]);
 
   const addressShort = address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'GM User';
   const greeting = isLoading && !mockData?.username 
@@ -156,21 +139,11 @@ export default function DashboardContent() {
              <div className="relative group">
                <StatCardVertical 
                   label="Days Streak" 
-                  value={mockData?.streak || 0} 
+                  value={(isConfirmedToday && (mockData?.streak || 0) === 0) ? 1 : (mockData?.streak || 0)} 
                   icon={History} 
                   subtext={activePro ? "Streak protection active" : "Keep it up for bonuses!"}
                   isLoading={isLoading}
                />
-               {activePro && (mockData?.streak === 0) && (
-                 <button 
-                  onClick={handleHealStreak}
-                  disabled={isHealing || healCount === 0}
-                  className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border-4 border-[#0a0a0a] hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl active:scale-95 transition-all"
-                 >
-                    <Heart className={`w-3 h-3 fill-white ${isHealing ? 'animate-ping' : ''}`} />
-                    {isHealing ? 'Restoring...' : healCount > 0 ? `Heal Streak (${healCount} left)` : 'No heals left'}
-                 </button>
-               )}
              </div>
              <StatCardVertical 
                 label="Social Reputation" 
