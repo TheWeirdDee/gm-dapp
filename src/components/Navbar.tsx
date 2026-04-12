@@ -58,7 +58,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105 mt-1">
           <img src="/logo.png" alt="Gm Logo" className="h-9 w-9 rounded-full object-cover shadow-[0_0_10px_var(--color-accent)]" />
-          <span className="text-2xl font-black tracking-tight" style={{fontFamily: 'sans-serif'}}>Gm</span>
+          <span className="text-2xl font-black tracking-tight font-logo">Gm</span>
         </Link>
 
         {/* Desktop Nav */}

@@ -19,7 +19,7 @@ export default function Footer() {
           <div className="col-span-3 lg:col-span-5">
             <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 inline-flex">
               <img src="/logo.png" alt="Gm Logo" className="h-8 w-8 rounded-full shadow-[0_0_10px_var(--color-accent)]" />
-              <span className="text-xl font-bold tracking-tight text-white">Gm</span>
+              <span className="text-xl font-bold tracking-tight text-white font-logo">Gm</span>
             </Link>
           </div>
 

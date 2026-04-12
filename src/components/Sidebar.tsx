@@ -52,7 +52,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex items-center justify-between lg:hidden mb-4 w-full">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Gm" className="h-6 w-6 rounded-full" />
-            <span className="font-bold">Navigation</span>
+            <span className="font-bold font-logo">Gm</span>
           </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:text-white">
             <X className="h-6 w-6" />

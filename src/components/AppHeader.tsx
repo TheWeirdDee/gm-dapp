@@ -40,9 +40,9 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
             <Menu className="h-6 w-6" />
           </button>
           
-          <Link href="/dashboard" className="flex items-center gap-3 transition-transform hover:scale-105">
+          <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105">
             <img src="/logo.png" alt="Gm" className="h-8 w-8 rounded-full shadow-[0_0_10px_var(--color-accent)]" />
-            <span className="text-xl font-black hidden sm:block">Gm</span>
+            <span className="text-xl font-black hidden sm:block font-logo">Gm</span>
           </Link>
         </div>
 
