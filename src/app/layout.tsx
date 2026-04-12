@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Syne, Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 
 const syne = Syne({
   variable: "--font-syne",
@@ -41,6 +42,19 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-black text-white" suppressHydrationWarning>
         {children}
+        <Toaster 
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#0A0A0A',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '1rem',
+              fontSize: '13px',
+              fontFamily: 'var(--font-inter)',
+            },
+          }}
+        />
       </body>
     </html>
   );
