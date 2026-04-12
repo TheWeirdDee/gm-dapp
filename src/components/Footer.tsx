@@ -2,24 +2,31 @@
 
 import Link from 'next/link';
 import { Globe, Code, Cpu } from 'lucide-react';
+import BrandLogo from './BrandLogo';
 
 export default function Footer() {
   return (
     <footer className="relative bg-[#050505] border-t border-white/5 pt-24 pb-6 md:pb-12 overflow-hidden">
-      {/* Background Faded Text */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none">
-        <h2 className="text-[15rem] md:text-[25rem] font-black text-white/[0.02] whitespace-nowrap tracking-tighter uppercase leading-none">
-          GM GM
-        </h2>
+      {/* Background Faded Brand Logo */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none opacity-[0.05] flex gap-10 md:gap-40 items-center justify-center w-full">
+        {/* Desktop Version (Very Big) */}
+        <div className="hidden lg:flex gap-40">
+          <BrandLogo size={250} />
+          <BrandLogo size={250} />
+        </div>
+        {/* Mobile/Medium Version (Appropriately large but fitting) */}
+        <div className="flex lg:hidden gap-12">
+          <BrandLogo size={130} />
+          <BrandLogo size={130} />
+        </div>
       </div>
 
       <div className="container mx-auto px-6 lg:px-12 xl:px-16 relative z-10">
         <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-y-12 gap-x-4 lg:gap-8 mb-16">
           
           <div className="col-span-3 lg:col-span-5">
-            <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 inline-flex">
-              <img src="/logo.png" alt="Gm Logo" className="h-8 w-8 rounded-full shadow-[0_0_10px_var(--color-accent)]" />
-              <span className="text-xl font-bold tracking-tight text-white font-logo">Gm</span>
+            <Link href="/" className="transition-transform hover:scale-105 active:scale-95 inline-flex">
+              <BrandLogo size={24} />
             </Link>
           </div>
 
