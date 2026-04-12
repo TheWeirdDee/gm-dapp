@@ -130,7 +130,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       {/* Overlay */}
       <div 
         ref={overlayRef}
@@ -141,7 +141,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
       {/* Modal */}
       <div 
         ref={modalRef}
-        className="relative bg-[#050505] border border-white/10 rounded-[3rem] w-full max-w-2xl shadow-[0_40px_100px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col md:flex-row"
+        className="relative bg-[#050505] border border-white/10 rounded-[2rem] sm:rounded-[3rem] w-full max-w-lg sm:max-w-2xl shadow-[0_40px_100px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col md:flex-row my-auto"
       >
         {/* Close Button */}
         <button 
@@ -152,7 +152,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
         </button>
 
         {/* Left Side: Benefits */}
-        <div className="p-8 md:p-12 md:w-3/5">
+        <div className="p-6 sm:p-8 md:p-10 md:w-3/5">
           <div className="flex items-center gap-3 mb-8">
             <div className="h-10 w-10 bg-indigo-500/10 rounded-xl flex items-center justify-center">
               <Sparkles className="h-5 w-5 text-indigo-500" />
@@ -160,7 +160,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
             <span className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-500">Premium Tier</span>
           </div>
 
-          <h2 className="text-4xl font-black text-white mb-8 tracking-tight">Level Up to <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">Pro.</span></h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-6 tracking-tight">Level Up to <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">Pro.</span></h2>
 
           <div className="space-y-6">
             {benefits.map((b, i) => (
@@ -178,12 +178,12 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
         </div>
 
         {/* Right Side: CTA */}
-        <div className="bg-white/[0.03] p-8 md:p-12 md:w-2/5 flex flex-col justify-center border-t md:border-t-0 md:border-l border-white/5">
-          <div className="text-center mb-10">
+        <div className="bg-white/[0.03] p-6 sm:p-8 md:p-10 md:w-2/5 flex flex-col justify-center border-t md:border-t-0 md:border-l border-white/5">
+          <div className="text-center mb-6">
             <div className="text-gray-400 text-xs font-black uppercase tracking-widest mb-1">Total Price</div>
             <div className="flex items-center justify-center gap-2">
-              <span className="text-5xl font-black text-white">10</span>
-              <span className="text-2xl font-black text-gray-600 uppercase">stx</span>
+              <span className="text-4xl sm:text-5xl font-black text-white">10</span>
+              <span className="text-xl sm:text-2xl font-black text-gray-600 uppercase">stx</span>
             </div>
             <div className="text-gray-600 text-xs mt-2">Per 30 days</div>
           </div>
@@ -198,7 +198,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
           <button
             onClick={handlePurchase}
             disabled={state !== 'idle'}
-            className={`w-full font-black py-6 rounded-[2rem] flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-30 disabled:grayscale shadow-2xl ${
+            className={`w-full font-black py-4 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all active:scale-[0.98] disabled:opacity-30 disabled:grayscale shadow-2xl ${
               state === 'idle' ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20' :
               state === 'wallet_open' ? 'bg-blue-600 text-white' :
               state === 'pending' ? 'bg-orange-500 text-white animate-pulse' :
@@ -242,7 +242,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
             </a>
           )}
 
-          <div className="mt-10 pt-10 border-t border-white/5">
+          <div className="mt-6 pt-6 border-t border-white/5">
             <div className="flex items-start gap-3">
               <ShieldCheck className="h-5 w-5 text-gray-700" />
               <p className="text-[10px] text-gray-600 font-medium leading-relaxed">
