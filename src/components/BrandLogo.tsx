@@ -20,25 +20,25 @@ export default function BrandLogo({ className = '', size = 32 }: BrandLogoProps)
 
       {/* Stylized M - Cellular / Network Dots */}
       <div style={{ width: size * 1.2, height: size }} className="relative z-10 flex items-center justify-center">
-        <svg viewBox="0 0 120 100" className="w-full h-full">
+        <svg viewBox="0 0 120 100" className="w-full h-full" style={{ opacity: 0.8 }}>
           {/* Top Left Node */}
-          <circle cx="15" cy="25" r="10" fill="#10b981" />
+          <circle cx="15" cy="25" r="10" fill="#22d3ee" />
           
           {/* Bottom Left Node + Connection */}
-          <rect x="10" y="25" width="10" height="50" rx="5" fill="#10b981" />
-          <circle cx="15" cy="75" r="10" fill="#10b981" />
+          <rect x="10" y="25" width="10" height="50" rx="5" fill="#22d3ee" />
+          <circle cx="15" cy="75" r="10" fill="#22d3ee" />
           
           {/* Middle Connecting Bridge */}
-          <path d="M 20 30 L 45 50" stroke="#10b981" strokeWidth="10" strokeLinecap="round" />
-          <circle cx="50" cy="55" r="10" fill="#10b981" />
+          <path d="M 20 30 L 45 50" stroke="#22d3ee" strokeWidth="10" strokeLinecap="round" />
+          <circle cx="50" cy="55" r="10" fill="#22d3ee" />
           
           {/* Top Right Node + Connection */}
-          <path d="M 55 50 L 80 30" stroke="#10b981" strokeWidth="10" strokeLinecap="round" />
-          <path d="M 80 30 L 80 50" stroke="#10b981" strokeWidth="10" strokeLinecap="round" />
-          <circle cx="85" cy="25" r="10" fill="#10b981" />
+          <path d="M 55 50 L 80 30" stroke="#22d3ee" strokeWidth="10" strokeLinecap="round" />
+          <path d="M 80 30 L 80 50" stroke="#22d3ee" strokeWidth="10" strokeLinecap="round" />
+          <circle cx="85" cy="25" r="10" fill="#22d3ee" />
           
           {/* Bottom Right Node */}
-          <circle cx="85" cy="75" r="10" fill="#10b981" />
+          <circle cx="85" cy="75" r="10" fill="#22d3ee" />
         </svg>
       </div>
     </div>
