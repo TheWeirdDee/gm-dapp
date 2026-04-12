@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { CheckCircle2, Loader2, Wallet as WalletIcon, AlertCircle, ArrowRight } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateStats, fetchOnChainStats, resetStats } from '../lib/features/userSlice';
+import { updateStats, fetchOnChainStats } from '../lib/features/userSlice';
 import { RootState } from '../lib/store';
 import { callContract } from '../lib/stacks';
 import { APP_CONFIG, getExplorerLink } from '../lib/config';
@@ -40,13 +40,7 @@ export default function GMButton() {
   // Final decision: if either local or chain says we're cooling down
   const isCooldownActive = localCooldown || isChainCooldown;
 
-  const handleReset = () => {
-    if (!address) return;
-    localStorage.removeItem(`gm_date_${address}`);
-    setLocalCooldown(false);
-    dispatch(resetStats());
-    console.log('RESET: Local stats and daily lock cleared for testing.');
-  };
+
 
   const handleGM = async () => {
     if (state !== 'idle' || isCooldownActive) return;
@@ -185,13 +179,7 @@ export default function GMButton() {
         </a>
       )}
 
-      {/* DEV RESET BUTTON */}
-      <button 
-        onClick={handleReset}
-        className="mt-8 text-[8px] font-black uppercase tracking-[0.3em] text-gray-900 hover:text-red-900/40 transition-colors"
-      >
-        [ Dev: Reset Local Stats ]
-      </button>
+
       
       <div className={`absolute -inset-8 rounded-full blur-3xl opacity-[0.01] pointer-events-none bg-white`}></div>
     </div>
