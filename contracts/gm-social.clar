@@ -9,6 +9,7 @@
 (define-constant ERR-INSUFFICIENT-FUNDS (err u105))
 (define-constant ERR-NOT-PRO (err u106))
 (define-constant ERR-STREAK-NOT-BROKEN (err u107))
+(define-constant ERR-NO-HEALS-LEFT (err u108))
 
 ;; Constants
 (define-constant CONTRACT-OWNER tx-sender)
@@ -16,6 +17,7 @@
 (define-constant GRACE-PERIOD-BLOCKS u288) ;; ~48 hours
 (define-constant PRO-PRICE u10000000) ;; 10 STX in microSTX
 (define-constant SUBSCRIPTION-DURATION u4320) ;; ~30 days
+(define-constant INITIAL-HEALS u2)
 
 ;; Data Maps
 (define-map users
@@ -26,7 +28,8 @@
         points: uint,
         username: (optional (string-utf8 20)),
         is-pro: bool,
-        pro-expiry: uint
+        pro-expiry: uint,
+        heal-count: uint
     }
 )
 
@@ -85,33 +88,40 @@
     (user-data (get-user-profile tx-sender))
     (current-height burn-block-height)
   )
-    ;; 1. Transfer STX to contract owner
-    (try! (stx-transfer? PRO-PRICE tx-sender CONTRACT-OWNER))
+    ;; 1. Transfer STX to contract owner (unless it's the owner themselves subscribing)
+    (if (not (is-eq tx-sender CONTRACT-OWNER))
+        (try! (stx-transfer? PRO-PRICE tx-sender CONTRACT-OWNER))
+        true
+    )
     
     ;; 2. Update user data
     (map-set users tx-sender
         (merge user-data {
             is-pro: true,
-            pro-expiry: (+ current-height SUBSCRIPTION-DURATION)
+            pro-expiry: (+ current-height SUBSCRIPTION-DURATION),
+            heal-count: INITIAL-HEALS
         })
     )
     (ok true)
   )
 )
 
-;; @desc Restore a broken streak (requires Pro)
-(define-public (restore-streak)
+;; @desc Restore a broken streak (requires Pro + Heal Count)
+(define-public (heal-streak)
   (let (
     (user-data (get-user-profile tx-sender))
     (current-height burn-block-height)
-    (blocks-passed (- current-height (get last-gm user-data)))
+    (last-gm (get last-gm user-data))
+    (blocks-passed (if (> current-height last-gm) (- current-height last-gm) u0))
   )
     (asserts! (is-pro-active tx-sender) ERR-NOT-PRO)
     (asserts! (> blocks-passed GRACE-PERIOD-BLOCKS) ERR-STREAK-NOT-BROKEN)
+    (asserts! (> (get heal-count user-data) u0) ERR-NO-HEALS-LEFT)
     
     (map-set users tx-sender
         (merge user-data {
-            last-gm: (- current-height COOLDOWN-BLOCKS) ;; Set to just after cooldown
+            last-gm: (- current-height COOLDOWN-BLOCKS), ;; Set it to just over 24h ago
+            heal-count: (- (get heal-count user-data) u1)
         })
     )
     (ok true)
@@ -173,7 +183,7 @@
 
 (define-private (get-user-profile (user principal))
     (default-to 
-        { last-gm: u0, streak: u0, points: u0, username: none, is-pro: false, pro-expiry: u0 } 
+        { last-gm: u0, streak: u0, points: u0, username: none, is-pro: false, pro-expiry: u0, heal-count: u0 } 
         (map-get? users user)
     )
 )
