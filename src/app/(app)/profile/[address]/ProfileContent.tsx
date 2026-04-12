@@ -9,6 +9,8 @@ import NotificationsSection from '@/components/profile-sections/NotificationsSec
 import ProPlanSection from '@/components/profile-sections/ProPlanSection';
 import DataExportSection from '@/components/profile-sections/DataExportSection';
 import PostCard from '@/components/PostCard';
+import dynamic from 'next/dynamic';
+const FollowersContent = dynamic(() => import('@/app/(app)/followers/FollowersContent'), { ssr: false });
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import Link from 'next/link';
@@ -62,6 +64,8 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
     switch (activeTab) {
       case 'profile':
         return <ProfileSettingsCards targetAddress={targetAddress} />;
+      case 'followers':
+        return <FollowersContent />;
       case 'security':
         return <SecuritySection address={targetAddress} />;
       case 'social-graph':
