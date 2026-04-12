@@ -15,6 +15,7 @@ interface UserState {
   following: number;
   currentBlockHeight: number;
   isSimulationMode: boolean;
+  isOptimisticPro: boolean;
 }
 
 const initialState: UserState = {
@@ -30,6 +31,7 @@ const initialState: UserState = {
   following: 0,
   currentBlockHeight: 0,
   isSimulationMode: false,
+  isOptimisticPro: false,
 };
 
 const userSlice = createSlice({
@@ -156,6 +158,9 @@ const userSlice = createSlice({
         state.mockData.points = 0;
         state.mockData.lastGm = 0;
       }
+    },
+    setOptimisticPro(state, action: PayloadAction<boolean>) {
+      state.isOptimisticPro = action.payload;
     }
   },
 });
@@ -187,5 +192,5 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
   }
 };
 
-export const { setUserData, logout, updateStats, setUsername, setLoading, setBlockHeight, resetStats } = userSlice.actions;
+export const { setUserData, logout, updateStats, setUsername, setLoading, setBlockHeight, resetStats, setOptimisticPro } = userSlice.actions;
 export default userSlice.reducer;
