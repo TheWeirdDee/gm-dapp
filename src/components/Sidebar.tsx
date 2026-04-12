@@ -23,14 +23,14 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { address, isConnected } = useSelector((state: RootState) => state.user);
-
+  const { address, isConnected, isPro } = useSelector((state: RootState) => state.user);
+  
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Feed', href: '/feed', icon: Rss },
     { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
-    ...(address && useSelector((state: RootState) => state.user.isPro) ? [{ name: 'Rewards', href: '/rewards', icon: Gift }] : []),
+    ...(isPro ? [{ name: 'Rewards', href: '/rewards', icon: Gift }] : []),
   ];
 
   if (!isConnected) return null;
