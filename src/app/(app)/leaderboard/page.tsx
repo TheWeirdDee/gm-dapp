@@ -25,9 +25,12 @@ export default function LeaderboardPage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-6 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="max-w-6xl mx-auto py-10 px-6 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* Header Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#0047FF] via-[#4F46E5] to-[#7C3AED] rounded-[3.5rem] overflow-hidden p-10 md:p-16 text-left group shadow-[0_40px_100px_rgba(0,71,255,0.2)]">
+      <section className="relative bg-[#050505] rounded-[3.5rem] overflow-hidden p-10 md:p-24 text-center group shadow-[0_40px_100px_rgba(0,0,0,0.5)] border border-white/5">
+        {/* Background Glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0047FF] via-[#4F46E5] to-[#7C3AED] opacity-15 blur-[120px] pointer-events-none"></div>
+        
         {/* Decorative Patterns */}
         
         {/* Left: Concentric Circles */}
@@ -38,40 +41,36 @@ export default function LeaderboardPage() {
            <div className="absolute inset-[9rem] border-[0.5rem] border-white rounded-full"></div>
         </div>
 
-        {/* Right: Diagonal Stripes */}
-        <div className="absolute -top-10 -right-10 w-64 h-64 opacity-20 rotate-45 pointer-events-none transition-transform group-hover:-translate-y-4 duration-1000"
-             style={{ backgroundImage: 'linear-gradient(90deg, transparent 50%, white 50%)', backgroundSize: '20px 100%' }}>
-        </div>
-        
-        {/* Top-right pattern (small dots/strips) */}
-        <div className="absolute top-10 right-20 flex gap-2 opacity-30 pointer-events-none">
-           {[1,2,3,4,5,6].map(i => (
-             <div key={i} className="w-1 h-8 bg-white/50 rounded-full"></div>
-           ))}
+        {/* Right: Concentric Circles (Refined from Stripes) */}
+        <div className="absolute -top-20 -right-20 w-80 h-80 opacity-20 pointer-events-none transition-transform group-hover:scale-110 duration-1000">
+           <div className="absolute inset-0 border-[1.5rem] border-white rounded-full"></div>
+           <div className="absolute inset-[3rem] border-[1rem] border-white rounded-full"></div>
+           <div className="absolute inset-[6rem] border-[0.7rem] border-white rounded-full"></div>
+           <div className="absolute inset-[9rem] border-[0.5rem] border-white rounded-full"></div>
         </div>
 
-        <div className="relative z-10 space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
+        <div className="relative z-10 flex flex-col items-center space-y-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
              <Trophy className="h-4 w-4 text-yellow-300" />
              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">The Global Stage</span>
           </div>
           
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.9]">
+          <div className="space-y-4 max-w-2xl">
+            <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-[0.85]">
               The Hall <br/> of <span className="text-white/60">GM.</span>
             </h1>
-            <p className="text-blue-100/70 max-w-lg font-medium text-lg leading-relaxed">
+            <p className="text-gray-400 max-w-lg mx-auto font-medium text-lg leading-relaxed">
               Celebrating the most consistent and influential collectors in the Stacks ecosystem. 
               Only the elite thrive here.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 pt-4">
-             <button className="bg-white text-[#0047FF] font-black px-8 py-4 rounded-2xl flex items-center gap-2 hover:bg-blue-50 transition-all active:scale-95 shadow-2xl">
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+             <button className="bg-white text-black font-black px-10 py-5 rounded-2xl flex items-center gap-2 hover:bg-gray-100 transition-all active:scale-95 shadow-2xl">
                 Get Active
-                <Flame className="h-4 w-4" />
+                <Flame className="h-4 w-4 text-orange-500" />
              </button>
-             <button className="bg-transparent border-2 border-white/20 text-white font-black px-8 py-4 rounded-2xl hover:bg-white/10 transition-all active:scale-95">
+             <button className="bg-transparent border-2 border-white/10 text-white font-black px-10 py-5 rounded-2xl hover:bg-white/5 transition-all active:scale-95">
                 View Rules
              </button>
           </div>
