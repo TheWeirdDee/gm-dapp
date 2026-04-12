@@ -105,6 +105,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
           setTxId(data.txId);
           setState('pending');
           
+          if (address) {
             // background fetch to prepare UI
             dispatch(fetchOnChainStats(address) as any);
             // Optimistic Update
