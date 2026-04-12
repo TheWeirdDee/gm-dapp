@@ -162,41 +162,60 @@ export default function DashboardContent() {
           </div>
 
           {/* Followers Preview */}
-          <div className="bg-white/5 border border-white/5 rounded-3xl p-6 order-4">
-             <div className="flex items-center justify-between mb-6">
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 order-4">
+             <div className="flex items-center justify-between mb-5">
                 <h4 className="text-sm font-black text-white uppercase tracking-widest">Followers</h4>
-                <Link href="/profile" className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors">View All</Link>
+                <Link href="/followers" className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors">View All</Link>
              </div>
-             <div className="flex -space-x-4">
-                {[1,2,3,4,5].map(i => (
-                   <img 
-                    key={i}
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=user${i}`} 
-                    className="h-10 w-10 rounded-full border-4 border-black bg-[#111]"
-                    alt="Follower"
-                  />
-                ))}
-                {followers > 5 && (
-                  <div className="h-10 w-10 rounded-full border-4 border-black bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-400">
-                    +{followers - 5}
-                  </div>
-                )}
-             </div>
+             {followers === 0 ? (
+               <div className="flex flex-col items-center gap-3 py-4 text-center">
+                 <div className="flex -space-x-3">
+                   <div className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-white/[0.03] overflow-hidden">
+                     <img src={`https://api.dicebear.com/7.x/builder/svg?seed=${address}`} alt="You" />
+                   </div>
+                   {[1,2].map(i => (
+                     <div key={i} className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-white/[0.03] flex items-center justify-center">
+                       <Users className="h-4 w-4 text-gray-700" />
+                     </div>
+                   ))}
+                 </div>
+                 <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">No followers yet</p>
+                 <Link href="/feed" className="text-[10px] font-black text-[var(--color-accent)] hover:underline uppercase tracking-widest">Explore Feed</Link>
+               </div>
+             ) : (
+               <div className="flex -space-x-3">
+                 {Array.from({ length: Math.min(followers, 5) }).map((_, i) => (
+                   <img
+                     key={i}
+                     src={`https://api.dicebear.com/7.x/builder/svg?seed=follower${address}${i}`}
+                     className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-[#111]"
+                     alt="Follower"
+                   />
+                 ))}
+                 {followers > 5 && (
+                   <Link href="/followers" className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-400 hover:bg-white/20 transition-colors">
+                     +{followers - 5}
+                   </Link>
+                 )}
+               </div>
+             )}
           </div>
 
           {/* Pro Account CTA */}
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-2xl order-6">
-             <Zap className="absolute top-[-20px] right-[-20px] h-32 w-32 opacity-20 rotate-12 transition-transform group-hover:scale-110" />
-             <h4 className="text-xl font-black text-white mb-2 relative z-10">{isPro ? "Welcome Pro" : "Go Pro."}</h4>
-             <p className="text-indigo-100 text-sm mb-6 relative z-10 opacity-80">
-                {isPro ? "You are enjoying double reputation points and streak protection." : "Unlock custom avatars, higher streak multipliers, and exclusive badges."}
-             </p>
-             <button 
-                onClick={() => setShowProModal(true)}
-                className="w-full bg-white text-indigo-600 font-black py-4 rounded-2xl relative z-10 transition-transform active:scale-95 shadow-xl disabled:opacity-50"
-             >
-                {isPro ? "View Membership" : "Purchase Now"}
-             </button>
+          <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-5 rounded-[2rem] relative overflow-hidden group shadow-xl order-6">
+             <Zap className="absolute top-[-10px] right-[-10px] h-20 w-20 opacity-20 rotate-12 transition-transform group-hover:scale-110" />
+             <div className="relative z-10">
+               <h4 className="text-base font-black text-white mb-1">{isPro ? '✦ Pro Member' : 'Go Pro'}</h4>
+               <p className="text-indigo-200/70 text-xs mb-4 leading-relaxed">
+                  {isPro ? 'Enjoying 2x rep multiplier and streak protection.' : 'Unlock multipliers, badges, and streak protection.'}
+               </p>
+               <button
+                  onClick={() => setShowProModal(true)}
+                  className="w-full bg-white text-indigo-600 font-black py-2.5 text-sm rounded-xl relative z-10 transition-all active:scale-95 hover:bg-indigo-50 shadow-lg"
+               >
+                  {isPro ? 'View Membership' : 'Upgrade Now'}
+               </button>
+             </div>
           </div>
 
         </div>

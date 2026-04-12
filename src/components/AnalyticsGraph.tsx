@@ -1,85 +1,135 @@
 'use client';
 
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/store';
 import { TrendingUp } from 'lucide-react';
+import { useMemo } from 'react';
 
 export default function AnalyticsGraph() {
-  const points = [
-    { x: 0, y: 70 },
-    { x: 10, y: 40 },
-    { x: 20, y: 65 },
-    { x: 30, y: 35 },
-    { x: 40, y: 55 },
-    { x: 50, y: 25 },
-    { x: 60, y: 85 },
-    { x: 70, y: 45 },
-    { x: 80, y: 60 },
-    { x: 90, y: 30 },
-    { x: 100, y: 50 },
-  ];
+  const { mockData, followers } = useSelector((state: RootState) => state.user);
 
-  const pathData = points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-    .join(' ');
+  const streak = mockData?.streak || 0;
+  const points = mockData?.points || 0;
+  const hasActivity = streak > 0 || points > 0;
+
+  // Build a realistic activity trail from the user's actual streak.
+  // Each day they've been active shows a GM. Days before the streak are zeroed.
+  const chartPoints = useMemo(() => {
+    const days = 30;
+    const data: { day: number; active: boolean; label: string }[] = [];
+
+    for (let i = days; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const label = d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+      // Only mark days as active if within the current streak window
+      const active = hasActivity && i < streak;
+      data.push({ day: days - i, active, label });
+    }
+    return data;
+  }, [streak, hasActivity]);
+
+  const activeCount = chartPoints.filter(p => p.active).length;
+  const totalDays = chartPoints.length;
+
+  // Build grid Y positions — active = low Y (top = high on chart), idle = high Y (bottom)
+  const svgPoints = chartPoints.map((p, i) => ({
+    x: (i / (chartPoints.length - 1)) * 100,
+    y: p.active ? 20 : 85,
+    ...p,
+  }));
+
+  const pathD = svgPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y}`).join(' ');
 
   return (
-    <div className="bg-[#0A0A0A] border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden group">
-      <div className="flex items-center justify-between mb-8">
+    <div className="bg-[#0A0A0A] border border-white/5 p-6 md:p-8 rounded-[2.5rem] relative overflow-hidden group">
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-white mb-1">Engagement Analytics</h3>
-          <p className="text-gray-500 text-sm">Real-time GM activity over the last 30 days</p>
+          <h3 className="text-lg md:text-xl font-bold text-white mb-1">GM Activity</h3>
+          <p className="text-gray-500 text-xs md:text-sm">
+            {hasActivity
+              ? `Your last ${streak} active day${streak !== 1 ? 's' : ''} — ${activeCount} GMs in 30 days`
+              : 'No GM activity recorded yet — say your first GM!'}
+          </p>
         </div>
-        <div className="bg-white/5 px-4 py-2 rounded-xl flex items-center gap-2">
-          <span className="text-xs font-black uppercase tracking-widest">Monthly</span>
-          <TrendingUp className="h-4 w-4 text-[var(--color-accent)]" />
-        </div>
-      </div>
-
-      <div className="relative h-48 w-full mt-8">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-          {/* Grid lines */}
-          {[0, 25, 50, 75, 100].map((val) => (
-            <line 
-              key={val} 
-              x1="0" y1={val} x2="100" y2={val} 
-              stroke="white" strokeOpacity="0.05" strokeWidth="0.5" 
-            />
-          ))}
-          
-          {/* Main Line */}
-          <path
-            d={pathData}
-            fill="none"
-            stroke="url(#gradient)"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="animate-dash"
-          />
-          
-          {/* Points */}
-          {points.map((p, i) => (
-            <circle 
-              key={i} 
-              cx={p.x} cy={p.y} r="1.5" 
-              fill="white" 
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{ transitionDelay: `${i * 50}ms` }}
-            />
-          ))}
-
-          <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="var(--color-accent)" />
-              <stop offset="100%" stopColor="var(--color-secondary)" />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        {/* Data Markers */}
-        <div className="absolute top-1/2 left-[60%] -translate-y-1/2 bg-white text-black px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-2xl transition-transform group-hover:scale-110">
-          Peak Active: 1.2k
+        <div className="bg-white/5 px-3 py-1.5 rounded-xl flex items-center gap-2 shrink-0">
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">30 Days</span>
+          <TrendingUp className="h-3.5 w-3.5 text-[var(--color-accent)]" />
         </div>
       </div>
+
+      {!hasActivity ? (
+        // Empty state
+        <div className="h-40 flex flex-col items-center justify-center gap-3 border border-dashed border-white/5 rounded-2xl">
+          <div className="h-10 w-10 rounded-full bg-white/[0.03] flex items-center justify-center">
+            <TrendingUp className="h-5 w-5 text-gray-700" />
+          </div>
+          <p className="text-[10px] font-black text-gray-700 uppercase tracking-widest">Say GM to start your chart</p>
+        </div>
+      ) : (
+        <>
+          <div className="relative h-32 md:h-44 w-full mt-4">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+              {/* Grid lines */}
+              {[20, 50, 85].map(val => (
+                <line key={val} x1="0" y1={val} x2="100" y2={val}
+                  stroke="white" strokeOpacity="0.05" strokeWidth="0.5" />
+              ))}
+
+              {/* Fill area */}
+              <path
+                d={`${pathD} L 100 100 L 0 100 Z`}
+                fill="url(#areagradient)"
+                opacity="0.15"
+              />
+
+              {/* Main Line */}
+              <path d={pathD} fill="none" stroke="url(#linegradient)"
+                strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+              {/* Active dots */}
+              {svgPoints.filter(p => p.active).map((p, i) => (
+                <circle key={i} cx={p.x.toFixed(1)} cy={p.y} r="2"
+                  fill="var(--color-accent)"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ transitionDelay: `${i * 20}ms` }}
+                />
+              ))}
+
+              <defs>
+                <linearGradient id="linegradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="var(--color-accent)" />
+                  <stop offset="100%" stopColor="var(--color-secondary)" />
+                </linearGradient>
+                <linearGradient id="areagradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="var(--color-accent)" />
+                  <stop offset="100%" stopColor="transparent" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            {/* Live badge */}
+            <div className="absolute top-2 right-0 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 text-[var(--color-accent)] px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)] animate-pulse inline-block" />
+              {activeCount} Active
+            </div>
+          </div>
+
+          {/* Summary bar */}
+          <div className="mt-6 pt-4 border-t border-white/[0.04] grid grid-cols-3 gap-4">
+            {[
+              { label: 'Streak', value: `${streak}d` },
+              { label: 'This Month', value: `${activeCount} GMs` },
+              { label: 'Reputation', value: `${(points / 10).toFixed(1)} RP` },
+            ].map(({ label, value }) => (
+              <div key={label} className="text-center">
+                <p className="text-[10px] font-black text-gray-700 uppercase tracking-widest mb-1">{label}</p>
+                <p className="text-sm font-bold text-white">{value}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
