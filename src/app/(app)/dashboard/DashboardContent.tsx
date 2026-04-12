@@ -19,11 +19,20 @@ import {
   ArrowRight,
   Zap,
   LayoutDashboard,
-  Award
+  Award,
+  Crown,
+  Heart
 } from 'lucide-react';
 
+import { callContract, getUserOnChainData } from '@/lib/stacks';
+import { useDispatch } from 'react-redux';
+import { updateUserData } from '@/lib/features/userSlice';
+import toast from 'react-hot-toast';
+
 export default function DashboardContent() {
-  const { address, isConnected, mockData, isLoading, followers, following, isPro } = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
+  const [isHealing, setIsHealing] = useState(false);
+  const { address, isConnected, mockData, isLoading, followers, following, isPro, healCount } = useSelector((state: RootState) => state.user);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const dismissed = useRef(false);
@@ -41,6 +50,35 @@ export default function DashboardContent() {
   const handleCloseOnboarding = () => {
     dismissed.current = true;
     setShowOnboarding(false);
+  };
+
+  const handleHealStreak = async () => {
+    if (isHealing) return;
+    setIsHealing(true);
+    
+    try {
+      await callContract({
+        contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '',
+        contractName: process.env.NEXT_PUBLIC_CONTRACT_NAME || '',
+        functionName: 'heal-streak',
+        functionArgs: [],
+        onFinish: (data: any) => {
+          toast.success("Streak Healed!");
+          // Trigger refresh
+          setTimeout(async () => {
+            const freshData = await getUserOnChainData(address!);
+            if (freshData) {
+              dispatch(updateUserData(freshData));
+            }
+          }, 5000);
+        }
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to heal streak");
+    } finally {
+      setIsHealing(false);
+    }
   };
 
   const addressShort = address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'GM User';
@@ -86,7 +124,9 @@ export default function DashboardContent() {
                     Hi, {greeting}.
                   </h1>
                   {isPro && (
-                    <span className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]">PRO</span>
+                    <div className="flex items-center justify-center p-1.5 bg-yellow-500/10 rounded-lg border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                      <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500/20 animate-pulse" />
+                    </div>
                   )}
                </div>
                <p className="text-gray-400 text-lg md:text-xl font-medium mb-8 leading-relaxed">
@@ -112,13 +152,25 @@ export default function DashboardContent() {
 
           {/* 3. Stats Section */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6 order-3">
-             <StatCardVertical 
-                label="Days Streak" 
-                value={mockData?.streak || 0} 
-                icon={History} 
-                subtext={isPro ? "Streak protection active" : "Keep it up for bonuses!"}
-                isLoading={isLoading}
-             />
+             <div className="relative group">
+               <StatCardVertical 
+                  label="Days Streak" 
+                  value={mockData?.streak || 0} 
+                  icon={History} 
+                  subtext={isPro ? "Streak protection active" : "Keep it up for bonuses!"}
+                  isLoading={isLoading}
+               />
+               {isPro && (mockData?.streak === 0) && (
+                 <button 
+                  onClick={handleHealStreak}
+                  disabled={isHealing || healCount === 0}
+                  className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border-4 border-[#0a0a0a] hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl active:scale-95 transition-all"
+                 >
+                    <Heart className={`w-3 h-3 fill-white ${isHealing ? 'animate-ping' : ''}`} />
+                    {isHealing ? 'Restoring...' : healCount > 0 ? `Heal Streak (${healCount} left)` : 'No heals left'}
+                 </button>
+               )}
+             </div>
              <StatCardVertical 
                 label="Social Reputation" 
                 value={((mockData?.points || 0) / 10).toFixed(1)} 
