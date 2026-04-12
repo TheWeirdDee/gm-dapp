@@ -32,7 +32,8 @@ import toast from 'react-hot-toast';
 export default function DashboardContent() {
   const dispatch = useDispatch();
   const [isHealing, setIsHealing] = useState(false);
-  const { address, isConnected, mockData, isLoading, followers, following, isPro, healCount } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, mockData, isLoading, followers, following, isPro, healCount, isOptimisticPro } = useSelector((state: RootState) => state.user);
+  const activePro = isPro || isOptimisticPro;
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const dismissed = useRef(false);
@@ -123,7 +124,7 @@ export default function DashboardContent() {
                   <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight truncate">
                     Hi, {greeting}.
                   </h1>
-                  {isPro && (
+                  {activePro && (
                     <div className="flex items-center justify-center p-1.5 bg-yellow-500/10 rounded-lg border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                       <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500/20 animate-pulse" />
                     </div>
@@ -157,10 +158,10 @@ export default function DashboardContent() {
                   label="Days Streak" 
                   value={mockData?.streak || 0} 
                   icon={History} 
-                  subtext={isPro ? "Streak protection active" : "Keep it up for bonuses!"}
+                  subtext={activePro ? "Streak protection active" : "Keep it up for bonuses!"}
                   isLoading={isLoading}
                />
-               {isPro && (mockData?.streak === 0) && (
+               {activePro && (mockData?.streak === 0) && (
                  <button 
                   onClick={handleHealStreak}
                   disabled={isHealing || healCount === 0}
@@ -176,7 +177,7 @@ export default function DashboardContent() {
                 value={((mockData?.points || 0) / 10).toFixed(1)} 
                 icon={Award} 
                 subtext={
-                  isPro 
+                  activePro 
                     ? "2x Rep Multiplier active" 
                     : (mockData?.points || 0) > 100 ? "Top 5% of all users" :
                       (mockData?.points || 0) > 50 ? "Top 15% of all users" :
@@ -256,15 +257,15 @@ export default function DashboardContent() {
           {/* Pro Account CTA */}
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-2xl order-6">
              <Zap className="absolute top-[-20px] right-[-20px] h-32 w-32 opacity-20 rotate-12 transition-transform group-hover:scale-110" />
-             <h4 className="text-xl font-black text-white mb-2 relative z-10">{isPro ? "Welcome Pro" : "Go Pro."}</h4>
+             <h4 className="text-xl font-black text-white mb-2 relative z-10">{activePro ? "Welcome Pro" : "Go Pro."}</h4>
              <p className="text-indigo-100 text-sm mb-6 relative z-10 opacity-80">
-                {isPro ? "You are enjoying double reputation points and streak protection." : "Unlock custom avatars, higher streak multipliers, and exclusive badges."}
+                {activePro ? "You are enjoying double reputation points and streak protection." : "Unlock custom avatars, higher streak multipliers, and exclusive badges."}
              </p>
              <button 
                 onClick={() => setShowProModal(true)}
                 className="w-full bg-white text-indigo-600 font-black py-4 rounded-2xl relative z-10 transition-transform active:scale-95 shadow-xl"
              >
-                {isPro ? "View Membership" : "Purchase Now"}
+                {activePro ? "View Membership" : "Purchase Now"}
              </button>
           </div>
 
