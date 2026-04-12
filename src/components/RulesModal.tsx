@@ -2,6 +2,16 @@
 
 import { X, Trophy, Star, Circle, Flame, Target } from 'lucide-react';
 
+// Helper for Vanguard Icon - 4 hollow concentric rings matching reference
+const NestedCircle = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 100" className={className}>
+    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" opacity="0.2" />
+    <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="8" opacity="0.4" />
+    <circle cx="50" cy="50" r="19" fill="none" stroke="currentColor" strokeWidth="8" opacity="0.7" />
+    <circle cx="50" cy="50" r="8" fill="none" stroke="currentColor" strokeWidth="8" />
+  </svg>
+);
+
 interface RulesModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,28 +25,28 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
       name: 'Grandmaster',
       rank: 'Rank 1 - 10',
       icon: Trophy,
-      color: 'text-slate-300',
-      bgColor: 'bg-slate-300/10',
-      borderColor: 'border-slate-300/20',
-      perks: ['Exclusive STX Yields', 'Governance Voting Power', 'Silver Identity Plate']
+      color: 'text-yellow-400',
+      bgColor: 'bg-yellow-400/10',
+      borderColor: 'border-yellow-400/20',
+      perks: ['Exclusive STX Yields', 'Governance Voting Power', 'Legacy Gold Identity']
     },
     {
       name: 'Diamond Dev',
       rank: 'Rank 11 - 50',
       icon: Star,
-      color: 'text-cyan-400',
-      bgColor: 'bg-cyan-400/10',
-      borderColor: 'border-cyan-400/20',
-      perks: ['Streak Protection Buff', 'Priority Support', 'Diamond Profile Glow']
+      color: 'text-slate-300',
+      bgColor: 'bg-slate-300/10',
+      borderColor: 'border-slate-300/20',
+      perks: ['Streak Protection Buff', 'Priority Support', 'Silver Profile Glow']
     },
     {
       name: 'Vanguard',
       rank: 'Rank 51 - 100',
-      icon: Circle,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/20',
-      perks: ['Profile Badge', 'Feed Visibility Multiplier', 'Concentric Protocol Access']
+      icon: Flame,
+      color: 'text-orange-500',
+      bgColor: 'bg-orange-500/10',
+      borderColor: 'border-orange-500/20',
+      perks: ['Profile Badge', 'Feed Visibility Multiplier', 'Active Streak Multipliers']
     }
   ];
 
