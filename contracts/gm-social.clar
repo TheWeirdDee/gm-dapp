@@ -10,6 +10,7 @@
 (define-constant ERR-NOT-PRO (err u106))
 (define-constant ERR-STREAK-NOT-BROKEN (err u107))
 (define-constant ERR-NO-HEALS-LEFT (err u108))
+(define-constant ERR-ALREADY-PRO (err u109))
 
 ;; Constants
 (define-constant CONTRACT-OWNER tx-sender)
@@ -88,6 +89,9 @@
     (user-data (get-user-profile tx-sender))
     (current-height burn-block-height)
   )
+    ;; 0. Check if already Pro
+    (asserts! (not (is-pro-active tx-sender)) ERR-ALREADY-PRO)
+
     ;; 1. Transfer STX to contract owner (unless it's the owner themselves subscribing)
     (if (not (is-eq tx-sender CONTRACT-OWNER))
         (try! (stx-transfer? PRO-PRICE tx-sender CONTRACT-OWNER))
