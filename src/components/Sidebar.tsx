@@ -90,14 +90,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         <div className="mt-auto flex flex-col gap-6 w-full">
-          <button className={`
-            flex items-center justify-center gap-2 bg-[var(--color-accent)] text-black font-black transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,197,94,0.3)]
-            w-full py-4 rounded-2xl
-            xl:w-12 xl:h-12 xl:p-0 xl:rounded-xl xl:mx-auto
-          `}>
+          <Link
+            href="/create-post"
+            onClick={onClose}
+            className={`
+              flex items-center justify-center gap-2 bg-[var(--color-accent)] text-black font-black transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,197,94,0.3)]
+              w-full py-4 rounded-2xl
+              xl:w-12 xl:h-12 xl:p-0 xl:rounded-xl xl:mx-auto
+            `}
+          >
             <PlusCircle className="h-5 w-5" />
             <span className="xl:hidden">Create Post</span>
-          </button>
+          </Link>
 
           <Link
             href="/settings"
