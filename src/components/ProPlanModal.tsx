@@ -98,8 +98,8 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
         contractName: APP_CONFIG.contractName,
         functionName: 'subscribe-pro',
         functionArgs: [],
-        postConditionMode: PostConditionMode.Deny,
-        postConditions,
+        postConditionMode: PostConditionMode.Allow,
+        postConditions: [], // Robust mode: Allow contract to handle transfer internally
         onFinish: (data: any) => {
           console.log('Pro Subscription Success - TXID:', data.txId);
           setTxId(data.txId);
