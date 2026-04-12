@@ -18,7 +18,7 @@ import {
   Trophy
 } from 'lucide-react';
 import gsap from 'gsap';
-import { callContract } from '../lib/stacks';
+import { callContract, getUserData } from '../lib/stacks';
 import { APP_CONFIG, getExplorerLink } from '../lib/config';
 import { 
   AnchorMode, 
@@ -58,10 +58,23 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
     setState('wallet_open');
 
     try {
+      // Get the ABSOLUTE LATEST address from the session, not just Redux
+      const userData = getUserData();
+      const currentAddress = userData?.profile?.stxAddress?.testnet || 
+                            userData?.profile?.stxAddress?.mainnet || 
+                            userData?.profile?.stxAddress || 
+                            address;
+
+      console.log('--- PRO PURCHASE DEBUG INFO ---', {
+        reduxAddress: address,
+        latestSessionAddress: currentAddress,
+        network: APP_CONFIG.network.isMainnet ? 'Mainnet' : 'Testnet'
+      });
+
       // Network Prefix Validation (Safety check to prevent 'invalid contract' errors)
       const expectedPrefix = APP_CONFIG.network.isMainnet ? 'SP' : 'ST';
-      if (address && !address.startsWith(expectedPrefix)) {
-        setError(`Please switch your wallet to ${APP_CONFIG.network.isMainnet ? 'Mainnet' : 'Testnet'}. (Current: ${address.substring(0,2)})`);
+      if (currentAddress && !currentAddress.startsWith(expectedPrefix)) {
+        setError(`Please switch your wallet to ${APP_CONFIG.network.isMainnet ? 'Mainnet' : 'Testnet'}. (Current: ${currentAddress.substring(0,2)})`);
         setState('idle');
         return;
       }
@@ -69,11 +82,15 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
       // 10 STX exactly (micro-STX)
       const amount = BigInt(10000000); 
       
-      const postConditions = address ? [
-        Pc.principal(address).willSendEq(amount).ustx()
+      const postConditions = currentAddress ? [
+        Pc.principal(currentAddress).willSendEq(amount).ustx()
       ] : [];
 
-      console.log('Initiating Pro Purchase:', { amount: amount.toString(), address });
+      console.log('Initiating Pro Purchase Transaction...', { 
+        amount: amount.toString(), 
+        principal: currentAddress,
+        contract: `${APP_CONFIG.contractAddress}.${APP_CONFIG.contractName}`
+      });
 
       await callContract({
         anchorMode: AnchorMode.Any,
