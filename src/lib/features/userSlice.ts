@@ -18,6 +18,13 @@ interface UserState {
   isOptimisticPro: boolean;
 }
 
+const getInitialOptimisticState = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('gm_is_optimistic_pro') === 'true';
+  }
+  return false;
+};
+
 const initialState: UserState = {
   address: null,
   profile: null,
@@ -31,7 +38,7 @@ const initialState: UserState = {
   following: 0,
   currentBlockHeight: 0,
   isSimulationMode: false,
-  isOptimisticPro: false,
+  isOptimisticPro: getInitialOptimisticState(),
 };
 
 const userSlice = createSlice({
@@ -161,6 +168,9 @@ const userSlice = createSlice({
     },
     setOptimisticPro(state, action: PayloadAction<boolean>) {
       state.isOptimisticPro = action.payload;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gm_is_optimistic_pro', action.payload.toString());
+      }
     }
   },
 });
