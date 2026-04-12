@@ -26,7 +26,7 @@ import {
 
 import { callContract, getUserOnChainData } from '@/lib/stacks';
 import { useDispatch } from 'react-redux';
-import { updateUserData } from '@/lib/features/userSlice';
+import { updateStats } from '@/lib/features/userSlice';
 import toast from 'react-hot-toast';
 
 export default function DashboardContent() {
@@ -68,7 +68,7 @@ export default function DashboardContent() {
           setTimeout(async () => {
             const freshData = await getUserOnChainData(address!);
             if (freshData) {
-              dispatch(updateUserData(freshData));
+              dispatch(updateStats(freshData));
             }
           }, 5000);
         }
