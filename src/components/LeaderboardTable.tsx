@@ -58,7 +58,7 @@ export default function LeaderboardTable({ users, type }: LeaderboardTableProps)
                         <div className="font-bold text-white flex items-center gap-2 group-hover/user:text-[var(--color-accent)] transition-colors">
                           {user.username || `user_${user.address.substring(user.address.length - 4)}`}
                           {user.isPro && (
-                            <Crown className="w-4 h-4 text-yellow-500 fill-yellow-500/20" />
+                            <Crown className="w-4 h-4 text-white fill-white/10" />
                           )}
                           <ArrowUpRight className="h-3 w-3 opacity-0 group-hover/user:opacity-100 transition-all" />
                         </div>

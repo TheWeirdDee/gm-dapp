@@ -125,8 +125,8 @@ export default function DashboardContent() {
                     Hi, {greeting}.
                   </h1>
                   {activePro && (
-                    <div className="flex items-center justify-center p-1.5 bg-yellow-500/10 rounded-lg border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-                      <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500/20 animate-pulse" />
+                    <div className="flex items-center justify-center p-1.5 transition-all">
+                      <Crown className="w-5 h-5 text-white fill-white/10 animate-pulse" />
                     </div>
                   )}
                </div>

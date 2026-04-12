@@ -73,7 +73,7 @@ export default function PostCard({ post }: PostCardProps) {
                 {displayUsername}
               </Link>
               {post.isPro && (
-                <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500/20" />
+                <Crown className="w-3 h-3 text-white fill-white/10" />
               )}
             </div>
             <span className="text-[11px] font-medium text-gray-500 tracking-tight">{displayTime}</span>

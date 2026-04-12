@@ -126,8 +126,8 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-black text-white tracking-tighter">{user.username}</h1>
               {user.isPro && (
-                <div className="flex items-center justify-center p-1.5 bg-yellow-500/10 rounded-lg border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-                  <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500/20" />
+                <div className="flex items-center justify-center p-1.5 transition-all">
+                  <Crown className="w-5 h-5 text-white fill-white/10" />
                 </div>
               )}
             </div>
