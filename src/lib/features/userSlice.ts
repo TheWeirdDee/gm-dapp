@@ -96,13 +96,11 @@ const userSlice = createSlice({
       username?: string | null;
       isPro?: boolean;
       proExpiry?: number;
-      healCount?: number;
       followers?: number;
       following?: number;
     }>) {
       if (action.payload.isPro !== undefined) state.isPro = action.payload.isPro;
       if (action.payload.proExpiry !== undefined) state.proExpiry = action.payload.proExpiry;
-      if (action.payload.healCount !== undefined) state.healCount = action.payload.healCount;
       if (action.payload.followers !== undefined) state.followers = action.payload.followers;
       if (action.payload.following !== undefined) state.following = action.payload.following;
 
@@ -121,25 +119,14 @@ const userSlice = createSlice({
         };
       }
 
-      if (state.mockData) {
-        // If in simulation mode, only allow updates from the UI (which we'll handle), or block on-chain overwrites
-        // A 'Chain Update' typically has streak/points but not lastGm (or lastGm as 0)
-        const isFromChain = action.payload.lastGm === undefined && action.payload.streak !== undefined;
-        
-        if (state.isSimulationMode && isFromChain) {
-           return;
-        }
 
-        // Use Math.max if NOT in simulation mode. If in simulation mode, we allow setting to 0.
+      if (state.mockData) {
+        // Always use Math.max for streaks and points to prevent stale chain data from overwriting optimistic UI
         if (action.payload.streak !== undefined) {
-          state.mockData.streak = state.isSimulationMode 
-            ? action.payload.streak 
-            : Math.max(state.mockData.streak || 0, action.payload.streak);
+          state.mockData.streak = Math.max(state.mockData.streak || 0, action.payload.streak);
         }
         if (action.payload.points !== undefined) {
-          state.mockData.points = state.isSimulationMode 
-            ? action.payload.points 
-            : Math.max(state.mockData.points || 0, action.payload.points);
+          state.mockData.points = Math.max(state.mockData.points || 0, action.payload.points);
         }
         if (action.payload.lastGm !== undefined) {
           state.mockData.lastGm = Math.max(state.mockData.lastGm || 0, action.payload.lastGm);
@@ -156,14 +143,6 @@ const userSlice = createSlice({
     setUsername(state, action: PayloadAction<string>) {
       if (state.mockData) {
         state.mockData.username = action.payload;
-      }
-    },
-    resetStats(state) {
-      state.isSimulationMode = true;
-      if (state.mockData) {
-        state.mockData.streak = 0;
-        state.mockData.points = 0;
-        state.mockData.lastGm = 0;
       }
     },
     setOptimisticPro(state, action: PayloadAction<boolean>) {
@@ -202,5 +181,5 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
   }
 };
 
-export const { setUserData, logout, updateStats, setUsername, setLoading, setBlockHeight, resetStats, setOptimisticPro } = userSlice.actions;
+export const { setUserData, logout, updateStats, setUsername, setLoading, setBlockHeight, setOptimisticPro } = userSlice.actions;
 export default userSlice.reducer;
