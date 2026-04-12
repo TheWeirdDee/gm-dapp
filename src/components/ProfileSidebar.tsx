@@ -2,7 +2,7 @@
 
 import { User, Shield, Users, UserCheck, Bell, CreditCard, Download, LogOut } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-import { resetStats } from '@/lib/features/userSlice';
+import { logout } from '@/lib/features/userSlice';
 import { useRouter } from 'next/navigation';
 
 const NAV_ITEMS = [
@@ -26,7 +26,7 @@ export default function ProfileSidebar({ activeTab, onTabChange }: ProfileSideba
 
   const handleDisconnect = () => {
     if (confirm('Are you sure you want to disconnect your wallet? All local session data will be cleared.')) {
-      dispatch(resetStats());
+      dispatch(logout());
       // In a real Stacks app, you'd also call userSession.signUserOut() here
       router.push('/');
     }
