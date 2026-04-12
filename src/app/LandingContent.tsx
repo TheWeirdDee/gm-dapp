@@ -58,7 +58,7 @@ export default function LandingContent() {
   };
 
   return (
-    <div className="bg-[#050505] min-h-screen text-white overflow-hidden pb-12 md:pb-32">
+    <div className="bg-[#050505] min-h-screen text-white overflow-x-hidden pb-12 md:pb-32">
       <Navbar />
       
       {/* 1. Hero Section */}
