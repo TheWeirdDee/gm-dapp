@@ -1,12 +1,13 @@
 'use client';
 
-import { User, Shield, Users, Bell, CreditCard, Download, LogOut } from 'lucide-react';
+import { User, Shield, Users, UserCheck, Bell, CreditCard, Download, LogOut } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { resetStats } from '@/lib/features/userSlice';
 import { useRouter } from 'next/navigation';
 
 const NAV_ITEMS = [
   { id: 'profile', label: 'My Profile', icon: User },
+  { id: 'followers', label: 'Followers', icon: UserCheck },
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'social-graph', label: 'Social Graph', icon: Users },
   { id: 'notifications', label: 'Notifications', icon: Bell },
