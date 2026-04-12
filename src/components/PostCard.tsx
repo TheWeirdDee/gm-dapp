@@ -6,7 +6,8 @@ import {
   Share, 
   Bookmark, 
   MoreHorizontal,
-  Smile
+  Smile,
+  Crown
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
@@ -25,6 +26,7 @@ interface PostCardProps {
     };
     commentsCount: number;
     repostsCount: number;
+    isPro?: boolean;
   };
 }
 
@@ -66,9 +68,14 @@ export default function PostCard({ post }: PostCardProps) {
             </div>
           </Link>
           <div className="flex flex-col">
-            <Link href={`/profile/${post.authorAddress}`} className="text-sm font-black text-white hover:text-white/80 transition-colors tracking-tight">
-              {displayUsername}
-            </Link>
+            <div className="flex items-center gap-1.5">
+              <Link href={`/profile/${post.authorAddress}`} className="text-sm font-black text-white hover:text-white/80 transition-colors tracking-tight">
+                {displayUsername}
+              </Link>
+              {post.isPro && (
+                <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500/20" />
+              )}
+            </div>
             <span className="text-[11px] font-medium text-gray-500 tracking-tight">{displayTime}</span>
           </div>
         </div>
