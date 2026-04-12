@@ -58,6 +58,14 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
     setState('wallet_open');
 
     try {
+      // Network Prefix Validation (Safety check to prevent 'invalid contract' errors)
+      const expectedPrefix = APP_CONFIG.network.isMainnet ? 'SP' : 'ST';
+      if (address && !address.startsWith(expectedPrefix)) {
+        setError(`Please switch your wallet to ${APP_CONFIG.network.isMainnet ? 'Mainnet' : 'Testnet'}. (Current: ${address.substring(0,2)})`);
+        setState('idle');
+        return;
+      }
+
       // 10 STX exactly (micro-STX)
       const amount = BigInt(10000000); 
       
