@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
+import BrandLogo from './BrandLogo';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -51,12 +52,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         w-72 xl:w-24 xl:px-4 xl:items-center
       `}>
-        {/* Mobile Header (inside sidebar) */}
+        {/* Sidebar Header (Mobile Only) */}
         <div className="flex items-center justify-between lg:hidden mb-4 w-full">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Gm" className="h-6 w-6 rounded-full" />
-            <span className="font-bold font-logo">Gm</span>
-          </div>
+          <BrandLogo size={24} />
           <button onClick={onClose} className="p-2 text-gray-400 hover:text-white">
             <X className="h-6 w-6" />
           </button>
