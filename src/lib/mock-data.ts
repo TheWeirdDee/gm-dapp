@@ -61,6 +61,39 @@ export const MOCK_USERS: Record<string, User> = {
     followers: 5,
     bio: "New to the Gm community!",
   },
+  "ST2M...X7R": {
+    address: "ST2M...X7R",
+    username: "bitcoin_whale",
+    avatar: "https://api.dicebear.com/7.x/builder/svg?seed=whale",
+    streak: 89,
+    points: 15400,
+    lastGm: 0,
+    following: 120,
+    followers: 4300,
+    isPro: true,
+  },
+  "ST3K...P2L": {
+    address: "ST3K...P2L",
+    username: "gm_queen",
+    avatar: "https://api.dicebear.com/7.x/builder/svg?seed=queen",
+    streak: 156,
+    points: 21000,
+    lastGm: 0,
+    following: 800,
+    followers: 12000,
+    isPro: true,
+  },
+  "ST4R...N5T": {
+    address: "ST4R...N5T",
+    username: "stx_legend",
+    avatar: "https://api.dicebear.com/7.x/builder/svg?seed=legend",
+    streak: 210,
+    points: 45000,
+    lastGm: 0,
+    following: 50,
+    followers: 25000,
+    isPro: true,
+  }
 };
 
 export const MOCK_POSTS: Post[] = [
