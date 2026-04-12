@@ -4,9 +4,28 @@ import LeaderboardTable from '@/components/LeaderboardTable';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useState } from 'react';
-import { Trophy, Flame, Star, Target, Crown, Shield, HelpCircle } from 'lucide-react';
+import { Trophy, Flame, Star, Target, Crown, Circle, HelpCircle } from 'lucide-react';
 import { MOCK_USERS, User } from '@/lib/mock-data';
 import RulesModal from '@/components/RulesModal';
+
+// Helper for Nested Star Icon (Diamond Dev)
+const NestedStar = ({ className }: { className?: string }) => (
+  <div className={`relative flex items-center justify-center ${className}`}>
+    <Star className="h-7 w-7 fill-current opacity-20 animate-pulse" />
+    <Star className="h-4 w-4 fill-current absolute opacity-50" />
+    <Star className="h-2 w-2 fill-current absolute" />
+  </div>
+);
+
+// Helper for Vanguard Icon - 4 hollow concentric rings matching reference
+const NestedCircle = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 100" className={className}>
+    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" opacity="0.2" />
+    <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="6" opacity="0.4" />
+    <circle cx="50" cy="50" r="19" fill="none" stroke="currentColor" strokeWidth="6" opacity="0.7" />
+    <circle cx="50" cy="50" r="8" fill="none" stroke="currentColor" strokeWidth="6" />
+  </svg>
+);
 
 export default function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState<'streak' | 'points'>('streak');
@@ -89,12 +108,10 @@ export default function LeaderboardPage() {
         {leaderTier.pattern === 'concentric' && (
           <>
             <div className="absolute -bottom-20 -left-20 w-80 h-80 opacity-10 pointer-events-none transition-transform group-hover:scale-110 duration-1000">
-               <div className="absolute inset-0 border-[1.5rem] border-white rounded-full"></div>
-               <div className="absolute inset-[3rem] border-[1rem] border-white rounded-full"></div>
+               <NestedCircle className="h-full w-full text-white" />
             </div>
             <div className="absolute -top-20 -right-20 w-80 h-80 opacity-10 pointer-events-none transition-transform group-hover:scale-110 duration-1000">
-               <div className="absolute inset-0 border-[1.5rem] border-white rounded-full"></div>
-               <div className="absolute inset-[3rem] border-[1rem] border-white rounded-full"></div>
+               <NestedCircle className="h-full w-full text-white" />
             </div>
           </>
         )}
@@ -157,34 +174,39 @@ export default function LeaderboardPage() {
 
         {/* 2. Top 3 Podium Highlights */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
-           {/* Rank 2 */}
+           {/* Rank 2 (Diamond Dev - Cyan) */}
            {(() => {
-             const meta = getTierMetadata(2);
-             const Icon = meta.icon;
+             const user = top3[1];
+             if (!user) return null;
              return (
                <div className="order-2 md:order-1 flex flex-col items-center gap-6 group">
-                  <div className={`relative h-44 w-44 rounded-[2.5rem] p-1 bg-gradient-to-br ${meta.gradient}`}>
+                  <div className="relative h-44 w-44 rounded-[2.5rem] p-1 bg-cyan-900/50">
                      <div className="h-full w-full rounded-[2.2rem] bg-[#0A0A0A] overflow-hidden border-4 border-[#0A0A0A]">
-                        <img src={top3[1]?.avatar} alt="rank 2" className="h-full w-full object-cover group-hover:scale-110 transition-transform" />
+                        <img src={user.avatar} alt="rank 2" className="h-full w-full object-cover group-hover:scale-110 transition-transform" />
                      </div>
-                     <div className="absolute -top-3 -left-3 h-12 w-12 bg-black/80 backdrop-blur-md rounded-xl flex flex-col items-center justify-center border border-white/10 shadow-xl group-hover:scale-110 transition-transform">
-                        <Icon className={`h-4 w-4 ${meta.color}`} />
-                        <span className="text-[10px] font-black text-white">#2</span>
+                     <div className="absolute -top-3 -left-3 h-12 w-12 bg-black/90 backdrop-blur-md border border-cyan-500/30 rounded-2xl flex flex-col items-center justify-center  group-hover:scale-110 transition-transform">
+                        <NestedStar className="text-cyan-400 mb-0.5" />
+                       
                      </div>
                   </div>
                   <div className="text-center">
-                     <h3 className="text-xl font-black text-white">{top3[1]?.username}</h3>
-                     <p className={`text-[10px] font-black uppercase tracking-widest mt-1 ${meta.color}`}>{meta.name}</p>
+                     <div className="flex items-center justify-center gap-2">
+                        <h3 className="text-xl font-black text-white">{user.username}</h3>
+                        {user.isPro && <Crown className="h-4 w-4 text-white fill-white/20" />}
+                     </div>
+                     <p className="text-[10px] font-black uppercase tracking-widest mt-1 text-cyan-400">Diamond Dev</p>
                      <div className="mt-3 py-1.5 px-4 bg-white/5 border border-white/5 rounded-full text-sm font-black text-gray-500">
-                        {activeTab === 'streak' ? `${top3[1]?.streak} Streak` : `${top3[1]?.points.toLocaleString()} Rep`}
+                        {activeTab === 'streak' ? `${user.streak} Streak` : `${user.points.toLocaleString()} Rep`}
                      </div>
                   </div>
                </div>
              );
            })()}
 
-           {/* Rank 1 (Center - SILVER) */}
+           {/* Rank 1 (Center - Grandmaster Silver) */}
            {(() => {
+             const user = top3[0];
+             if (!user) return null;
              const meta = getTierMetadata(1);
              const Icon = meta.icon;
              return (
@@ -192,49 +214,49 @@ export default function LeaderboardPage() {
                   <div className={`relative h-64 w-64 rounded-[3.5rem] p-1.5 bg-gradient-to-br ${meta.gradient} ${meta.glowColor}`}>
                      <div className="absolute inset-0 rounded-[3.5rem] animate-pulse bg-white/10 blur-3xl -z-10"></div>
                      <div className="h-full w-full rounded-[3.1rem] bg-[#0A0A0A] overflow-hidden border-8 border-[#0A0A0A]">
-                        <img src={top3[0]?.avatar} alt="rank 1" className="h-full w-full object-cover scale-110 group-hover:scale-125 transition-transform duration-1000" />
+                        <img src={user.avatar} alt="rank 1" className="h-full w-full object-cover scale-110 group-hover:scale-125 transition-transform duration-1000" />
                      </div>
-                     <div className={`absolute -top-6 -left-6 h-18 w-18 ${meta.color} bg-black/90 backdrop-blur-md border border-white/20 rounded-2xl flex flex-col items-center justify-center shadow-2xl group-hover:scale-110 transition-all`}>
-                        <Icon className="h-7 w-7 mb-0.5" />
-                        <span className="text-[10px] font-black tracking-widest">SILVER</span>
+                     <div className={`absolute -top-6 -left-6 h-18 w-18 ${meta.color} bg-black/95 backdrop-blur-md border border-white/20 rounded-2xl flex flex-col items-center justify-center shadow-2xl group-hover:scale-110 transition-all`}>
+                        <Icon className="h-8 w-8" />
                      </div>
                   </div>
                   <div className="text-center">
                      <div className="flex items-center justify-center gap-3 mb-2">
-                        <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter">{top3[0]?.username}</h3>
-                        <div className={`h-8 w-8 rounded-xl flex items-center justify-center border ${meta.borderColor}`}>
-                           <Icon className={`h-5 w-5 ${meta.color}`} />
-                        </div>
+                        <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter">{user.username}</h3>
+                        {user.isPro && <Crown className="h-6 w-6 text-white fill-white/20" />}
                      </div>
-                     <p className={`text-xs font-black uppercase tracking-widest ${meta.color}`}>{meta.name} Leader</p>
+                     <p className={`text-xs font-black uppercase tracking-widest ${meta.color}`}>Grandmaster</p>
                      <div className={`mt-4 py-3 px-10 bg-white/[0.03] border ${meta.borderColor} rounded-2xl text-2xl font-black ${meta.color} shadow-2xl`}>
-                        {activeTab === 'streak' ? `${top3[0]?.streak} Streak` : `${top3[0]?.points.toLocaleString()} Reputation`}
+                        {activeTab === 'streak' ? `${user.streak} Streak` : `${user.points.toLocaleString()} Reputation`}
                      </div>
                   </div>
                </div>
              );
            })()}
 
-           {/* Rank 3 */}
+           {/* Rank 3 (Blue 500) */}
            {(() => {
-             const meta = getTierMetadata(3);
-             const Icon = meta.icon;
+             const user = top3[2];
+             if (!user) return null;
              return (
                <div className="order-3 flex flex-col items-center gap-6 group">
-                  <div className={`relative h-44 w-44 rounded-[2.5rem] p-1 bg-gradient-to-br ${meta.gradient}`}>
+                  <div className="relative h-44 w-44 rounded-[2.5rem] p-1 bg-blue-900/50">
                      <div className="h-full w-full rounded-[2.2rem] bg-[#0A0A0A] overflow-hidden border-4 border-[#0A0A0A]">
-                        <img src={top3[2]?.avatar} alt="rank 3" className="h-full w-full object-cover group-hover:scale-110 transition-transform" />
+                        <img src={user.avatar} alt="rank 3" className="h-full w-full object-cover group-hover:scale-110 transition-transform" />
                      </div>
-                     <div className="absolute -top-3 -right-3 h-12 w-12 bg-black/80 backdrop-blur-md rounded-xl flex flex-col items-center justify-center border border-white/10 shadow-xl group-hover:scale-110 transition-transform">
-                        <Icon className={`h-4 w-4 ${meta.color}`} />
-                        <span className="text-[10px] font-black text-white">#3</span>
+                     <div className="absolute -top-3 -right-3 h-12 w-12 bg-black/90 backdrop-blur-md border border-blue-500/30 rounded-xl flex flex-col items-center justify-center shadow-xl group-hover:scale-110 transition-transform p-2">
+                        <NestedCircle className="h-full w-full text-blue-500" />
+                         
                      </div>
                   </div>
                   <div className="text-center">
-                     <h3 className="text-xl font-black text-white">{top3[2]?.username}</h3>
-                     <p className={`text-[10px] font-black uppercase tracking-widest mt-1 ${meta.color}`}>{meta.name}</p>
+                     <div className="flex items-center justify-center gap-2">
+                        <h3 className="text-xl font-black text-white">{user.username}</h3>
+                        {user.isPro && <Crown className="h-4 w-4 text-white fill-white/20" />}
+                     </div>
+                     <p className="text-[10px] font-black uppercase tracking-widest mt-1 text-blue-500">Vanguard</p>
                      <div className="mt-3 py-1.5 px-4 bg-white/5 border border-white/5 rounded-full text-sm font-black text-gray-500">
-                        {activeTab === 'streak' ? `${top3[2]?.streak} Streak` : `${top3[2]?.points.toLocaleString()} Rep`}
+                        {activeTab === 'streak' ? `${user.streak} Streak` : `${user.points.toLocaleString()} Rep`}
                      </div>
                   </div>
                </div>
@@ -339,9 +361,9 @@ export default function LeaderboardPage() {
                     </div>
                  </div>
 
-                 <div className="space-y-6 group">
-                    <div className="h-16 w-16 mx-auto bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform">
-                       <Circle className="h-8 w-8 text-blue-500" />
+                 <div className="space-y-6 group text-center">
+                    <div className="h-16 w-16 mx-auto bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-900/20 group-hover:scale-110 transition-transform p-3">
+                       <NestedCircle className="h-full w-full text-blue-500" />
                     </div>
                     <div className="space-y-2">
                        <h4 className="text-lg font-black text-white">Vanguard</h4>
