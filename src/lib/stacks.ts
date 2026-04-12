@@ -207,6 +207,12 @@ export const callContract = async (options: any) => {
   const { openContractCall } = require('@stacks/connect');
   const { APP_CONFIG } = require('./config');
   
+  console.log('--- CONTRACT CALL INITIATED ---', {
+    functionName: options.functionName,
+    contract: `${options.contractAddress}.${options.contractName}`,
+    network: APP_CONFIG.network.isMainnet ? 'Mainnet' : 'Testnet',
+  });
+
   await openContractCall({
     ...options,
     network: APP_CONFIG.network, // Force global network from config
