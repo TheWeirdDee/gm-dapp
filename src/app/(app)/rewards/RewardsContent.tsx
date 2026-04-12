@@ -15,9 +15,10 @@ import { RootState } from '@/lib/store';
 import Link from 'next/link';
 
 export default function RewardsContent() {
-  const { isConnected, isPro } = useSelector((state: RootState) => state.user);
+  const { isConnected, isPro, isOptimisticPro } = useSelector((state: RootState) => state.user);
+  const activePro = isPro || isOptimisticPro;
 
-  if (!isConnected || !isPro) {
+  if (!isConnected || !activePro) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
         <div className="card p-6 md:p-12 bg-[#0A0A0A] border-white/5 max-w-2xl w-full rounded-[2.5rem]">
