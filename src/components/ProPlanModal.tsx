@@ -25,7 +25,7 @@ import {
   PostConditionMode, 
   Pc
 } from '@stacks/transactions';
-import { fetchOnChainStats } from '../lib/features/userSlice';
+import { fetchOnChainStats, setOptimisticPro } from '../lib/features/userSlice';
 
 interface ProPlanModalProps {
   isOpen: boolean;
@@ -37,7 +37,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
   const [txId, setTxId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const { address, isPro, proExpiry } = useSelector((state: RootState) => state.user);
+  const { address, isPro, proExpiry, isOptimisticPro } = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const modalRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -105,9 +105,10 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
           setTxId(data.txId);
           setState('pending');
           
-          if (address) {
-            // Background fetch to prepare UI for confirmation
+            // background fetch to prepare UI
             dispatch(fetchOnChainStats(address) as any);
+            // Optimistic Update
+            dispatch(setOptimisticPro(true));
           }
           
           setTimeout(() => {
@@ -222,7 +223,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
 
           <button
             onClick={handlePurchase}
-            disabled={state !== 'idle'}
+            disabled={state !== 'idle' || isPro || isOptimisticPro}
             className={`w-full font-black py-4 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all active:scale-[0.98] disabled:opacity-30 disabled:grayscale shadow-2xl ${
               state === 'idle' ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20' :
               state === 'wallet_open' ? 'bg-blue-600 text-white' :
@@ -232,8 +233,10 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
           >
             {state === 'idle' && (
               <>
-                <span className="text-lg">Upgrade Now</span>
-                <span className="text-[10px] opacity-60 uppercase tracking-widest">Instant Activation</span>
+                <span className="text-lg">{(isPro || isOptimisticPro) ? 'Active Subscription' : 'Upgrade Now'}</span>
+                <span className="text-[10px] opacity-60 uppercase tracking-widest">
+                  {(isPro || isOptimisticPro) ? 'You are an elite member' : 'Instant Activation'}
+                </span>
               </>
             )}
             {state === 'wallet_open' && (
