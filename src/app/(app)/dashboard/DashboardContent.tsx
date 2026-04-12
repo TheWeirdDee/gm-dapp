@@ -201,21 +201,25 @@ export default function DashboardContent() {
              )}
           </div>
 
-          {/* Pro Account CTA */}
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-5 rounded-[2rem] relative overflow-hidden group shadow-xl order-6">
-             <Zap className="absolute top-[-10px] right-[-10px] h-20 w-20 opacity-20 rotate-12 transition-transform group-hover:scale-110" />
-             <div className="relative z-10">
-               <h4 className="text-base font-black text-white mb-1">{isPro ? '✦ Pro Member' : 'Go Pro'}</h4>
-               <p className="text-indigo-200/70 text-xs mb-4 leading-relaxed">
-                  {isPro ? 'Enjoying 2x rep multiplier and streak protection.' : 'Unlock multipliers, badges, and streak protection.'}
-               </p>
-               <button
-                  onClick={() => setShowProModal(true)}
-                  className="w-full bg-white text-indigo-600 font-black py-2.5 text-sm rounded-xl relative z-10 transition-all active:scale-95 hover:bg-indigo-50 shadow-lg"
-               >
-                  {isPro ? 'View Membership' : 'Upgrade Now'}
-               </button>
-             </div>
+          {/* Pro Account CTA — compact horizontal */}
+          <div className="relative overflow-hidden rounded-2xl border border-indigo-500/20 bg-gradient-to-r from-indigo-600/20 to-purple-700/10 group order-6">
+            <div className="flex items-center gap-4 p-4">
+              <div className="shrink-0 h-10 w-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                <Zap className="h-5 w-5 text-indigo-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-black text-white truncate">{isPro ? '✦ Pro Member' : 'Go Pro'}</p>
+                <p className="text-[10px] text-indigo-300/50 leading-tight truncate">
+                  {isPro ? '2× multiplier active' : 'Unlock streak multipliers'}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowProModal(true)}
+                className="shrink-0 bg-indigo-500 hover:bg-indigo-400 text-white font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all active:scale-95 whitespace-nowrap"
+              >
+                {isPro ? 'Manage' : 'Upgrade'}
+              </button>
+            </div>
           </div>
 
         </div>
