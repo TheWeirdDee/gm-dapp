@@ -203,7 +203,8 @@ export default function SettingsContent() {
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-700">
             <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-8 space-y-6">
-              <h3 className="text-sm font-black text-white uppercase tracking-[0.2em] mb-6">Network Configuration</h3>
+              <h3 className="text-sm font-black text-white uppercase tracking-[0.2em] mb-2">Network Configuration</h3>
+              <p className="text-[10px] text-gray-600 font-medium mb-6">The contract address is the same for all users — it's the shared protocol deployer, not your personal wallet.</p>
               
               <SettingRow label="Active Network" description="The Stacks chain this dApp interacts with">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
@@ -218,14 +219,32 @@ export default function SettingsContent() {
                 </div>
               </SettingRow>
 
-              <SettingRow label="Contract Address" description="The deployed Gm social protocol contract">
+              <SettingRow 
+                label="Protocol Contract" 
+                description="Shared contract deployed by the Gm protocol — same for all users"
+              >
                 <a
                   href="https://explorer.hiro.so/address/ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF?chain=testnet"
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+                  className="flex items-center gap-1.5 text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest whitespace-nowrap"
                 >
                   View Contract
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </SettingRow>
+
+              <SettingRow 
+                label="Your On-Chain Profile" 
+                description="Your personal wallet address on the Stacks testnet explorer"
+              >
+                <a
+                  href={`https://explorer.hiro.so/address/${address}?chain=testnet`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 text-[10px] font-black text-[var(--color-accent)] hover:opacity-80 transition-opacity uppercase tracking-widest whitespace-nowrap"
+                >
+                  View Profile
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </SettingRow>
