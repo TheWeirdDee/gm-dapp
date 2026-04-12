@@ -11,6 +11,9 @@ import { authenticate } from '@/lib/stacks';
 import { useRouter } from 'next/navigation';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import dynamic from 'next/dynamic';
+
+const Particles = dynamic(() => import('@/components/Particles'), { ssr: false });
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -60,10 +63,27 @@ export default function LandingContent() {
       
       {/* 1. Hero Section */}
       <section className="relative py-12 md:py-20 lg:py-8 px-6 lg:px-12 xl:px-16 overflow-hidden flex justify-center">
+        {/* Particles background */}
+        <div className="absolute inset-0 z-0">
+          <Particles
+            particleCount={270}
+            particleSpread={21}
+            speed={1}
+            particleColors={["#277754","#e4e2e2","#34288a"]}
+            moveParticlesOnHover={false}
+            particleHoverFactor={1}
+            alphaParticles={false}
+            particleBaseSize={100}
+            sizeRandomness={1}
+            cameraDistance={20}
+            disableRotation={false}
+          />
+        </div>
+
         <div className="absolute top-0 right-0 -z-10 w-full h-full max-w-4xl opacity-50 hidden lg:block left-1/2 -translate-x-1/2">
            <img src="/hero_hands.png" alt="Digital connection" className="w-full h-full object-cover mix-blend-screen opacity-60" />
         </div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-[var(--color-accent)] opacity-10 blur-[150px]"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-[var(--color-accent)] opacity-10 blur-[150px] z-0"></div>
         
         <div className="container mx-auto max-w-5xl relative z-10 flex flex-col items-center text-center gap-12">
           <div className="space-y-8 max-w-4xl flex flex-col items-center">
