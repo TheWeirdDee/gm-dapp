@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --color-background: #0a0a0a;
   --color-foreground: #ededed;
   --color-card: #111111;
@@ -10,10 +10,13 @@
   
   --radius-xl: 1rem;
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-  
-  --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-logo: var(--font-syne), sans-serif;
-  --font-heading: var(--font-space-grotesk), sans-serif;
+
+  /* 
+    These Tailwind theme font tokens intentionally use runtime CSS vars.
+    Tailwind v4 @theme (without inline) defers resolution to runtime,
+    so var(--font-inter) etc. from next/font will be picked up correctly.
+  */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
 }
 
@@ -21,36 +24,48 @@
   color-scheme: dark;
 }
 
+/* ─── Base typography ─────────────────────────── */
 body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  background-color: #0a0a0a;
+  color: #ededed;
+  /* Inter as the default body font — references the CSS var injected by next/font */
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Space Grotesk on all semantic headings */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* ─── Utility classes ─────────────────────────── */
+
+/* Syne Bold — for the Gm logo text */
 .font-logo {
-  font-family: var(--font-syne), sans-serif;
+  font-family: var(--font-syne), ui-sans-serif, system-ui, sans-serif !important;
 }
 
+/* Space Grotesk — for headings when explicitly needed */
 .font-heading {
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif !important;
 }
 
-/* Custom utilities */
+/* Inter — for body copy when explicitly needed */
+.font-body {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif !important;
+}
+
+/* ─── Custom utilities ────────────────────────── */
 @layer utilities {
   .card {
-    background-color: var(--color-card);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--color-border);
+    background-color: #111111;
+    border-radius: 1rem;
+    border: 1px solid #222222;
     box-shadow: 0 8px 30px rgba(0,0,0,0.4);
   }
 }
 
-/* Infinite Marquee */
+/* ─── Infinite Marquee ────────────────────────── */
 @keyframes marquee {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
