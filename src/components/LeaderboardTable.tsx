@@ -2,6 +2,7 @@
 
 import { Trophy, Flame, Star, Medal, ArrowUpRight, Crown, Circle } from 'lucide-react';
 import Link from 'next/link';
+import IdentityAvatar from './IdentityAvatar';
 
 // Helper for Nested Star Icon (Diamond Dev)
 const NestedStar = ({ className }: { className?: string }) => (
@@ -25,7 +26,7 @@ const NestedCircle = ({ className }: { className?: string }) => (
 interface LeaderboardUser {
   address: string;
   username: string;
-  avatar: string;
+  avatar?: string;
   streak: number;
   points: number;
   isPro?: boolean;
@@ -79,12 +80,7 @@ export default function LeaderboardTable({ users, type }: LeaderboardTableProps)
                   </td>
                   <td className="px-8 py-5">
                     <Link href={`/profile/${user.address}`} className="flex items-center gap-4 group/user">
-                      <div className="h-11 w-11 rounded-2xl overflow-hidden bg-white/5 border border-white/5 group-hover/user:border-[var(--color-accent)]/50 transition-colors relative">
-                        <img src={`https://api.dicebear.com/7.x/builder/svg?seed=${user.address}`} alt="avatar" className="h-full w-full object-cover" />
-                        {user.isPro && (
-                          <div className="absolute inset-0 border-2 border-indigo-500/50 rounded-2xl pointer-events-none"></div>
-                        )}
-                      </div>
+                      <IdentityAvatar address={user.address} src={user.avatar} size="md" className="!rounded-2xl" />
                       <div>
                         <div className="font-bold text-white flex items-center gap-2 group-hover/user:text-[var(--color-accent)] transition-colors">
                           {user.username || `user_${user.address.substring(user.address.length - 4)}`}
