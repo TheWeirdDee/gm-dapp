@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction, createAction } from '@reduxjs/toolkit';
-import { User } from '../mock-data';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { User } from '../types';
 import { getUserSession, getUserOnChainData, getOnChainBlockHeight } from '../stacks';
 
 interface UserState {
@@ -7,7 +7,11 @@ interface UserState {
   profile: any | null;
   isConnected: boolean;
   isLoading: boolean;
-  mockData: User | null;
+  username: string | null;
+  bio: string | null;
+  streak: number;
+  points: number;
+  lastGm: number;
   isPro: boolean;
   proExpiry: number;
   healCount: number;
@@ -30,7 +34,11 @@ const initialState: UserState = {
   profile: null,
   isConnected: false, 
   isLoading: false,
-  mockData: null,
+  username: null,
+  bio: null,
+  streak: 0,
+  points: 0,
+  lastGm: 0,
   isPro: false,
   proExpiry: 0,
   healCount: 0,
@@ -48,7 +56,7 @@ const userSlice = createSlice({
     setBlockHeight(state, action: PayloadAction<number>) {
       state.currentBlockHeight = action.payload;
     },
-    setUserData(state, action: PayloadAction<{ address: string; profile: any; cachedData?: User | null }>) {
+    setUserData(state, action: PayloadAction<{ address: string; profile: any }>) {
       const stxAddressObj = action.payload.profile.stxAddress;
       const fallbackName = typeof stxAddressObj === 'string' 
         ? stxAddressObj 
@@ -57,43 +65,34 @@ const userSlice = createSlice({
       state.address = action.payload.address;
       state.profile = action.payload.profile;
       state.isConnected = true;
-      
-      // Use cached data if available, otherwise initialize defaults
-      if (action.payload.cachedData) {
-        state.mockData = action.payload.cachedData;
-      } else if (!state.mockData) {
-        state.mockData = {
-          address: action.payload.address,
-          username: fallbackName,
-          avatar: action.payload.profile.image?.[0]?.contentUrl || '',
-          streak: 0,
-          points: 0,
-          lastGm: 0,
-          followers: 0,
-          following: 0,
-          bio: 'Stacks GM Enthusiast',
-        };
-      } else if (state.mockData.username.length > 30) {
-        state.mockData.username = fallbackName;
-      }
+      state.username = fallbackName;
     },
     logout(state) {
       state.address = null;
       state.profile = null;
       state.isConnected = false;
       state.isLoading = false;
-      state.mockData = null;
+      state.username = null;
+      state.bio = null;
+      state.streak = 0;
+      state.points = 0;
+      state.lastGm = 0;
+      state.isPro = false;
+      state.proExpiry = 0;
+      state.healCount = 0;
+      state.followers = 0;
+      state.following = 0;
       getUserSession()?.signUserOut();
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
-    // Keep internal UI actions for now
     updateStats(state, action: PayloadAction<{ 
       streak?: number; 
       points?: number; 
       lastGm?: number;
       username?: string | null;
+      bio?: string | null;
       isPro?: boolean;
       proExpiry?: number;
       followers?: number;
@@ -103,47 +102,24 @@ const userSlice = createSlice({
       if (action.payload.proExpiry !== undefined) state.proExpiry = action.payload.proExpiry;
       if (action.payload.followers !== undefined) state.followers = action.payload.followers;
       if (action.payload.following !== undefined) state.following = action.payload.following;
-
-      // Ensure mockData exists before updating, or initialize it
-      if (!state.mockData && state.address) {
-        state.mockData = {
-          address: state.address,
-          username: state.address.substring(0, 8),
-          avatar: '',
-          streak: 0,
-          points: 0,
-          lastGm: 0,
-          followers: 0,
-          following: 0,
-          bio: ''
-        };
+      if (action.payload.bio !== undefined) state.bio = action.payload.bio;
+      
+      // Always use Math.max for streaks and points to prevent stale chain data from overwriting optimistic UI
+      if (action.payload.streak !== undefined) {
+        state.streak = Math.max(state.streak, action.payload.streak);
       }
-
-
-      if (state.mockData) {
-        // Always use Math.max for streaks and points to prevent stale chain data from overwriting optimistic UI
-        if (action.payload.streak !== undefined) {
-          state.mockData.streak = Math.max(state.mockData.streak || 0, action.payload.streak);
-        }
-        if (action.payload.points !== undefined) {
-          state.mockData.points = Math.max(state.mockData.points || 0, action.payload.points);
-        }
-        if (action.payload.lastGm !== undefined) {
-          state.mockData.lastGm = Math.max(state.mockData.lastGm || 0, action.payload.lastGm);
-        }
-        if (action.payload.followers !== undefined) {
-          state.mockData.followers = action.payload.followers;
-        }
-        
-        if (action.payload.username) {
-          state.mockData.username = action.payload.username;
-        }
+      if (action.payload.points !== undefined) {
+        state.points = Math.max(state.points, action.payload.points);
+      }
+      if (action.payload.lastGm !== undefined) {
+        state.lastGm = Math.max(state.lastGm, action.payload.lastGm);
+      }
+      if (action.payload.username) {
+        state.username = action.payload.username;
       }
     },
     setUsername(state, action: PayloadAction<string>) {
-      if (state.mockData) {
-        state.mockData.username = action.payload;
-      }
+      state.username = action.payload;
     },
     setOptimisticPro(state, action: PayloadAction<boolean>) {
       state.isOptimisticPro = action.payload;
@@ -157,13 +133,11 @@ const userSlice = createSlice({
 export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
   dispatch(userSlice.actions.setLoading(true));
   try {
-    // 1. Fetch Latest Burn Block Height from Contract for perfect synchronization
     const height = await getOnChainBlockHeight();
     if (height > 0) {
       dispatch(userSlice.actions.setBlockHeight(height));
     }
 
-    // 2. Fetch User Stats
     const data: any = await getUserOnChainData(address);
     if (data) {
       dispatch(userSlice.actions.updateStats({
@@ -174,6 +148,7 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
         proExpiry: data.proExpiry,
         followers: data.followers,
         following: data.following
+        // Future: Fetch bio from Supabase or contract if added
       }));
     }
   } finally {
