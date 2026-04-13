@@ -14,7 +14,6 @@ const FollowersContent = dynamic(() => import('@/app/(app)/followers/FollowersCo
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import Link from 'next/link';
-import { MOCK_USERS } from '@/lib/mock-data';
 import { ArrowLeft, Clock } from 'lucide-react';
 
 export default function ProfileContent({ params }: { params: Promise<{ address: string }> }) {
@@ -28,8 +27,9 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
   // Filter posts to only show this user's posts
   const userPosts = feed.filter(post => post.authorAddress === targetAddress);
   
-  // Check if user exists in mock or is self
-  const exists = MOCK_USERS[targetAddress] || (currentAddress === targetAddress);
+  // In Phase 1, we only consider the user "existent" if they are the current logged-in user.
+  // Phase 2 will check Supabase for other indexed principals.
+  const exists = (currentAddress === targetAddress);
 
   if (!isConnected) {
     return (
