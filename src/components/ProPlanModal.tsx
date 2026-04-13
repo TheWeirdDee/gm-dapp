@@ -68,13 +68,13 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
       console.log('--- PRO PURCHASE DEBUG INFO ---', {
         reduxAddress: address,
         latestSessionAddress: currentAddress,
-        network: APP_CONFIG.network.isMainnet ? 'Mainnet' : 'Testnet'
+        network: APP_CONFIG.isMainnet ? 'Mainnet' : 'Testnet'
       });
 
       // Network Prefix Validation (Safety check to prevent 'invalid contract' errors)
-      const expectedPrefix = APP_CONFIG.network.isMainnet ? 'SP' : 'ST';
+      const expectedPrefix = APP_CONFIG.isMainnet ? 'SP' : 'ST';
       if (currentAddress && !currentAddress.startsWith(expectedPrefix)) {
-        setError(`Please switch your wallet to ${APP_CONFIG.network.isMainnet ? 'Mainnet' : 'Testnet'}. (Current: ${currentAddress.substring(0,2)})`);
+        setError(`Please switch your wallet to ${APP_CONFIG.isMainnet ? 'Mainnet' : 'Testnet'}. (Current: ${currentAddress.substring(0,2)})`);
         setState('idle');
         return;
       }
