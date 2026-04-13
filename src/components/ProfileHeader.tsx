@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { 
   UserPlus, 
@@ -11,12 +9,10 @@ import {
   Link as LinkIcon, 
   Calendar,
   Loader2,
-  MessageSquare,
   Crown
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
-import { MOCK_USERS } from '../lib/mock-data';
 import { callContract } from '../lib/stacks';
 import { fetchOnChainStats } from '../lib/features/userSlice';
 import { APP_CONFIG } from '../lib/config';
@@ -26,15 +22,41 @@ import {
   principalCV 
 } from '@stacks/transactions';
 
+import IdentityAvatar from './IdentityAvatar';
+
 export default function ProfileHeader({ targetAddress }: { targetAddress: string }) {
   const dispatch = useDispatch();
-  const { address: currentAddress, isConnected } = useSelector((state: RootState) => state.user);
+  const { 
+    address: currentAddress, 
+    isConnected, 
+    username, 
+    points, 
+    streak, 
+    bio,
+    followers, 
+    following, 
+    isPro, 
+    isOptimisticPro 
+  } = useSelector((state: RootState) => state.user);
   
-  // Use MOCK_USERS for the demo if it's not the current user
-  const user = MOCK_USERS[targetAddress] || (currentAddress === targetAddress ? useSelector((state: RootState) => state.user.mockData) : null);
-  const [isFollowPending, setIsFollowPending] = useState(false);
   const isSelf = currentAddress === targetAddress;
-  const isFollowing = (user?.followers || 0) > 100 && !isSelf; 
+  const activePro = isPro || isOptimisticPro;
+
+  // For Phase 1, we only show data for the connected user. 
+  // Phase 2 (Supabase) will allow viewing of other indexed users.
+  const user = isSelf ? {
+    username: username,
+    bio: bio,
+    streak: streak,
+    points: points,
+    followers: followers,
+    following: following,
+    isPro: activePro,
+    avatar: undefined
+  } : null;
+
+  const [isFollowPending, setIsFollowPending] = useState(false);
+  const isFollowing = false; // Will be real once indexing is active
 
   const handleFollow = async () => {
     if (!isConnected || !currentAddress || isSelf || isFollowPending) return;
@@ -49,12 +71,10 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
         contractName: APP_CONFIG.contractName,
         functionName: 'follow',
         functionArgs: [principalCV(targetAddress)],
-        postConditionMode: PostConditionMode.Deny, // Security best practice
+        postConditionMode: PostConditionMode.Deny,
         postConditions: [],
         onFinish: (data: any) => {
           console.log('Follow Success - TXID:', data.txId);
-          
-          // Re-fetch stats for both users to ensure UI sync
           dispatch(fetchOnChainStats(targetAddress) as any);
           dispatch(fetchOnChainStats(currentAddress) as any);
 
@@ -70,6 +90,17 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
     }
   };
 
+  const finalUser = user || {
+    username: targetAddress.substring(0, 10),
+    bio: "Metadata restricted while indexing.",
+    streak: 0,
+    points: 0,
+    followers: 0,
+    following: 0,
+    isPro: false,
+    avatar: undefined
+  };
+
   return (
     <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in duration-700">
       {/* Dynamic Banner */}
@@ -79,9 +110,7 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
       
       <div className="px-8 pb-10 relative">
         <div className="flex justify-between items-end -mt-12 mb-6">
-          <div className="h-28 w-28 rounded-[2rem] bg-black border-4 border-[#0A0A0A] overflow-hidden flex-shrink-0 shadow-2xl">
-            <img src={`https://api.dicebear.com/7.x/builder/svg?seed=${targetAddress}`} alt="avatar" className="h-full w-full object-cover" />
-          </div>
+          <IdentityAvatar address={targetAddress} src={finalUser.avatar} size="lg" className="h-28 w-28 border-4 border-[#0A0A0A] !shadow-2xl" />
           
           <div className="flex gap-3">
             {isSelf ? (
@@ -124,8 +153,8 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
         <div className="space-y-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-black text-white tracking-tighter">{user.username}</h1>
-              {user.isPro && (
+              <h1 className="text-3xl font-black text-white tracking-tighter">{finalUser.username || 'Anonymous'}</h1>
+              {finalUser.isPro && (
                 <div className="flex items-center justify-center p-1.5 transition-all">
                   <Crown className="w-5 h-5 text-white fill-white/10" />
                 </div>
@@ -141,27 +170,27 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
           </div>
           
           <p className="text-gray-400 font-medium text-sm max-w-xl leading-relaxed">
-             {user.bio || "This user hasn't set their on-chain identity yet."}
+             {finalUser.bio}
           </p>
 
           <div className="flex flex-wrap items-center gap-6 pt-2">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
                <Calendar className="h-4 w-4" />
-               Joined Mar 2024
+               Joined {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
             </div>
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
                <LinkIcon className="h-4 w-4" />
-               <a href="#" className="hover:text-[var(--color-accent)] transition-colors">gm.social/{user.username}</a>
+               <a href="#" className="hover:text-[var(--color-accent)] transition-colors">gm.social/{finalUser.username}</a>
             </div>
           </div>
           
           <div className="flex items-center gap-8 pt-4 border-t border-white/[0.03]">
             <div className="flex items-center gap-2">
-              <span className="font-black text-white text-xl">{user.following}</span> 
+              <span className="font-black text-white text-xl">{finalUser.following}</span> 
               <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Connections</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-white text-xl">{user.followers}</span> 
+              <span className="font-black text-white text-xl">{finalUser.followers}</span> 
               <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Connectors</span>
             </div>
           </div>
@@ -174,7 +203,7 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
                <Flame className="h-20 w-20 text-orange-500" />
             </div>
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2">Max Streak</div>
-            <div className="text-3xl font-black text-orange-500">{user.streak} <span className="text-sm">Days</span></div>
+            <div className="text-3xl font-black text-orange-500">{finalUser.streak} <span className="text-sm">Days</span></div>
           </div>
           
           <div className="bg-white/[0.02] rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
@@ -182,7 +211,7 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
                <Star className="h-20 w-20 text-yellow-500" />
             </div>
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2">Reputation</div>
-            <div className="text-3xl font-black text-yellow-500">{user.points.toLocaleString()}</div>
+            <div className="text-3xl font-black text-yellow-500">{finalUser.points.toLocaleString()}</div>
           </div>
 
           <div className="bg-white/[0.02] rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
