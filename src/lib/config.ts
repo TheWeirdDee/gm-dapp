@@ -12,6 +12,7 @@ export const APP_CONFIG = {
   
   // Set Network Object
   network: IS_MAINNET ? STACKS_MAINNET : STACKS_TESTNET,
+  isMainnet: IS_MAINNET,
   
   // Set Explorer Base URL
   explorerUrl: IS_MAINNET 
