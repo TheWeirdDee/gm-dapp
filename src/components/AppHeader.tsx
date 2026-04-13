@@ -1,12 +1,13 @@
 'use client';
 
-import Link from 'next/link';
-import { Search, Wallet, ChevronDown, Menu, X, Bell } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { logout } from '@/lib/features/userSlice';
-import { useState, useRef, useEffect } from 'react';
 import BrandLogo from './BrandLogo';
+import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import IdentityAvatar from './IdentityAvatar';
+import { logout } from '@/lib/features/userSlice';
 
 interface AppHeaderProps {
   onMenuClick: () => void;
@@ -14,7 +15,7 @@ interface AppHeaderProps {
 
 export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   const dispatch = useDispatch();
-  const { address, isConnected, mockData } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, username } = useSelector((state: RootState) => state.user);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -74,11 +75,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
               onClick={() => setShowUserDropdown(!showUserDropdown)}
               className="flex items-center gap-2 rounded-full bg-white/5 border border-white/10 p-1 pr-3 transition-all hover:bg-white/10"
             >
-              <img 
-                src={mockData?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${address}`} 
-                alt="Avatar" 
-                className="h-7 w-7 rounded-full bg-black border border-white/10"
-              />
+              <IdentityAvatar address={address} size="xs" className="h-7 w-7 !rounded-full" />
               <span className="text-xs font-bold text-gray-300 hidden sm:inline">
                 {address?.substring(0, 4)}...{address?.substring(address.length - 4)}
               </span>
