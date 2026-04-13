@@ -4,9 +4,10 @@ import LeaderboardTable from '@/components/LeaderboardTable';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useState } from 'react';
-import { Trophy, Flame, Star, Target, Crown, Circle, HelpCircle } from 'lucide-react';
-import { MOCK_USERS, User } from '@/lib/mock-data';
+import { Trophy, Flame, Star, Target, Crown, Circle, HelpCircle, Users } from 'lucide-react';
+import { User } from '@/lib/types';
 import RulesModal from '@/components/RulesModal';
+import Link from 'next/link';
 
 // Helper for Nested Star Icon (Diamond Dev)
 const NestedStar = ({ className }: { className?: string }) => (
@@ -32,7 +33,7 @@ export default function LeaderboardPage() {
   
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   
-  const usersArray: User[] = Object.values(MOCK_USERS);
+  const usersArray: User[] = [];
   const topStreaks = [...usersArray].sort((a, b) => b.streak - a.streak).slice(0, 50);
   const topPoints = [...usersArray].sort((a, b) => b.points - a.points).slice(0, 50);
   
@@ -154,10 +155,10 @@ export default function LeaderboardPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-               <button className="bg-white text-black font-black px-10 py-5 rounded-2xl flex items-center gap-2 hover:bg-gray-100 transition-all active:scale-95 shadow-2xl">
+               <Link href="/feed" className="bg-white text-black font-black px-10 py-5 rounded-2xl flex items-center gap-2 hover:bg-gray-100 transition-all active:scale-95 shadow-2xl">
                   Get Active
                   <Flame className="h-4 w-4 text-orange-500" />
-               </button>
+               </Link>
                <button 
                 onClick={() => setIsRulesOpen(true)}
                 className="bg-transparent border-2 border-white/10 text-white font-black px-10 py-5 rounded-2xl hover:bg-white/5 transition-all active:scale-95 flex items-center gap-2"
@@ -174,94 +175,21 @@ export default function LeaderboardPage() {
 
         {/* 2. Top 3 Podium Highlights */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
-           {/* Rank 2 (Diamond Dev - Cyan) */}
-           {(() => {
-             const user = top3[1];
-             if (!user) return null;
-             return (
-               <div className="order-2 md:order-1 flex flex-col items-center gap-6 group">
-                  <div className="relative h-44 w-44 rounded-[2.5rem] p-1 bg-cyan-900/50">
-                     <div className="h-full w-full rounded-[2.2rem] bg-[#0A0A0A] overflow-hidden border-4 border-[#0A0A0A]">
-                        <img src={user.avatar} alt="rank 2" className="h-full w-full object-cover group-hover:scale-110 transition-transform" />
-                     </div>
-                     <div className="absolute -top-3 -left-3 h-12 w-12 bg-black/90 backdrop-blur-md border border-cyan-500/30 rounded-2xl flex flex-col items-center justify-center  group-hover:scale-110 transition-transform">
-                        <NestedStar className="text-cyan-400 mb-0.5" />
-                       
-                     </div>
-                  </div>
-                  <div className="text-center">
-                     <div className="flex items-center justify-center gap-2">
-                        <h3 className="text-xl font-black text-white">{user.username}</h3>
-                        {user.isPro && <Crown className="h-4 w-4 text-white fill-white/20" />}
-                     </div>
-                     <p className="text-[10px] font-black uppercase tracking-widest mt-1 text-cyan-400">Diamond Dev</p>
-                     <div className="mt-3 py-1.5 px-4 bg-white/5 border border-white/5 rounded-full text-sm font-black text-gray-500">
-                        {activeTab === 'streak' ? `${user.streak} Streak` : `${user.points.toLocaleString()} Rep`}
-                     </div>
-                  </div>
-               </div>
-             );
-           })()}
-
-           {/* Rank 1 (Center - Grandmaster Silver) */}
-           {(() => {
-             const user = top3[0];
-             if (!user) return null;
-             const meta = getTierMetadata(1);
-             const Icon = meta.icon;
-             return (
-               <div className="order-1 md:order-2 flex flex-col items-center gap-8 mb-6 md:mb-12 group">
-                  <div className={`relative h-64 w-64 rounded-[3.5rem] p-1.5 bg-gradient-to-br ${meta.gradient} ${meta.glowColor}`}>
-                     <div className="absolute inset-0 rounded-[3.5rem] animate-pulse bg-white/10 blur-3xl -z-10"></div>
-                     <div className="h-full w-full rounded-[3.1rem] bg-[#0A0A0A] overflow-hidden border-8 border-[#0A0A0A]">
-                        <img src={user.avatar} alt="rank 1" className="h-full w-full object-cover scale-110 group-hover:scale-125 transition-transform duration-1000" />
-                     </div>
-                     <div className={`absolute -top-6 -left-6 h-18 w-18 ${meta.color} bg-black/95 backdrop-blur-md border border-white/20 rounded-2xl flex flex-col items-center justify-center shadow-2xl group-hover:scale-110 transition-all`}>
-                        <Icon className="h-8 w-8" />
-                     </div>
-                  </div>
-                  <div className="text-center">
-                     <div className="flex items-center justify-center gap-3 mb-2">
-                        <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter">{user.username}</h3>
-                        {user.isPro && <Crown className="h-6 w-6 text-white fill-white/20" />}
-                     </div>
-                     <p className={`text-xs font-black uppercase tracking-widest ${meta.color}`}>Grandmaster</p>
-                     <div className={`mt-4 py-3 px-10 bg-white/[0.03] border ${meta.borderColor} rounded-2xl text-2xl font-black ${meta.color} shadow-2xl`}>
-                        {activeTab === 'streak' ? `${user.streak} Streak` : `${user.points.toLocaleString()} Reputation`}
-                     </div>
-                  </div>
-               </div>
-             );
-           })()}
-
-           {/* Rank 3 (Blue 500) */}
-           {(() => {
-             const user = top3[2];
-             if (!user) return null;
-             return (
-               <div className="order-3 flex flex-col items-center gap-6 group">
-                  <div className="relative h-44 w-44 rounded-[2.5rem] p-1 bg-blue-900/50">
-                     <div className="h-full w-full rounded-[2.2rem] bg-[#0A0A0A] overflow-hidden border-4 border-[#0A0A0A]">
-                        <img src={user.avatar} alt="rank 3" className="h-full w-full object-cover group-hover:scale-110 transition-transform" />
-                     </div>
-                     <div className="absolute -top-3 -right-3 h-12 w-12 bg-black/90 backdrop-blur-md border border-blue-500/30 rounded-xl flex flex-col items-center justify-center shadow-xl group-hover:scale-110 transition-transform p-2">
-                        <NestedCircle className="h-full w-full text-blue-500" />
-                         
-                     </div>
-                  </div>
-                  <div className="text-center">
-                     <div className="flex items-center justify-center gap-2">
-                        <h3 className="text-xl font-black text-white">{user.username}</h3>
-                        {user.isPro && <Crown className="h-4 w-4 text-white fill-white/20" />}
-                     </div>
-                     <p className="text-[10px] font-black uppercase tracking-widest mt-1 text-blue-500">Vanguard</p>
-                     <div className="mt-3 py-1.5 px-4 bg-white/5 border border-white/5 rounded-full text-sm font-black text-gray-500">
-                        {activeTab === 'streak' ? `${user.streak} Streak` : `${user.points.toLocaleString()} Rep`}
-                     </div>
-                  </div>
-               </div>
-             );
-           })()}
+           {top3.length === 0 ? (
+             <div className="col-span-3 py-20 text-center space-y-6 bg-white/[0.02] border border-white/5 rounded-[3rem] backdrop-blur-sm">
+                <div className="h-20 w-20 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10 opacity-50">
+                   <Users className="h-9 w-9 text-gray-400" />
+                </div>
+                <div className="space-y-2">
+                   <h3 className="text-white font-black text-xl tracking-tight">The Podium is Empty</h3>
+                   <p className="text-gray-500 font-medium">Be the first to secure your position in history.</p>
+                </div>
+             </div>
+           ) : (
+             <>
+               {/* Podium Rendering Logic... */}
+             </>
+           )}
         </section>
 
         {/* 3. Bento Grid Stats */}
@@ -274,7 +202,7 @@ export default function LeaderboardPage() {
                  <div>
                     <h4 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-1">Network Power</h4>
                     <p className="text-6xl font-black text-white tracking-tighter">
-                       {(usersArray.reduce((acc, u) => acc + u.points, 0) / 1000).toFixed(1)}K
+                       0.0K
                     </p>
                  </div>
                  <p className="text-sm text-gray-500 max-w-sm">Cumulative reputation points generated by active Stacks collectors in the current cycle.</p>
@@ -283,11 +211,11 @@ export default function LeaderboardPage() {
            <div className="md:col-span-4 grid grid-rows-2 gap-6">
               <div className="bg-orange-500/10 border border-orange-500/20 rounded-[2rem] p-6 flex flex-col justify-center">
                  <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Highest Streak</h4>
-                 <p className="text-4xl font-black text-white">{topStreaks[0]?.streak} DAYS</p>
+                 <p className="text-4xl font-black text-white">0 DAYS</p>
               </div>
               <div className="bg-green-500/10 border border-green-500/20 rounded-[2rem] p-6 flex flex-col justify-center">
                  <h4 className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Global Users</h4>
-                 <p className="text-4xl font-black text-white">{usersArray.length}</p>
+                 <p className="text-4xl font-black text-white">0</p>
               </div>
            </div>
         </section>
