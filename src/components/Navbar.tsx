@@ -1,19 +1,18 @@
-'use client';
-
-import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { Wallet, LayoutDashboard, Rss, Trophy, User as UserIcon, Star, Info, ChevronDown, LogOut } from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../lib/store';
-import { authenticate, getUserSession, getUserData } from '../lib/stacks';
-import { setUserData, logout } from '../lib/features/userSlice';
-import { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/lib/store';
+import { authenticate } from '@/lib/stacks';
+import { logout } from '@/lib/features/userSlice';
+import { Star, Info, Rss, Trophy, LayoutDashboard, User as UserIcon, Wallet, ChevronDown, LogOut } from 'lucide-react';
+import Link from 'next/link';
 import BrandLogo from './BrandLogo';
+import IdentityAvatar from './IdentityAvatar';
 
 export default function Navbar() {
   const pathname = usePathname();
   const dispatch = useDispatch();
-  const { address, isConnected, mockData } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, username } = useSelector((state: RootState) => state.user);
   
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -91,14 +90,18 @@ export default function Navbar() {
                 authenticate();
               }
             }}
-            className="flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-black text-white transition-all hover:bg-opacity-90 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] active:scale-95"
+            className="flex items-center gap-2 rounded-full bg-[var(--color-secondary)] pl-2 pr-5 py-2 text-sm font-black text-white transition-all hover:bg-opacity-90 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] active:scale-95"
           >
-            <Wallet className="h-4 w-4" />
+            {isConnected ? (
+              <IdentityAvatar address={address} size="xs" className="h-7 w-7 !rounded-full bg-white/10" />
+            ) : (
+              <Wallet className="h-4 w-4 ml-3" />
+            )}
             <span>
               {isConnected ? (
                 <>
                   {address?.substring(0, 4)}...{address?.substring(address.length - 4)}
-                  <ChevronDown className="inline h-4 w-4 ml-1" />
+                  <ChevronDown className="inline h-4 w-4 ml-1 opacity-50" />
                 </>
               ) : (
                 'Connect Wallet'
@@ -109,7 +112,14 @@ export default function Navbar() {
           {/* Wallet Dropdown Menu (Authenticated Only) */}
           {showWalletDropdown && isConnected && (
             <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/5 bg-[#0A0A0A] shadow-[0_10px_40px_rgba(0,0,0,0.5)] py-3 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-               <div className="px-5 py-2 text-[10px] font-black text-gray-600 uppercase tracking-widest border-b border-white/[0.03] mb-2">Account</div>
+               <div className="px-5 py-3 flex items-center gap-3 border-b border-white/[0.03] mb-2">
+                  <IdentityAvatar address={address} size="xs" className="h-8 w-8 !rounded-xl" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest truncate">{username || 'User'}</span>
+                    <span className="text-[9px] text-gray-500 font-mono truncate">{address}</span>
+                  </div>
+               </div>
+
                
                <Link 
                  href={`/profile/${address}`}
