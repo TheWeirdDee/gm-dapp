@@ -6,10 +6,8 @@ import { TrendingUp } from 'lucide-react';
 import { useMemo } from 'react';
 
 export default function AnalyticsGraph() {
-  const { mockData, followers } = useSelector((state: RootState) => state.user);
+  const { streak, points, followers } = useSelector((state: RootState) => state.user);
 
-  const streak = mockData?.streak || 0;
-  const points = mockData?.points || 0;
   const hasActivity = streak > 0 || points > 0;
 
   // Build a realistic activity trail from the user's actual streak.
