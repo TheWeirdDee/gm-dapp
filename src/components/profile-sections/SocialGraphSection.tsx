@@ -1,28 +1,22 @@
-'use client';
-
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { Users, Search, MoreHorizontal, UserCheck, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
-import { MOCK_USERS } from '@/lib/mock-data';
+import { Search, Users, ExternalLink, UserCheck } from 'lucide-react';
+import IdentityAvatar from '../IdentityAvatar';
 
 export default function SocialGraphSection() {
-  const { address, followers, following } = useSelector((state: RootState) => state.user);
+  const { followers, following } = useSelector((state: RootState) => state.user);
   const [activeTab, setActiveTab] = useState<'followers' | 'following'>('followers');
   const [search, setSearch] = useState('');
 
-  // Derive lists from real counts against mock data
-  const allAddresses = Object.keys(MOCK_USERS);
-  const followerAddresses = allAddresses.slice(0, followers);
-  const followingAddresses = allAddresses.slice(0, following);
-  const displayList = activeTab === 'followers' ? followerAddresses : followingAddresses;
+  // Pools are empty until Supabase/Indexer integration
+  const displayList: string[] = [];
   const displayCount = activeTab === 'followers' ? followers : following;
 
   const filtered = displayList.filter(addr => {
-    const user = MOCK_USERS[addr];
     const q = search.toLowerCase();
-    return !q || user?.username?.toLowerCase().includes(q) || addr.toLowerCase().includes(q);
+    return !q || addr.toLowerCase().includes(q);
   });
 
   return (
@@ -55,7 +49,7 @@ export default function SocialGraphSection() {
                   : 'border-white/5 bg-white/[0.02] hover:border-white/10'
               }`}
             >
-              <p className={`text-2xl font-black mb-0.5 ${activeTab === tab ? 'text-white' : 'text-gray-500'}`}>{count}</p>
+              <p className={`text-2xl font-black mb-0.5 ${activeTab === tab ? 'text-white' : 'text-gray-500'}`}>{count || 0}</p>
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700">{label}</p>
             </button>
           ))}
@@ -75,7 +69,7 @@ export default function SocialGraphSection() {
 
         {/* List */}
         <div className="space-y-2">
-          {displayCount === 0 ? (
+          {displayCount === 0 || displayList.length === 0 ? (
             <div className="py-10 flex flex-col items-center gap-3 text-center">
               <div className="h-14 w-14 rounded-full bg-white/[0.02] border border-white/5 flex items-center justify-center">
                 <Users className="h-6 w-6 text-gray-700" />
@@ -90,32 +84,24 @@ export default function SocialGraphSection() {
           ) : filtered.length === 0 ? (
             <p className="text-center text-xs text-gray-700 py-6">No results for &ldquo;{search}&rdquo;</p>
           ) : (
-            filtered.map((addr, i) => {
-              const user = MOCK_USERS[addr] || { username: `${addr.substring(0, 8)}...`, streak: 0 };
-              return (
-                <div
-                  key={addr}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-white/10 hover:bg-white/[0.04] transition-all group"
-                >
-                  <Link href={`/profile/${addr}`} className="shrink-0">
-                    <div className="h-10 w-10 rounded-xl overflow-hidden border border-white/5 bg-black group-hover:border-white/20 transition-all">
-                      <img src={`https://api.dicebear.com/7.x/builder/svg?seed=${addr}`} alt={user.username} />
-                    </div>
-                  </Link>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-white truncate">{user.username}</p>
-                    <p className="text-[10px] text-gray-600 font-mono truncate">{addr.substring(0, 12)}...</p>
-                  </div>
-                  {(user as any).streak > 0 && (
-                    <span className="text-[10px] font-bold text-orange-500/70 shrink-0">🔥{(user as any).streak}d</span>
-                  )}
-                  <button className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/5 hover:bg-white/10 text-[10px] font-black text-gray-500 hover:text-white transition-all">
-                    <UserCheck className="h-3 w-3" />
-                    {activeTab === 'followers' ? 'Follow Back' : 'Connected'}
-                  </button>
+            filtered.map((addr, i) => (
+              <div
+                key={addr}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-white/10 hover:bg-white/[0.04] transition-all group"
+              >
+                <Link href={`/profile/${addr}`} className="shrink-0">
+                  <IdentityAvatar address={addr} size="md" className="h-10 w-10 !rounded-xl" />
+                </Link>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-white truncate">{addr.substring(0, 10)}...</p>
+                  <p className="text-[10px] text-gray-600 font-mono truncate">{addr}</p>
                 </div>
-              );
-            })
+                <button className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/5 hover:bg-white/10 text-[10px] font-black text-gray-500 hover:text-white transition-all">
+                  <UserCheck className="h-3 w-3" />
+                  {activeTab === 'followers' ? 'Follow Back' : 'Connected'}
+                </button>
+              </div>
+            ))
           )}
         </div>
 
