@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import IdentityAvatar from '@/components/IdentityAvatar';
 import { RootState } from '@/lib/store';
-import { createPost } from '@/lib/features/postsSlice';
+import { fetchPostsFromSupabase, addOptimisticPost } from '@/lib/features/postsSlice';
 import { useRouter } from 'next/navigation';
 import { 
   Image as ImageIcon, Video, BarChart2, Globe, ChevronDown, 
@@ -20,7 +21,7 @@ const PRIVACY_OPTIONS = [
 ];
 
 export default function CreatePostContent() {
-  const { address, isConnected } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, username, streak, points, followers } = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -31,7 +32,6 @@ export default function CreatePostContent() {
   const [postState, setPostState] = useState<'idle' | 'posting' | 'success'>('idle');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const displayAvatar = `https://api.dicebear.com/7.x/builder/svg?seed=${address}`;
   const displayAddress = address ? `${address.substring(0, 8)}...${address.substring(address.length - 5)}` : '';
   const maxLength = 280;
   const remaining = maxLength - content.length;
@@ -59,7 +59,16 @@ export default function CreatePostContent() {
     setPostState('posting');
     await new Promise(r => setTimeout(r, 1200)); // Simulate broadcast delay
 
-    dispatch(createPost({ authorAddress: address, content: content.trim() }));
+    dispatch(addOptimisticPost({
+      id: `opt_${Date.now()}`,
+      authorAddress: address,
+      content: content.trim(),
+      timestamp: new Date().toISOString(),
+      reactions: { gm: 0, fire: 0, laugh: 0 },
+      commentsCount: 0,
+      repostsCount: 0,
+      points: 0
+    }));
     setPostState('success');
 
     setTimeout(() => {
@@ -124,9 +133,7 @@ export default function CreatePostContent() {
         
         {/* Author Strip */}
         <div className="flex items-center gap-4 px-8 py-6 border-b border-white/[0.03]">
-          <div className="h-12 w-12 rounded-2xl overflow-hidden border border-white/5 bg-black">
-            <img src={displayAvatar} alt="you" />
-          </div>
+          <IdentityAvatar address={address || ''} size="md" className="h-12 w-12 !rounded-2xl" />
           <div>
             <p className="text-sm font-black text-white uppercase tracking-tight">You</p>
             <p className="text-[10px] text-gray-600 font-mono">{displayAddress}</p>
