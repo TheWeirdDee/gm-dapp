@@ -1,44 +1,87 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { MOCK_POSTS, Post } from '../mock-data';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { Post } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
 
 interface PostsState {
   feed: Post[];
+  isLoading: boolean;
+  error: string | null;
 }
 
 const initialState: PostsState = {
-  feed: MOCK_POSTS,
+  feed: [],
+  isLoading: false,
+  error: null,
 };
+
+export const fetchPostsFromSupabase = createAsyncThunk(
+  'posts/fetchFromSupabase',
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      return (data || []).map((p: any) => ({
+        id: p.id,
+        authorAddress: p.address,
+        content: p.content || 'Said GM!',
+        timestamp: p.created_at,
+        txId: p.tx_id,
+        reactions: {
+          gm: p.gm_count || 0,
+          fire: p.fire_count || 0,
+          laugh: p.laugh_count || 0,
+        },
+        commentsCount: p.comments_count || 0,
+        repostsCount: p.reposts_count || 0,
+        points: p.points || 10,
+        isPro: p.is_pro || false,
+        avatar: p.avatar_url || null,
+      })) as Post[];
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
 
 const postsSlice = createSlice({
   name: 'posts',
   initialState,
   reducers: {
-    reactToPost(
-      state,
-      action: PayloadAction<{ postId: string; reactionType: 'gm' | 'fire' | 'laugh' }>
-    ) {
-      const post = state.feed.find((p) => p.id === action.payload.postId);
+    addOptimisticPost: (state, action: PayloadAction<Post>) => {
+      state.feed = [action.payload, ...state.feed];
+    },
+    reactToPost: (state, action: PayloadAction<{ postId: string; reactionType: 'gm' | 'fire' | 'laugh' }>) => {
+      const { postId, reactionType } = action.payload;
+      const post = state.feed.find(p => p.id === postId);
       if (post) {
-        post.reactions[action.payload.reactionType] += 1;
+        if (!post.reactions) {
+          post.reactions = { gm: 0, fire: 0, laugh: 0 };
+        }
+        post.reactions[reactionType]++;
       }
     },
-    createPost(
-      state,
-      action: PayloadAction<{ authorAddress: string; content: string }>
-    ) {
-      const newPost: Post = {
-        id: `post_${Date.now()}`,
-        authorAddress: action.payload.authorAddress,
-        content: action.payload.content,
-        timestamp: new Date().toISOString(),
-        reactions: { gm: 0, fire: 0, laugh: 0 },
-        commentsCount: 0,
-        repostsCount: 0,
-      };
-      state.feed.unshift(newPost);
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchPostsFromSupabase.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchPostsFromSupabase.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.feed = action.payload;
+      })
+      .addCase(fetchPostsFromSupabase.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
-export const { reactToPost, createPost } = postsSlice.actions;
+export const { addOptimisticPost, reactToPost } = postsSlice.actions;
 export default postsSlice.reducer;
