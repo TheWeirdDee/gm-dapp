@@ -1,6 +1,7 @@
 'use client';
 
 import GMButton from '@/components/GMButton';
+import IdentityAvatar from '@/components/IdentityAvatar';
 import PostCard from '@/components/PostCard';
 import AnalyticsGraph from '@/components/AnalyticsGraph';
 import StatCardVertical from '@/components/StatCardVertical';
@@ -31,7 +32,18 @@ import toast from 'react-hot-toast';
 
 export default function DashboardContent() {
   const dispatch = useDispatch();
-  const { address, isConnected, mockData, isLoading, followers, following, isPro, isOptimisticPro } = useSelector((state: RootState) => state.user);
+  const { 
+    address, 
+    isConnected, 
+    username,
+    points,
+    streak,
+    isLoading, 
+    followers, 
+    following, 
+    isPro, 
+    isOptimisticPro 
+  } = useSelector((state: RootState) => state.user);
   const activePro = isPro || isOptimisticPro;
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
@@ -40,19 +52,17 @@ export default function DashboardContent() {
   useEffect(() => {
     // Only show modal if: connected, no username set on-chain, and user hasn't dismissed it
     // Wait until loading is finished to decide whether to show onboarding
-    if (!isLoading && isConnected && !mockData?.username && !dismissed.current) {
+    if (!isLoading && isConnected && !username && !dismissed.current) {
       setShowOnboarding(true);
-    } else if (mockData?.username) {
+    } else if (username) {
       setShowOnboarding(false);
     }
-  }, [isConnected, mockData?.username, isLoading]);
+  }, [isConnected, username, isLoading]);
 
   const handleCloseOnboarding = () => {
     dismissed.current = true;
     setShowOnboarding(false);
   };
-
-
 
   const [isConfirmedToday, setIsConfirmedToday] = useState(false);
   
@@ -66,9 +76,9 @@ export default function DashboardContent() {
   }, [address, isConnected]);
 
   const addressShort = address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'GM User';
-  const greeting = isLoading && !mockData?.username 
+  const greeting = isLoading && !username 
     ? "Loading profile..." 
-    : (mockData?.username || addressShort);
+    : (username || addressShort);
 
   if (!isConnected) {
     return (
@@ -117,7 +127,7 @@ export default function DashboardContent() {
                   Welcome back! Your streak is active and your reputation is growing. Inspire the network today.
                </p>
                <button onClick={() => setShowOnboarding(true)} className="bg-white text-black font-black px-8 py-4 rounded-2xl flex items-center gap-2 hover:bg-gray-200 transition-all active:scale-95 shadow-2xl">
-                  {(!mockData?.username || mockData.username.length > 25) ? 'Set Username' : 'View Details'}
+                  {(!username || username.length > 25) ? 'Set Username' : 'View Details'}
                   <ArrowRight className="h-5 w-5" />
                </button>
             </div>
@@ -139,7 +149,7 @@ export default function DashboardContent() {
              <div className="relative group">
                <StatCardVertical 
                   label="Days Streak" 
-                  value={(isConfirmedToday && (mockData?.streak || 0) === 0) ? 1 : (mockData?.streak || 0)} 
+                  value={(isConfirmedToday && (streak || 0) === 0) ? 1 : (streak || 0)} 
                   icon={History} 
                   subtext={activePro ? "Streak protection active" : "Keep it up for bonuses!"}
                   isLoading={isLoading}
@@ -147,14 +157,14 @@ export default function DashboardContent() {
              </div>
              <StatCardVertical 
                 label="Social Reputation" 
-                value={((mockData?.points || 0) / 10).toFixed(1)} 
+                value={((points || 0) / 10).toFixed(1)} 
                 icon={Award} 
                 subtext={
                   activePro 
                     ? "2x Rep Multiplier active" 
-                    : (mockData?.points || 0) > 100 ? "Top 5% of all users" :
-                      (mockData?.points || 0) > 50 ? "Top 15% of all users" :
-                      (mockData?.points || 0) > 10 ? "Top 30% of all users" : "New Network Member"
+                    : (points || 0) > 100 ? "Top 5% of all users" :
+                      (points || 0) > 50 ? "Top 15% of all users" :
+                      (points || 0) > 10 ? "Top 30% of all users" : "New Network Member"
                 }
                 accentColor="#818cf8"
                 isLoading={isLoading}
@@ -196,9 +206,7 @@ export default function DashboardContent() {
              {followers === 0 ? (
                <div className="flex flex-col items-center gap-3 py-4 text-center">
                  <div className="flex -space-x-3">
-                   <div className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-white/[0.03] overflow-hidden">
-                     <img src={`https://api.dicebear.com/7.x/builder/svg?seed=${address}`} alt="You" />
-                   </div>
+                   <IdentityAvatar address={address || ''} size="xs" className="h-10 w-10 !rounded-full border-2 border-[#0a0a0a]" />
                    {[1,2].map(i => (
                      <div key={i} className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-white/[0.03] flex items-center justify-center">
                        <Users className="h-4 w-4 text-gray-700" />
@@ -209,21 +217,10 @@ export default function DashboardContent() {
                  <Link href="/feed" className="text-[10px] font-black text-[var(--color-accent)] hover:underline uppercase tracking-widest">Explore Feed</Link>
                </div>
              ) : (
-               <div className="flex -space-x-3">
-                 {Array.from({ length: Math.min(followers, 5) }).map((_, i) => (
-                   <img
-                     key={i}
-                     src={`https://api.dicebear.com/7.x/builder/svg?seed=follower${address}${i}`}
-                     className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-[#111]"
-                     alt="Follower"
-                   />
-                 ))}
-                 {followers > 5 && (
-                   <Link href="/followers" className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-400 hover:bg-white/20 transition-colors">
-                     +{followers - 5}
-                   </Link>
-                 )}
-               </div>
+                <div className="flex flex-col items-center gap-3 py-4 text-center">
+                   <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{followers} connected nodes</p>
+                   <Link href="/followers" className="text-[10px] font-black text-[var(--color-accent)] hover:underline uppercase tracking-widest">Manage Network</Link>
+                </div>
              )}
           </div>
 
