@@ -12,6 +12,7 @@ import {
   AnchorMode, 
   PostConditionMode,
 } from '@stacks/transactions';
+import { supabase } from '@/lib/supabase';
 
 export default function GMButton() {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -20,7 +21,7 @@ export default function GMButton() {
   const [txId, setTxId] = useState<string | null>(null);
   const [localCooldown, setLocalCooldown] = useState(false);
   const dispatch = useDispatch();
-  const { mockData, address, isPro, currentBlockHeight } = useSelector((state: RootState) => state.user);
+  const { address, isPro, currentBlockHeight, streak, points, lastGm } = useSelector((state: RootState) => state.user);
 
   // 1. CALENDAR-DAY COOLDOWN (LocalStorage)
   useEffect(() => {
@@ -33,7 +34,6 @@ export default function GMButton() {
   }, [address]);
 
   // 2. BLOCK-HEIGHT COOLDOWN
-  const lastGm = mockData?.lastGm || 0;
   const blocksToWait = lastGm > 0 ? 144 - (currentBlockHeight - lastGm) : 0;
   const isChainCooldown = lastGm > 0 && (currentBlockHeight === 0 || blocksToWait > 0);
   
@@ -57,7 +57,7 @@ export default function GMButton() {
         functionArgs: [],
         postConditionMode: PostConditionMode.Deny,
         postConditions: [],
-        onFinish: (data: any) => {
+        onFinish: async (data: any) => {
           setTxId(data.txId);
           setState('pending');
           
@@ -65,10 +65,22 @@ export default function GMButton() {
           localStorage.setItem(`gm_date_${address}`, today);
           setLocalCooldown(true);
 
+          // 1. Record in Supabase for Hybrid Feed
+          try {
+             await supabase.from('posts').insert([{
+                address: address,
+                tx_id: data.txId,
+                content: 'Said GM!',
+                points: isPro ? 10 : 5
+             }]);
+          } catch (supaErr) {
+             console.error('Supabase indexing error:', supaErr);
+          }
+
           const pointsToAdd = isPro ? 10 : 5;
           dispatch(updateStats({
-            streak: (mockData?.streak || 0) + 1,
-            points: (mockData?.points || 0) + pointsToAdd
+            streak: (streak || 0) + 1,
+            points: (points || 0) + pointsToAdd
           }));
           
           dispatch(fetchOnChainStats(address!) as any);
