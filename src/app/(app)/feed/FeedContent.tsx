@@ -3,14 +3,22 @@
 import PostCard from '@/components/PostCard';
 import CreatePostCard from '@/components/CreatePostCard';
 import FeedSidebar from '@/components/FeedSidebar';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/lib/store';
-import { useState } from 'react';
-import { Sparkles, Clock, Flame, Globe, ChevronDown } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '@/lib/store';
+import { useState, useEffect } from 'react';
+import { Sparkles, Clock, Flame, Globe, ChevronDown, Loader2 } from 'lucide-react';
+import { fetchPostsFromSupabase } from '@/lib/features/postsSlice';
 
 export default function FeedContent() {
-  const feed = useSelector((state: RootState) => state.posts.feed);
+  const dispatch = useDispatch<AppDispatch>();
+  const { feed, isLoading } = useSelector((state: RootState) => state.posts);
   const [activeTab, setActiveTab] = useState('Recent');
+  const [sortBy, setSortBy] = useState('Recent');
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchPostsFromSupabase());
+  }, [dispatch]);
 
   const tabs = [
     { name: 'Recent', icon: Clock },
@@ -18,6 +26,29 @@ export default function FeedContent() {
     { name: 'Top', icon: Sparkles },
     { name: 'Global', icon: Globe },
   ];
+
+  // Sorting/Filtering Logic
+  const getDisplayFeed = () => {
+    let list = [...feed];
+    
+    if (activeTab === 'Trending') {
+      list = list.sort((a, b) => {
+        const aTotal = (a.reactions?.gm || 0) + (a.reactions?.fire || 0) + (a.reactions?.laugh || 0) + (a.commentsCount || 0);
+        const bTotal = (b.reactions?.gm || 0) + (b.reactions?.fire || 0) + (b.reactions?.laugh || 0) + (b.commentsCount || 0);
+        return bTotal - aTotal;
+      });
+    } else if (activeTab === 'Top') {
+      list = list.sort((a, b) => (b.points || 0) - (a.points || 0));
+    }
+    
+    if (sortBy === 'Oldest') {
+      list = list.reverse();
+    }
+    
+    return list;
+  };
+
+  const displayFeed = getDisplayFeed();
 
   return (
     <div className="max-w-[1400px] mx-auto py-10 px-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -51,23 +82,45 @@ export default function FeedContent() {
               })}
             </div>
 
-            <div className="hidden sm:flex items-center gap-2 text-gray-600 font-bold text-xs uppercase tracking-widest">
+            <div className="hidden sm:flex items-center gap-2 text-gray-600 font-bold text-xs uppercase tracking-widest relative">
                <span>Sort by : </span>
-               <button className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors">
-                  {activeTab} <ChevronDown className="h-3.5 w-3.5" />
+               <button 
+                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
+                >
+                  {sortBy} <ChevronDown className="h-3.5 w-3.5" />
                </button>
+
+               {showSortDropdown && (
+                 <div className="absolute top-full right-0 mt-2 w-32 rounded-xl bg-[#0A0A0A] border border-white/10 shadow-2xl py-2 z-50">
+                    {['Recent', 'Oldest', 'Trending'].map(s => (
+                      <button 
+                        key={s}
+                        onClick={() => { setSortBy(s); setShowSortDropdown(false); }}
+                        className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                 </div>
+               )}
             </div>
           </div>
 
           {/* Feed List */}
           <div className="flex flex-col gap-8">
-            {feed.map(post => (
-              <div key={post.id} className="animate-in fade-in slide-in-from-bottom-6 duration-1000">
-                <PostCard post={post} />
-              </div>
-            ))}
-            
-            {feed.length === 0 && (
+            {isLoading ? (
+               <div className="py-20 flex flex-col items-center justify-center gap-4 text-gray-700">
+                  <Loader2 className="h-10 w-10 animate-spin opacity-20" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em]">Querying Social Nodes...</p>
+               </div>
+            ) : displayFeed.length > 0 ? (
+              displayFeed.map(post => (
+                <div key={post.id} className="animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                  <PostCard post={post} />
+                </div>
+              ))
+            ) : (
               <div className="py-20 text-center space-y-6 bg-[#0A0A0A] border border-white/5 rounded-[2.5rem]">
                  <div className="h-20 w-20 bg-white/[0.02] rounded-full flex items-center justify-center mx-auto border border-white/5">
                     <Globe className="h-8 w-8 text-gray-800" />
@@ -78,6 +131,7 @@ export default function FeedContent() {
                  </div>
               </div>
             )}
+
 
             <div className="py-20 text-center">
                <div className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white/[0.01] border border-white/5 backdrop-blur-sm">
