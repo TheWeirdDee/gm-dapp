@@ -13,6 +13,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
 import Link from 'next/link';
 
+import IdentityAvatar from './IdentityAvatar';
+
 interface PostCardProps {
   post: {
     id: string;
@@ -27,6 +29,7 @@ interface PostCardProps {
     commentsCount: number;
     repostsCount: number;
     isPro?: boolean;
+    avatar?: string;
   };
 }
 
@@ -35,7 +38,6 @@ export default function PostCard({ post }: PostCardProps) {
   
   const displayAddress = `${post.authorAddress.substring(0, 5)}...${post.authorAddress.substring(post.authorAddress.length - 4)}`;
   const displayUsername = post.authorAddress === currentAddress ? "You" : `user_${post.authorAddress.substring(post.authorAddress.length - 4)}`;
-  const displayAvatar = `https://api.dicebear.com/7.x/builder/svg?seed=${post.authorAddress}`;
 
   // Formatting timestamp
   const timeAgo = new Date().getTime() - new Date(post.timestamp).getTime();
@@ -54,8 +56,7 @@ export default function PostCard({ post }: PostCardProps) {
     });
   };
 
-  // Mock interaction counts (totaled for demo)
-  const totalLikes = post.reactions.gm + post.reactions.fire + post.reactions.laugh + 320; 
+  const totalLikes = (post.reactions.gm || 0) + (post.reactions.fire || 0) + (post.reactions.laugh || 0); 
 
   return (
     <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] overflow-hidden group hover:border-white/10 transition-all duration-500 shadow-2xl">
@@ -63,9 +64,7 @@ export default function PostCard({ post }: PostCardProps) {
       <div className="p-6 flex items-start justify-between">
         <div className="flex gap-4">
           <Link href={`/profile/${post.authorAddress}`} className="shrink-0 group/avatar">
-            <div className="h-11 w-11 rounded-2xl overflow-hidden bg-white/5 border border-white/5 group-hover/avatar:scale-105 transition-all">
-              <img src={displayAvatar} alt={displayUsername} className="h-full w-full object-cover" />
-            </div>
+            <IdentityAvatar address={post.authorAddress} src={post.avatar} size="md" />
           </Link>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
@@ -91,7 +90,7 @@ export default function PostCard({ post }: PostCardProps) {
         </p>
       </div>
 
-      {/* Media Area (Simulated for demo if keywords match or by random for variety) */}
+      {/* Media Area (Conditional based on hash or specific ID) */}
       {(post.content.includes('#') || post.id.includes('1')) && (
         <div className="px-6 pb-6 mt-2">
            <div className="aspect-[16/9] bg-white/[0.02] rounded-[1.5rem] overflow-hidden border border-white/5 group-hover:border-white/10 transition-all">
@@ -111,21 +110,21 @@ export default function PostCard({ post }: PostCardProps) {
             <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-pink-500/5 text-gray-600 group-hover/btn:bg-pink-500/10 group-hover/btn:text-pink-500 transition-all">
                <Heart className="h-4 w-4" />
             </div>
-            <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{totalLikes}k</span>
+            <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{totalLikes}</span>
           </button>
           
           <button className="flex items-center gap-2 group/btn">
             <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-blue-500/5 text-gray-600 group-hover/btn:bg-blue-500/10 group-hover/btn:text-blue-500 transition-all">
                <MessageCircle className="h-4 w-4" />
             </div>
-            <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{post.commentsCount + 120}</span>
+            <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{post.commentsCount}</span>
           </button>
 
           <button className="flex items-center gap-2 group/btn">
             <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-amber-500/5 text-gray-600 group-hover/btn:bg-amber-500/10 group-hover/btn:text-amber-500 transition-all">
                <Bookmark className="h-4 w-4" />
             </div>
-            <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{post.repostsCount + 148}</span>
+            <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{post.repostsCount}</span>
           </button>
         </div>
 
@@ -136,9 +135,8 @@ export default function PostCard({ post }: PostCardProps) {
 
       {/* Inline Comment Input */}
       <div className="px-6 py-5 bg-white/[0.01] flex items-center gap-3">
-        <div className="h-8 w-8 rounded-xl overflow-hidden bg-white/5 border border-white/5 shrink-0">
-          <img src={`https://api.dicebear.com/7.x/builder/svg?seed=${currentAddress || 'anon'}`} alt="current-user" />
-        </div>
+        <IdentityAvatar address={currentAddress || ''} size="sm" />
+
         <div className="flex-1 bg-white/[0.02] border border-white/5 rounded-2xl px-4 py-2 text-xs font-medium text-gray-600 flex items-center justify-between">
            <span>Write your comment</span>
            <Smile className="h-4 w-4 opacity-30" />
