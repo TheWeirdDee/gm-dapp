@@ -5,6 +5,8 @@ import { useDispatch } from 'react-redux';
 import { reactToPost } from '../lib/features/postsSlice';
 import gsap from 'gsap';
 import { useRef } from 'react';
+import { showSignMessage } from '@stacks/connect';
+import { appDetails } from '@/lib/stacks';
 
 interface ReactionBarProps {
   postId: string;
@@ -25,8 +27,6 @@ export default function ReactionBar({ postId, reactions }: ReactionBarProps) {
   const handleReact = async (type: 'gm' | 'fire' | 'laugh', ref: React.RefObject<HTMLButtonElement | null>) => {
     if (typeof window === 'undefined') return;
 
-    const { showSignMessage } = require('@stacks/connect');
-    const { appDetails } = require('../lib/stacks');
     const currentAddress = localStorage.getItem('gm_address');
     const token = localStorage.getItem('gm_session_token');
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyMessageSignatureRsv } from '@stacks/encryption';
-import { getAddressFromPublicKey, AddressVersion } from '@stacks/transactions';
+import { getAddressFromPublicKey } from '@stacks/transactions';
 import { getServiceRoleClient } from '@/lib/supabase';
 import * as jose from 'jose';
 
@@ -13,9 +13,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Derive Address from Public Key (Security Check)
-    const networkType = process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet';
-    const version = networkType === 'mainnet' ? AddressVersion.MainnetSingleSig : AddressVersion.TestnetSingleSig;
-    const derivedAddress = getAddressFromPublicKey(publicKey, version);
+    const network = process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet';
+    const derivedAddress = getAddressFromPublicKey(publicKey, network as any);
 
     if (derivedAddress !== address) {
       return NextResponse.json({ error: 'Address mismatch (Identity verification failed)' }, { status: 403 });
@@ -62,6 +61,8 @@ export async function POST(req: NextRequest) {
       .setIssuedAt()
       .setExpirationTime('24h')
       .sign(secret);
+
+    console.log('✅ Issued Session JWT for:', address);
 
     return NextResponse.json({ token });
   } catch (error: any) {

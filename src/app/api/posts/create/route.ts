@@ -13,6 +13,12 @@ export async function POST(req: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     
+    // Defensive check: Is it a valid JWT format?
+    if (!token || token.split('.').length !== 3) {
+      console.error('❌ Malformed Token received:', token);
+      return NextResponse.json({ error: 'Unauthorized: Invalid token format' }, { status: 401 });
+    }
+    
     // 1. Verify Local Session
     if (!process.env.LOCAL_SESSION_SECRET) {
       throw new Error('LOCAL_SESSION_SECRET is not configured');

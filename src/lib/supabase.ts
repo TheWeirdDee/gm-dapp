@@ -3,15 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials missing. Social feed will remain inactive.');
+if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+  console.error('CRITICAL: NEXT_PUBLIC_SUPABASE_URL is missing or invalid. Check your .env.local!');
 }
 
 // Global anonymous client
-// We use placeholders if variables are missing to prevent build crashes
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co', 
-  supabaseAnonKey || 'placeholder'
+  supabaseUrl || 'https://missing-supabase-url.co', 
+  supabaseAnonKey || 'missing-key'
 );
 
 /**
