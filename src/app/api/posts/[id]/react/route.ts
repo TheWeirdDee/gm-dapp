@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceRoleClient } from '@/lib/supabase';
 import { verifyMessageSignatureRsv } from '@stacks/encryption';
-import { getAddressFromPublicKey, AddressVersion } from '@stacks/transactions';
+import { getAddressFromPublicKey } from '@stacks/transactions';
 import * as jose from 'jose';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = params.id;
+    const { id: postId } = await params;
     const { address, reactionType, signature, publicKey } = await req.json();
     const authHeader = req.headers.get('Authorization');
 
@@ -44,9 +44,8 @@ export async function POST(
     }
 
     // Re-verify address from public key
-    const networkType = process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet';
-    const version = networkType === 'mainnet' ? AddressVersion.MainnetSingleSig : AddressVersion.TestnetSingleSig;
-    const derivedAddress = getAddressFromPublicKey(publicKey, version);
+    const network = process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet';
+    const derivedAddress = getAddressFromPublicKey(publicKey, network as any);
     
     if (derivedAddress !== address) {
       return NextResponse.json({ error: 'Signature address mismatch' }, { status: 403 });
