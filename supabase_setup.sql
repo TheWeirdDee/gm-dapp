@@ -50,22 +50,37 @@ CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reactions_post_id ON post_reactions(post_id);
 CREATE INDEX IF NOT EXISTS idx_nonces_address ON auth_nonces(address);
 
--- 6. Row Level Security (RLS)
+-- 6. Row Level Security (RLS) - CLEAN SLATE
+-- We are NOT using Supabase Auth. RLS is only for Public SELECT.
+-- Mutations are handled via Backend Proxy + Service Role.
+
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_reactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auth_nonces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- WIPE ALL EXISTING POLICIES (Ensures no legacy JWT checks remain)
+DO $$ 
+DECLARE 
+  pol RECORD;
+BEGIN
+  FOR pol IN (SELECT policyname, tablename FROM pg_policies WHERE schemaname = 'public' AND tablename IN ('posts', 'post_reactions', 'profiles', 'auth_nonces')) 
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON %I', pol.policyname, pol.tablename);
+  END LOOP;
+END $$;
 
 -- POLICY: Public Read (Anon)
 CREATE POLICY "Public read posts" ON posts FOR SELECT TO anon USING (true);
 CREATE POLICY "Public read reactions" ON post_reactions FOR SELECT TO anon USING (true);
 CREATE POLICY "Public read profiles" ON profiles FOR SELECT TO anon USING (true);
 
--- POLICY: NO Public Write (Anon)
--- All mutations (Insert/Update/Delete) must flow through the Backend Proxy via service_role.
+-- POLICY: No Public Write
+-- No INSERT/UPDATE/DELETE policies are created for 'anon' or 'authenticated' roles.
+-- The 'service_role' key used by the backend bypasses RLS automatically.
 
 -- POLICY: Strictly Private (Nonces)
--- No public policies exist for auth_nonces, meaning even SELECT is denied to anon.
+-- No policies at all. SELECT/INSERT/DELETE handled exclusively by service_role.
 
 -- 7. Enable Realtime (Safe Idempotent Version)
 DO $$ 
