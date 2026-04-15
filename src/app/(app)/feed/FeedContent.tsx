@@ -5,20 +5,75 @@ import CreatePostCard from '@/components/CreatePostCard';
 import FeedSidebar from '@/components/FeedSidebar';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/lib/store';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, Clock, Flame, Globe, ChevronDown, Loader2 } from 'lucide-react';
-import { fetchPostsFromSupabase } from '@/lib/features/postsSlice';
+import { fetchPostsFromSupabase, fetchPaginatedPosts, addRealtimePost } from '@/lib/features/postsSlice';
+import { supabase } from '@/lib/supabase';
+import { Post } from '@/lib/types';
 
 export default function FeedContent() {
   const dispatch = useDispatch<AppDispatch>();
-  const { feed, isLoading } = useSelector((state: RootState) => state.posts);
+  const { feed, isLoading, hasMore, lastCursor } = useSelector((state: RootState) => state.posts);
   const [activeTab, setActiveTab] = useState('Recent');
   const [sortBy, setSortBy] = useState('Recent');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  
+  const observer = useRef<IntersectionObserver | null>(null);
 
+  // 1. Initial Fetch
   useEffect(() => {
     dispatch(fetchPostsFromSupabase());
   }, [dispatch]);
+
+  // 2. Real-time Subscription
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('public:posts')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'posts' },
+        (payload) => {
+          const newPostRaw = payload.new as any;
+          const formattedPost: Post = {
+            id: newPostRaw.id,
+            authorAddress: newPostRaw.address,
+            content: newPostRaw.content,
+            timestamp: newPostRaw.created_at,
+            txId: newPostRaw.tx_id,
+            reactions: { gm: 0, fire: 0, laugh: 0 },
+            commentsCount: 0,
+            repostsCount: 0,
+            points: newPostRaw.points || 0,
+            isPro: newPostRaw.is_pro || false,
+            avatar: newPostRaw.avatar_url || null,
+            mediaUrl: newPostRaw.media_url || null,
+            pollData: newPostRaw.poll_data || null,
+          };
+          dispatch(addRealtimePost(formattedPost));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [dispatch]);
+
+  // 3. Infinite Scroll (Intersection Observer)
+  const lastPostRef = useCallback((node: HTMLDivElement) => {
+    if (isLoading || !hasMore) return;
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore && lastCursor) {
+        dispatch(fetchPaginatedPosts(lastCursor));
+      }
+    });
+
+    if (node) observer.current.observe(node);
+  }, [isLoading, hasMore, lastCursor, dispatch]);
 
   const tabs = [
     { name: 'Recent', icon: Clock },
@@ -109,18 +164,17 @@ export default function FeedContent() {
 
           {/* Feed List */}
           <div className="flex flex-col gap-8">
-            {isLoading ? (
-               <div className="py-20 flex flex-col items-center justify-center gap-4 text-gray-700">
-                  <Loader2 className="h-10 w-10 animate-spin opacity-20" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em]">Querying Social Nodes...</p>
-               </div>
-            ) : displayFeed.length > 0 ? (
-              displayFeed.map(post => (
-                <div key={post.id} className="animate-in fade-in slide-in-from-bottom-6 duration-1000">
+            {displayFeed.length > 0 ? (
+              displayFeed.map((post, index) => (
+                <div 
+                  key={post.id} 
+                  ref={index === displayFeed.length - 1 ? lastPostRef : null}
+                  className="animate-in fade-in slide-in-from-bottom-6 duration-1000"
+                >
                   <PostCard post={post} />
                 </div>
               ))
-            ) : (
+            ) : !isLoading ? (
               <div className="py-20 text-center space-y-6 bg-[#0A0A0A] border border-white/5 rounded-[2.5rem]">
                  <div className="h-20 w-20 bg-white/[0.02] rounded-full flex items-center justify-center mx-auto border border-white/5">
                     <Globe className="h-8 w-8 text-gray-800" />
@@ -130,15 +184,23 @@ export default function FeedContent() {
                     <p className="text-gray-500 font-medium">Be the first player to say GM and start the pulse!</p>
                  </div>
               </div>
+            ) : null}
+
+            {isLoading && (
+               <div className="py-10 flex flex-col items-center justify-center gap-4 text-gray-700">
+                  <Loader2 className="h-8 w-8 animate-spin opacity-20" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em]">Querying More Nodes...</p>
+               </div>
             )}
 
-
-            <div className="py-20 text-center">
-               <div className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white/[0.01] border border-white/5 backdrop-blur-sm">
-                  <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-                  <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Synched with Stacks Network</span>
-               </div>
-            </div>
+            {!hasMore && displayFeed.length > 0 && (
+              <div className="py-20 text-center">
+                 <div className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white/[0.01] border border-white/5 backdrop-blur-sm">
+                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">End of Transmission</span>
+                 </div>
+              </div>
+            )}
           </div>
         </div>
 
