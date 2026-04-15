@@ -10,7 +10,7 @@ export async function POST(
 ) {
   try {
     const { id: postId } = await params;
-    const { address, reactionType, signature, publicKey } = await req.json();
+    const { reactionType } = await req.json();
     const authHeader = req.headers.get('Authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
@@ -24,42 +24,17 @@ export async function POST(
     }
     const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
     const { payload } = await jose.jwtVerify(token, secret);
-    
-    if (payload.address !== address) {
-      return NextResponse.json({ error: 'Session/Address mismatch' }, { status: 403 });
-    }
+    const sessionAddress = payload.address as string;
 
-    // 2. Verify Wallet Signature (Additional Security as requested)
-    // Message: "React to Post: <id>\nReaction: <type>\nAddress: <address>"
-    const message = `React to Post: ${postId}\nReaction: ${reactionType}\nAddress: ${address}`;
-    
-    const isValidSignature = verifyMessageSignatureRsv({
-      message,
-      publicKey,
-      signature,
-    });
-
-    if (!isValidSignature) {
-      return NextResponse.json({ error: 'Invalid engagement signature' }, { status: 401 });
-    }
-
-    // Re-verify address from public key
-    const network = process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet';
-    const derivedAddress = getAddressFromPublicKey(publicKey, network as any);
-    
-    if (derivedAddress !== address) {
-      return NextResponse.json({ error: 'Signature address mismatch' }, { status: 403 });
-    }
-
-    // 3. Upsert Reaction via Service Role
+    // 2. Upsert Reaction via Service Role
     const supabase = getServiceRoleClient();
     const { error: upsertError } = await supabase
       .from('post_reactions')
       .upsert({
         post_id: postId,
-        address,
+        address: sessionAddress,
         reaction_type: reactionType,
-        created_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       }, {
         onConflict: 'post_id,address'
       });
