@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Image as ImageIcon, Video, BarChart2, Smile, Globe, ChevronDown } from 'lucide-react';
+import { Image as ImageIcon, Video, BarChart2, Smile, Globe, ChevronDown, Loader2 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { fetchPostsFromSupabase, addOptimisticPost } from '@/lib/features/postsSlice';
+import { createRealPost } from '@/lib/features/postsSlice';
+import { uploadFile } from '@/lib/supabase';
 import IdentityAvatar from './IdentityAvatar';
+import { AppDispatch } from '@/lib/store';
 
 export default function CreatePostCard() {
   const [content, setContent] = useState('');
@@ -14,9 +16,11 @@ export default function CreatePostCard() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [privacy, setPrivacy] = useState('Public');
   const [attachments, setAttachments] = useState<{type: 'image' | 'video', url: string}[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
   
-  const { address, isConnected, username } = useSelector((state: RootState) => state.user);
-  const dispatch = useDispatch();
+  const { address, isConnected, isPro } = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleAddOption = () => {
     if (pollOptions.length < 5) setPollOptions([...pollOptions, '']);
@@ -28,31 +32,49 @@ export default function CreatePostCard() {
     setPollOptions(newOptions);
   };
 
-  const handleSimulateUpload = (type: 'image' | 'video') => {
-    const mockUrl = type === 'image' 
-      ? 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800'
-      : 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJtZnd4emV4emV4emV4emV4emV4emV4emV4emV4emV4emV4JmlwPTE/u03ahf9xEy9UI/giphy.gif';
-    setAttachments([...attachments, { type, url: mockUrl }]);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const url = await uploadFile('media', file);
+      if (url) {
+        setAttachments([...attachments, { type, url }]);
+      }
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || !address) return;
+    if ((!content.trim() && attachments.length === 0) || !address || isPosting) return;
     
-    dispatch(addOptimisticPost({
-      id: `opt_${Date.now()}`,
-      authorAddress: address,
-      content: content.trim(),
-      timestamp: new Date().toISOString(),
-      reactions: { gm: 0, fire: 0, laugh: 0 },
-      commentsCount: 0,
-      repostsCount: 0,
-      points: 0
-    }));
-    setContent('');
-    setAttachments([]);
-    setShowPoll(false);
-    setPollOptions(['', '']);
+    setIsPosting(true);
+    try {
+      const pollData = showPoll && pollOptions.some(o => o.trim()) ? {
+        options: pollOptions.filter(o => o.trim()),
+        votes: pollOptions.filter(o => o.trim()).map(() => 0)
+      } : null;
+
+      await dispatch(createRealPost({
+        address,
+        content: content.trim() || (attachments.length > 0 ? '' : 'Said GM!'),
+        mediaUrl: attachments[0]?.url, // Support single media for now
+        pollData,
+        isPro: isPro || false
+      })).unwrap();
+
+      setContent('');
+      setAttachments([]);
+      setShowPoll(false);
+      setPollOptions(['', '']);
+    } catch (err) {
+      console.error('Post creation failed:', err);
+    } finally {
+      setIsPosting(false);
+    }
   };
 
   if (!isConnected) return null;
@@ -113,18 +135,20 @@ export default function CreatePostCard() {
           
           <div className="flex items-center justify-between mt-4 pt-6 border-t border-white/[0.03]">
             <div className="flex items-center gap-6">
-               <button onClick={() => handleSimulateUpload('image')} className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group/btn">
+               <label className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group/btn cursor-pointer">
                   <div className="h-8 w-8 rounded-lg bg-white/[0.02] flex items-center justify-center group-hover/btn:bg-white/5">
-                    <ImageIcon className="h-4 w-4" />
+                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
                   </div>
                   <span className="text-[11px] font-black uppercase tracking-widest hidden sm:inline">Image</span>
-               </button>
-               <button onClick={() => handleSimulateUpload('video')} className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group/btn">
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, 'image')} disabled={isUploading} />
+               </label>
+               <label className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group/btn cursor-pointer">
                   <div className="h-8 w-8 rounded-lg bg-white/[0.02] flex items-center justify-center group-hover/btn:bg-white/5">
-                    <Video className="h-4 w-4" />
+                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
                   </div>
                   <span className="text-[11px] font-black uppercase tracking-widest hidden sm:inline">Video</span>
-               </button>
+                  <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileChange(e, 'video')} disabled={isUploading} />
+               </label>
                <button onClick={() => setShowPoll(!showPoll)} className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group/btn">
                   <div className="h-8 w-8 rounded-lg bg-white/[0.02] flex items-center justify-center group-hover/btn:bg-white/5">
                     <BarChart2 className="h-4 w-4" />
@@ -159,10 +183,10 @@ export default function CreatePostCard() {
 
                <button
                  onClick={handleSubmit}
-                 disabled={!content.trim()}
-                 className="bg-white text-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-20 disabled:grayscale hover:bg-gray-200 active:scale-95 whitespace-nowrap"
+                 disabled={(!content.trim() && attachments.length === 0) || isPosting || isUploading}
+                 className="bg-white text-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-20 disabled:grayscale hover:bg-gray-200 active:scale-95 whitespace-nowrap min-w-[100px] flex items-center justify-center"
                >
-                 Post
+                 {isPosting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Post'}
                </button>
             </div>
           </div>
