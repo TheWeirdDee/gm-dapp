@@ -8,6 +8,7 @@ import { UserCheck, Sparkles, ArrowRight, Wallet as WalletIcon, Loader2, CheckCi
 import gsap from 'gsap';
 import { useEffect, useRef } from 'react';
 import { callContract } from '../lib/stacks';
+import { supabase, getSupaClient } from '../lib/supabase';
 import { APP_CONFIG, getExplorerLink } from '../lib/config';
 import { 
   AnchorMode, 
@@ -53,12 +54,30 @@ export default function SetUsernameModal({ isOpen, onClose }: SetUsernameModalPr
           functionArgs: [stringUtf8CV(name.trim())],
           postConditionMode: PostConditionMode.Deny,
           postConditions: [],
-          onFinish: (data: any) => {
+          onFinish: async (data: any) => {
             console.log('Username transaction sent:', data.txId);
             setTxId(data.txId);
             setState('pending');
             
-            // Optimistic UI Update: Clear the 'Hi, wallet' immediately
+            // 1. SAVE TO LOCALSTORAGE (Immediate Persistence)
+            if (address) {
+              localStorage.setItem(`username_${address}`, name.trim());
+            }
+
+            // 2. UPSERT TO SUPABASE (Strict Persistence)
+            if (address) {
+              try {
+                await getSupaClient().from('profiles').upsert({
+                   address: address,
+                   username: name.trim(),
+                   updated_at: new Date().toISOString()
+                });
+              } catch (supaErr) {
+                console.error('Supabase persistence error:', supaErr);
+              }
+            }
+            
+            // 3. Update Redux State
             dispatch(setUsername(name.trim()));
             
             if (address) {
