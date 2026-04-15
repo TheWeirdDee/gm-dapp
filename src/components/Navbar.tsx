@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { authenticate } from '@/lib/stacks';
-import { logout } from '@/lib/features/userSlice';
+import { authenticate, signInWithWallet } from '@/lib/stacks';
+import { logout, setSessionToken } from '@/lib/features/userSlice';
+import { toast } from 'react-hot-toast';
 import { Star, Info, Rss, Trophy, LayoutDashboard, User as UserIcon, Wallet, ChevronDown, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import BrandLogo from './BrandLogo';
@@ -12,10 +13,34 @@ import IdentityAvatar from './IdentityAvatar';
 export default function Navbar() {
   const pathname = usePathname();
   const dispatch = useDispatch();
-  const { address, isConnected, username } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, username, sessionToken } = useSelector((state: RootState) => state.user);
   
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // TRIGGER SIGNATURE FLOW IF CONNECTED BUT NO SESSION
+  useEffect(() => {
+    const handleAuth = async () => {
+       if (isConnected && address && !sessionToken) {
+          try {
+            console.log("Triggering signature request for session...");
+            const authData: any = await signInWithWallet(address);
+            if (authData?.token) {
+              dispatch(setSessionToken(authData.token));
+              toast.success("Identity Verified", {
+                style: { background: '#0A0A0A', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' },
+                icon: '🛡️'
+              });
+            }
+          } catch (err) {
+            console.error("Auth failed:", err);
+            // Optionally disconnect or show error
+            toast.error("Security Verification Failed");
+          }
+       }
+    };
+    handleAuth();
+  }, [isConnected, address, sessionToken, dispatch]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
