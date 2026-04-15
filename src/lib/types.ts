@@ -16,6 +16,7 @@ export interface Post {
   authorAddress: string;
   content: string;
   timestamp: string;
+  txId?: string;
   reactions: {
     gm: number;
     fire: number;
@@ -26,4 +27,10 @@ export interface Post {
   points: number;
   isPro?: boolean;
   avatar?: string;
+  mediaUrl?: string;
+  pollData?: {
+    options: string[];
+    votes: number[];
+    expiresAt?: string;
+  };
 }
