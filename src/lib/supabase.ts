@@ -8,7 +8,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Global anonymous client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// We use placeholders if variables are missing to prevent build crashes
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co', 
+  supabaseAnonKey || 'placeholder'
+);
 
 /**
  * GET AUTHENTICATED SUPABASE CLIENT
