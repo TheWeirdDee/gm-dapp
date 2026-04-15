@@ -32,6 +32,17 @@ const getInitialOptimisticState = () => {
   return false;
 };
 
+const getInitialSessionToken = () => {
+  if (typeof window === 'undefined') return null;
+  const token = localStorage.getItem('gm_session_token');
+  // Auto-clear invalid/stale tokens
+  if (token && token.split('.').length !== 3) {
+    localStorage.removeItem('gm_session_token');
+    return null;
+  }
+  return token;
+};
+
 const initialState: UserState = {
   address: null,
   profile: null,
@@ -50,7 +61,7 @@ const initialState: UserState = {
   currentBlockHeight: 0,
   isSimulationMode: false,
   isOptimisticPro: getInitialOptimisticState(),
-  sessionToken: typeof window !== 'undefined' ? localStorage.getItem('gm_session_token') : null,
+  sessionToken: getInitialSessionToken(),
   avatar: null,
 };
 
@@ -163,11 +174,13 @@ const userSlice = createSlice({
       }
     },
     setSessionToken(state, action: PayloadAction<string | null>) {
-      state.sessionToken = action.payload;
       if (typeof window !== 'undefined') {
-        if (action.payload) {
-          localStorage.setItem('gm_session_token', action.payload);
+        const token = action.payload;
+        if (token && token.split('.').length === 3) {
+          state.sessionToken = token;
+          localStorage.setItem('gm_session_token', token);
         } else {
+          state.sessionToken = null;
           localStorage.removeItem('gm_session_token');
         }
       }
@@ -197,18 +210,18 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
     }
 
     // --- FETCH SUPABASE PROFILE (Bio & Avatar) ---
-    const { data: profile, error } = await supabase
+    const { data: profile, error: supabaseError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('bio, username, avatar_url')
       .eq('address', address)
-      .single();
+      .maybeSingle(); // Better for handling "no profile" without throwing 406
 
     if (profile) {
       dispatch(userSlice.actions.updateStats({
-        bio: profile.bio,
-        username: profile.username, // From Supabase (Highest Priority)
-        avatar: profile.avatar_url
-      } as any));
+        bio: profile.bio || '',
+        username: profile.username || null,
+        avatar: profile.avatar_url || null
+      }));
     } else {
       // Fallback to localStorage if no profile found in Supabase
       if (typeof window !== 'undefined') {
