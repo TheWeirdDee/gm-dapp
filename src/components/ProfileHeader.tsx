@@ -23,6 +23,7 @@ import {
 } from '@stacks/transactions';
 
 import IdentityAvatar from './IdentityAvatar';
+import EditProfileModal from './EditProfileModal';
 
 export default function ProfileHeader({ targetAddress }: { targetAddress: string }) {
   const dispatch = useDispatch();
@@ -56,6 +57,7 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
   } : null;
 
   const [isFollowPending, setIsFollowPending] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const isFollowing = false; // Will be real once indexing is active
 
   const handleFollow = async () => {
@@ -114,7 +116,10 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
           
           <div className="flex gap-3">
             {isSelf ? (
-              <button className="flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs bg-white text-black hover:opacity-90 transition-all uppercase tracking-widest shadow-xl">
+              <button 
+                onClick={() => setIsEditModalOpen(true)}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs bg-white text-black hover:opacity-90 transition-all uppercase tracking-widest shadow-xl"
+              >
                 <Settings className="h-4 w-4" />
                 Customize
               </button>
@@ -211,7 +216,7 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
                <Star className="h-20 w-20 text-yellow-500" />
             </div>
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2">Reputation</div>
-            <div className="text-3xl font-black text-yellow-500">{finalUser.points.toLocaleString()}</div>
+            <div className="text-3xl font-black text-yellow-500">{(finalUser.points / 10).toFixed(1)} <span className="text-sm">RP</span></div>
           </div>
 
           <div className="bg-white/[0.02] rounded-3xl p-6 border border-white/5 relative overflow-hidden group">
@@ -223,6 +228,11 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
           </div>
         </div>
       </div>
+
+      <EditProfileModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+      />
     </div>
   );
 }
