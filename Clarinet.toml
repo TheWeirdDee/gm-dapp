@@ -4,10 +4,12 @@ authors = []
 description = "Social dApp on Stacks"
 telemetry = true
 requirements = []
+epoch = "latest"
 
 [contracts.gm-social]
 path = "contracts/gm-social.clar"
-clarity_version = 2
+clarity_version = 4
+epoch = "latest"
 
 [repl.analysis]
 passes = ["check_checker"]
