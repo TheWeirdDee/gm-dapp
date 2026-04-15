@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { 
@@ -10,6 +11,7 @@ import {
   Award 
 } from 'lucide-react';
 import IdentityAvatar from './IdentityAvatar';
+import EditProfileModal from './EditProfileModal';
 
 interface ProfileSettingsCardsProps {
   targetAddress: string;
@@ -17,6 +19,7 @@ interface ProfileSettingsCardsProps {
 
 export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsCardsProps) {
   const { address: currentAddress, ...currentUserData } = useSelector((state: RootState) => state.user);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const isSelf = currentAddress === targetAddress;
   
@@ -25,11 +28,11 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
   const user = isSelf ? {
     username: currentUserData.username,
     bio: currentUserData.bio,
-    streak: currentUserData.streak,
-    points: currentUserData.points,
-    followers: currentUserData.followers,
-    following: currentUserData.following,
-    avatar: undefined
+    streak: currentUserData.streak || 0,
+    points: currentUserData.points || 0,
+    followers: currentUserData.followers || 0,
+    following: currentUserData.following || 0,
+    avatar: currentUserData.avatar
   } : null;
 
   if (!user && !isSelf) {
@@ -58,7 +61,9 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
         <div className="flex items-center gap-8">
            <IdentityAvatar address={targetAddress} src={finalUser.avatar} size="lg" />
            <div className="flex-1">
-              <h2 className="text-2xl font-black text-white tracking-widest uppercase mb-1">{finalUser.username || 'Anonymous'}</h2>
+              <h2 className="text-2xl font-black text-white tracking-widest uppercase mb-1">
+                {finalUser.username || (targetAddress.substring(0, 6) + '...' + targetAddress.substring(targetAddress.length - 4))}
+              </h2>
               <p className="text-sm font-medium text-gray-500 mb-2">Protocol Participant</p>
               <div className="flex items-center gap-2 text-[10px] text-gray-600 font-mono tracking-tighter">
                  <MapPin className="h-3 w-3" />
@@ -66,7 +71,10 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
               </div>
            </div>
            {isSelf && (
-             <button className="absolute top-8 right-8 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.02] border border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:bg-white/5 transition-all">
+             <button 
+              onClick={() => setIsEditModalOpen(true)}
+              className="absolute top-8 right-8 flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.02] border border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:bg-white/5 transition-all"
+             >
                <Edit2 className="h-3.5 w-3.5" />
                Edit
              </button>
@@ -87,7 +95,7 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
             </div>
             <div>
                <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Social Reputation</p>
-               <p className="text-lg font-bold text-white">{finalUser.points.toLocaleString()} <span className="text-xs text-gray-600">RP</span></p>
+               <p className="text-lg font-bold text-white">{(finalUser.points / 10).toFixed(1)} <span className="text-xs text-gray-600">RP</span></p>
             </div>
             <div>
                <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Network Level</p>
@@ -147,6 +155,11 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
             </div>
          </div>
       </div>
+
+      <EditProfileModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+      />
     </div>
   );
 }
