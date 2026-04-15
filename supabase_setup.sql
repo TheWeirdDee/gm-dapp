@@ -67,7 +67,21 @@ CREATE POLICY "Public read profiles" ON profiles FOR SELECT TO anon USING (true)
 -- POLICY: Strictly Private (Nonces)
 -- No public policies exist for auth_nonces, meaning even SELECT is denied to anon.
 
--- 7. Enable Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE posts;
-ALTER PUBLICATION supabase_realtime ADD TABLE post_reactions;
-ALTER PUBLICATION supabase_realtime ADD TABLE profiles;
+-- 7. Enable Realtime (Safe Idempotent Version)
+DO $$ 
+BEGIN
+  -- Add posts if missing
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'posts') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE posts;
+  END IF;
+  
+  -- Add post_reactions if missing
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'post_reactions') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE post_reactions;
+  END IF;
+
+  -- Add profiles if missing
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'profiles') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE profiles;
+  END IF;
+END $$;
