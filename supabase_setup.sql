@@ -27,23 +27,13 @@ CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
 -- 3. Set up Row Level Security (RLS)
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 
--- Anyone can read posts
-CREATE POLICY "Allow public read access" 
+-- Only allow SELECT for public read.
+-- ALL mutations (Insert/Update/Delete) must flow through the Backend Proxy via service_role.
+-- This ensures that anonymous users cannot spoof identity or spam the database.
+CREATE POLICY "Public read only" 
 ON posts FOR SELECT 
 TO anon 
 USING (true);
-
--- Only authenticated users matching the address claim can insert/update their posts
-CREATE POLICY "Secure post creation" 
-ON posts FOR INSERT 
-TO anon 
-WITH CHECK (address = (current_setting('request.jwt.claims', true)::json->>'address'));
-
-CREATE POLICY "Secure post deletion" 
-ON posts FOR DELETE 
-TO anon 
-USING (address = (current_setting('request.jwt.claims', true)::json->>'address'));
-
 
 -- 4. Create the profiles table
 CREATE TABLE IF NOT EXISTS profiles (
@@ -60,13 +50,6 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 -- Anyone can read profiles
 CREATE POLICY "Allow public read profiles" 
 ON profiles FOR SELECT TO anon USING (true);
-
--- Only the owner can UPSERT or UPDATE their profile
-CREATE POLICY "Secure profile management" 
-ON profiles FOR ALL 
-TO anon 
-USING (address = (current_setting('request.jwt.claims', true)::json->>'address'))
-WITH CHECK (address = (current_setting('request.jwt.claims', true)::json->>'address'));
 
 -- 5. Enable Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE posts;

@@ -29,20 +29,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    // 2. Issuing Supabase JWT
-    const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
-    if (!process.env.SUPABASE_JWT_SECRET) {
-      throw new Error('SUPABASE_JWT_SECRET is not configured');
+    // 2. Issuing Local Session JWT
+    if (!process.env.LOCAL_SESSION_SECRET) {
+      throw new Error('LOCAL_SESSION_SECRET is not configured');
     }
+    const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
 
-    const token = await new jose.SignJWT({ 
-        address,
-        role: 'authenticated', // Important for Supabase RLS
-        aud: 'authenticated'
-      })
+    const token = await new jose.SignJWT({ address })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('1h')
+      .setExpirationTime('24h')
       .sign(secret);
 
     return NextResponse.json({ token });

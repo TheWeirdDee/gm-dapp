@@ -15,7 +15,7 @@ export const supabase = createClient(
 );
 
 /**
- * GET AUTHENTICATED SUPABASE CLIENT
+ * GET AUTHENTICATED SUPABASE CLIENT (Browser)
  * Returns a client with the current session token if available.
  */
 export const getSupaClient = () => {
@@ -29,6 +29,23 @@ export const getSupaClient = () => {
       headers: {
         Authorization: `Bearer ${token}`
       }
+    }
+  });
+};
+
+/**
+ * GET SERVICE ROLE CLIENT (Server Only)
+ * Used by API routes to perform secure writes bypassing RLS.
+ */
+export const getServiceRoleClient = () => {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey || serviceKey === 'PASTE_SERVICE_ROLE_KEY_HERE') {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');
+  }
+  return createClient(supabaseUrl, serviceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
     }
   });
 };

@@ -64,13 +64,20 @@ export default function SetUsernameModal({ isOpen, onClose }: SetUsernameModalPr
               localStorage.setItem(`username_${address}`, name.trim());
             }
 
-            // 2. UPSERT TO SUPABASE (Strict Persistence)
+            // 2. UPSERT TO SUPABASE (Strict Persistence via Backend Proxy)
             if (address) {
               try {
-                await getSupaClient().from('profiles').upsert({
-                   address: address,
-                   username: name.trim(),
-                   updated_at: new Date().toISOString()
+                const token = localStorage.getItem('gm_session_token');
+                await fetch('/api/profile/update', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({
+                    address,
+                    username: name.trim()
+                  })
                 });
               } catch (supaErr) {
                 console.error('Supabase persistence error:', supaErr);

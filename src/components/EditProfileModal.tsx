@@ -69,18 +69,26 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
         }
       }
 
-      // 2. Handle Bio & Avatar (Supabase)
-      const { error } = await getSupaClient()
-        .from('profiles')
-        .upsert({
+      // 2. Handle Bio & Avatar (Backend Proxy)
+      const token = localStorage.getItem('gm_session_token');
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
           address,
           username: newUsername,
           bio,
-          avatar_url: avatarPreview || undefined,
-          updated_at: new Date().toISOString()
-        });
+          avatar_url: avatarPreview || undefined
+        })
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to update profile');
+      }
 
       // Update local state
       dispatch(updateStats({ 

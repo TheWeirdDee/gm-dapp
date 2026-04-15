@@ -62,22 +62,28 @@ export const createRealPost = createAsyncThunk(
     isPro: boolean,
     txId?: string
   }, { rejectWithValue, dispatch }) => {
-    if (!supabase) return rejectWithValue('Supabase not initialized');
     try {
-      const { data, error } = await getSupaClient()
-        .from('posts')
-        .insert([{
+      const token = localStorage.getItem('gm_session_token');
+      const response = await fetch('/api/posts/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
           address: postData.address,
           content: postData.content,
-          media_url: postData.mediaUrl,
-          poll_data: postData.pollData,
-          is_pro: postData.isPro,
-          tx_id: postData.txId
-        }])
-        .select()
-        .single();
+          txId: postData.txId,
+          // Note: mediaUrl and pollData support can be added to the API payload if needed
+        })
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to create post');
+      }
+
+      const { data } = await response.json();
       
       const newPost: Post = {
         id: data.id,
