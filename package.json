@@ -1,12 +1,12 @@
 {
-  "name": "gm-dapp",
+  "name": "@divinedilibe/gm-dapp",
   "version": "0.1.0",
-  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:contracts": "vitest run tests/gm-social.test.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -19,6 +19,7 @@
     "@stacks/transactions": "^7.4.0",
     "@supabase/supabase-js": "^2.103.0",
     "gsap": "^3.14.2",
+    "jose": "^6.2.2",
     "lucide-react": "^1.7.0",
     "next": "16.2.2",
     "react": "19.2.4",
@@ -29,6 +30,7 @@
     "three": "^0.183.2"
   },
   "devDependencies": {
+    "@stacks/clarinet-sdk": "^3.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -37,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^1.6.0"
   }
 }
