@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { User } from '../types';
 import { getUserSession, getUserOnChainData, getOnChainBlockHeight } from '../stacks';
+import { supabase } from '../supabase';
 
 interface UserState {
   address: string | null;
@@ -20,6 +21,7 @@ interface UserState {
   currentBlockHeight: number;
   isSimulationMode: boolean;
   isOptimisticPro: boolean;
+  sessionToken: string | null;
 }
 
 const getInitialOptimisticState = () => {
@@ -47,6 +49,7 @@ const initialState: UserState = {
   currentBlockHeight: 0,
   isSimulationMode: false,
   isOptimisticPro: getInitialOptimisticState(),
+  sessionToken: typeof window !== 'undefined' ? localStorage.getItem('gm_session_token') : null,
 };
 
 const userSlice = createSlice({
@@ -65,7 +68,11 @@ const userSlice = createSlice({
       state.address = action.payload.address;
       state.profile = action.payload.profile;
       state.isConnected = true;
-      state.username = fallbackName;
+      
+      // Only set username if we don't already have a valid on-chain one
+      if (!state.username || state.username.startsWith('ST')) {
+        state.username = fallbackName;
+      }
     },
     logout(state) {
       state.address = null;
@@ -93,6 +100,7 @@ const userSlice = createSlice({
       lastGm?: number;
       username?: string | null;
       bio?: string | null;
+      avatar?: string | null;
       isPro?: boolean;
       proExpiry?: number;
       followers?: number;
@@ -104,7 +112,6 @@ const userSlice = createSlice({
       if (action.payload.following !== undefined) state.following = action.payload.following;
       if (action.payload.bio !== undefined) state.bio = action.payload.bio;
       
-      // Always use Math.max for streaks and points to prevent stale chain data from overwriting optimistic UI
       if (action.payload.streak !== undefined) {
         state.streak = Math.max(state.streak, action.payload.streak);
       }
@@ -114,17 +121,51 @@ const userSlice = createSlice({
       if (action.payload.lastGm !== undefined) {
         state.lastGm = Math.max(state.lastGm, action.payload.lastGm);
       }
-      if (action.payload.username) {
-        state.username = action.payload.username;
+      
+      // Strict Persistence Logic: Supabase > localStorage > Address
+      let incomingName = action.payload.username;
+      
+      // 1. If we have a real username (not ST...), set it and cache it
+      if (incomingName && !incomingName.startsWith('ST')) {
+        state.username = incomingName;
+        if (typeof window !== 'undefined' && state.address) {
+          localStorage.setItem(`username_${state.address}`, incomingName);
+        }
+      } 
+      // 2. If incoming is null/address and we are already set to a real name, keep it
+      else if (state.username && !state.username.startsWith('ST')) {
+        // preserve current name
+      } 
+      // 3. Fallback to localStorage
+      else if (typeof window !== 'undefined' && state.address) {
+        const cached = localStorage.getItem(`username_${state.address}`);
+        if (cached) {
+          state.username = cached;
+        } else {
+          state.username = state.address;
+        }
       }
     },
     setUsername(state, action: PayloadAction<string>) {
       state.username = action.payload;
+      if (typeof window !== 'undefined' && state.address) {
+        localStorage.setItem(`username_${state.address}`, action.payload);
+      }
     },
     setOptimisticPro(state, action: PayloadAction<boolean>) {
       state.isOptimisticPro = action.payload;
       if (typeof window !== 'undefined') {
         localStorage.setItem('gm_is_optimistic_pro', action.payload.toString());
+      }
+    },
+    setSessionToken(state, action: PayloadAction<string | null>) {
+      state.sessionToken = action.payload;
+      if (typeof window !== 'undefined') {
+        if (action.payload) {
+          localStorage.setItem('gm_session_token', action.payload);
+        } else {
+          localStorage.removeItem('gm_session_token');
+        }
       }
     }
   },
@@ -148,13 +189,46 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
         proExpiry: data.proExpiry,
         followers: data.followers,
         following: data.following
-        // Future: Fetch bio from Supabase or contract if added
       }));
     }
+
+    // --- FETCH SUPABASE PROFILE (Bio & Avatar) ---
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('address', address)
+      .single();
+
+    if (profile) {
+      dispatch(userSlice.actions.updateStats({
+        bio: profile.bio,
+        username: profile.username, // From Supabase (Highest Priority)
+        avatar: profile.avatar_url
+      } as any));
+    } else {
+      // Fallback to localStorage if no profile found in Supabase
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem(`username_${address}`);
+        if (cached) {
+          dispatch(userSlice.actions.updateStats({ username: cached }));
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Fetch error:', err);
   } finally {
     dispatch(userSlice.actions.setLoading(false));
   }
 };
 
-export const { setUserData, logout, updateStats, setUsername, setLoading, setBlockHeight, setOptimisticPro } = userSlice.actions;
+export const { 
+  setUserData, 
+  logout, 
+  updateStats, 
+  setUsername, 
+  setLoading, 
+  setBlockHeight, 
+  setOptimisticPro,
+  setSessionToken 
+} = userSlice.actions;
 export default userSlice.reducer;
