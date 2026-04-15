@@ -30,6 +30,12 @@ interface PostCardProps {
     repostsCount: number;
     isPro?: boolean;
     avatar?: string;
+    mediaUrl?: string;
+    pollData?: {
+      options: string[];
+      votes: number[];
+      expiresAt?: string;
+    };
   };
 }
 
@@ -90,16 +96,51 @@ export default function PostCard({ post }: PostCardProps) {
         </p>
       </div>
 
-      {/* Media Area (Conditional based on hash or specific ID) */}
-      {(post.content.includes('#') || post.id.includes('1')) && (
+      {/* Media Area */}
+      {post.mediaUrl && (
         <div className="px-6 pb-6 mt-2">
-           <div className="aspect-[16/9] bg-white/[0.02] rounded-[1.5rem] overflow-hidden border border-white/5 group-hover:border-white/10 transition-all">
-              <img 
-                src={`https://images.unsplash.com/photo-${post.id.length % 2 === 0 ? '1618005182384-a83a8bd57fbe' : '1574169208507-84376144848b'}?w=800&fit=crop`} 
-                alt="post-media" 
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700" 
-              />
+           <div className="max-h-[350px] bg-white/[0.02] rounded-[1.5rem] overflow-hidden border border-white/5 group-hover:border-white/10 transition-all flex items-center justify-center">
+              {post.mediaUrl.match(/\.(mp4|webm|ogg)$/) ? (
+                <video 
+                  src={post.mediaUrl} 
+                  controls 
+                  className="max-h-[350px] w-auto max-w-full object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-700" 
+                />
+              ) : (
+                <img 
+                  src={post.mediaUrl} 
+                  alt="post-media" 
+                  className="max-h-[350px] w-auto max-w-full object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-700" 
+                />
+              )}
            </div>
+        </div>
+      )}
+
+      {/* Poll Area */}
+      {post.pollData && post.pollData.options && (
+        <div className="px-6 pb-6 mt-2">
+          <div className="p-6 rounded-[2rem] bg-white/[0.01] border border-white/5 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Live Poll</span>
+            </div>
+            {post.pollData.options.map((option, i) => {
+              const totalVotes = post.pollData?.votes.reduce((a, b) => a + b, 0) || 1;
+              const percentage = Math.round(((post.pollData?.votes[i] || 0) / totalVotes) * 100);
+              return (
+                <button key={i} className="w-full relative h-10 bg-black border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all group/poll">
+                  <div 
+                    className="absolute inset-y-0 left-0 bg-[var(--color-accent)] opacity-10 transition-all duration-1000" 
+                    style={{ width: `${percentage}%` }}
+                  />
+                  <div className="relative px-4 h-full flex items-center justify-between text-xs font-bold">
+                    <span className="text-gray-300 group-hover/poll:text-white transition-colors">{option}</span>
+                    <span className="text-gray-500">{percentage}%</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
