@@ -115,7 +115,7 @@ export default function DashboardContent() {
             <div className="relative z-10 max-w-xl">
                <div className="flex items-center gap-3 mb-4">
                   <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight truncate">
-                    Hi, {greeting}.
+                    Hi, {username || addressShort}.
                   </h1>
                   {activePro && (
                     <div className="flex items-center justify-center p-1.5 transition-all">

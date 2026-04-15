@@ -22,6 +22,7 @@ interface UserState {
   isSimulationMode: boolean;
   isOptimisticPro: boolean;
   sessionToken: string | null;
+  avatar: string | null;
 }
 
 const getInitialOptimisticState = () => {
@@ -50,6 +51,7 @@ const initialState: UserState = {
   isSimulationMode: false,
   isOptimisticPro: getInitialOptimisticState(),
   sessionToken: typeof window !== 'undefined' ? localStorage.getItem('gm_session_token') : null,
+  avatar: null,
 };
 
 const userSlice = createSlice({
@@ -89,6 +91,7 @@ const userSlice = createSlice({
       state.healCount = 0;
       state.followers = 0;
       state.following = 0;
+      state.avatar = null;
       getUserSession()?.signUserOut();
     },
     setLoading(state, action: PayloadAction<boolean>) {
@@ -111,6 +114,7 @@ const userSlice = createSlice({
       if (action.payload.followers !== undefined) state.followers = action.payload.followers;
       if (action.payload.following !== undefined) state.following = action.payload.following;
       if (action.payload.bio !== undefined) state.bio = action.payload.bio;
+      if (action.payload.avatar !== undefined) state.avatar = action.payload.avatar;
       
       if (action.payload.streak !== undefined) {
         state.streak = Math.max(state.streak, action.payload.streak);
