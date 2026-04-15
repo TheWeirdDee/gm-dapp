@@ -12,7 +12,7 @@ import {
   AnchorMode, 
   PostConditionMode,
 } from '@stacks/transactions';
-import { supabase } from '@/lib/supabase';
+import { getSupaClient } from '@/lib/supabase';
 
 export default function GMButton() {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -67,11 +67,10 @@ export default function GMButton() {
 
           // 1. Record in Supabase for Hybrid Feed
           try {
-             await supabase.from('posts').insert([{
+             await getSupaClient().from('posts').insert([{
                 address: address,
                 tx_id: data.txId,
-                content: 'Said GM!',
-                points: isPro ? 10 : 5
+                content: 'Said GM!'
              }]);
           } catch (supaErr) {
              console.error('Supabase indexing error:', supaErr);
@@ -102,10 +101,8 @@ export default function GMButton() {
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`gm_date_${address}`, today);
         setLocalCooldown(true);
-        setState('error');
-      } else {
-        setState('error');
       }
+      setState('error');
       setTimeout(() => setState('idle'), 4000);
     }
   };
