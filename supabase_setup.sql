@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS post_reactions (
     address TEXT NOT NULL,
     reaction_type TEXT NOT NULL CHECK (reaction_type IN ('gm', 'fire', 'laugh')),
     created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
     -- Constraint: One user can only have ONE reaction per post
     UNIQUE(post_id, address)
 );
@@ -59,28 +60,21 @@ ALTER TABLE post_reactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auth_nonces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- WIPE ALL EXISTING POLICIES (Ensures no legacy JWT checks remain)
-DO $$ 
-DECLARE 
-  pol RECORD;
-BEGIN
-  FOR pol IN (SELECT policyname, tablename FROM pg_policies WHERE schemaname = 'public' AND tablename IN ('posts', 'post_reactions', 'profiles', 'auth_nonces')) 
-  LOOP
-    EXECUTE format('DROP POLICY IF EXISTS %I ON %I', pol.policyname, pol.tablename);
-  END LOOP;
-END $$;
+-- 6a. Explicitly Drop Legacy Policies (Stable/Predictable)
+DROP POLICY IF EXISTS "Public read posts" ON posts;
+DROP POLICY IF EXISTS "Public read reactions" ON post_reactions;
+DROP POLICY IF EXISTS "Public read profiles" ON profiles;
+DROP POLICY IF EXISTS "Enable all for Service Role" ON auth_nonces; -- Just in case
 
--- POLICY: Public Read (Anon)
+-- 6b. Create Public Read Policies
 CREATE POLICY "Public read posts" ON posts FOR SELECT TO anon USING (true);
 CREATE POLICY "Public read reactions" ON post_reactions FOR SELECT TO anon USING (true);
 CREATE POLICY "Public read profiles" ON profiles FOR SELECT TO anon USING (true);
 
--- POLICY: No Public Write
--- No INSERT/UPDATE/DELETE policies are created for 'anon' or 'authenticated' roles.
--- The 'service_role' key used by the backend bypasses RLS automatically.
-
--- POLICY: Strictly Private (Nonces)
--- No policies at all. SELECT/INSERT/DELETE handled exclusively by service_role.
+-- 6c. Hardened Nonce Protection
+-- Even with RLS enabled, we explicitly revoke permissions at the role level.
+REVOKE ALL ON auth_nonces FROM anon;
+REVOKE ALL ON auth_nonces FROM authenticated;
 
 -- 7. Enable Realtime (Safe Idempotent Version)
 DO $$ 
