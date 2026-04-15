@@ -64,7 +64,18 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ Issued Session JWT for:', address);
 
-    return NextResponse.json({ token });
+    const response = NextResponse.json({ token });
+    
+    // Set httpOnly cookie for persistence
+    response.cookies.set('gm_session_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 // 24 hours
+    });
+
+    return response;
   } catch (error: any) {
     console.error('Verify error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
