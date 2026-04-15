@@ -6,9 +6,15 @@ import { TrendingUp } from 'lucide-react';
 import { useMemo } from 'react';
 
 export default function AnalyticsGraph() {
-  const { streak, points, followers } = useSelector((state: RootState) => state.user);
+  const { streak, points, address } = useSelector((state: RootState) => state.user);
+  const feed = useSelector((state: RootState) => state.posts.feed);
+  
+  // Filter for this user's posts
+  const userPosts = useMemo(() => {
+    return feed.filter(p => p.authorAddress === address);
+  }, [feed, address]);
 
-  const hasActivity = streak > 0 || points > 0;
+  const hasActivity = userPosts.length > 0 || streak > 0;
 
   // Build a realistic activity trail from the user's actual streak.
   // Each day they've been active shows a GM. Days before the streak are zeroed.
@@ -16,16 +22,23 @@ export default function AnalyticsGraph() {
     const days = 30;
     const data: { day: number; active: boolean; label: string }[] = [];
 
+    // Get a set of dates where user has made a post (ISO Date format: YYYY-MM-DD)
+    const postDates = new Set(userPosts.map(p => 
+      new Date(p.timestamp).toISOString().split('T')[0]
+    ));
+
     for (let i = days; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
+      const isoDate = d.toISOString().split('T')[0];
       const label = d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-      // Only mark days as active if within the current streak window
-      const active = hasActivity && i < streak;
+      
+      // Real activity: Check if user posted on this date
+      const active = postDates.has(isoDate);
       data.push({ day: days - i, active, label });
     }
     return data;
-  }, [streak, hasActivity]);
+  }, [userPosts]);
 
   const activeCount = chartPoints.filter(p => p.active).length;
   const totalDays = chartPoints.length;
