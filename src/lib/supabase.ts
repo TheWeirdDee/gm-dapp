@@ -7,4 +7,50 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials missing. Social feed will remain inactive.');
 }
 
+// Global anonymous client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+/**
+ * GET AUTHENTICATED SUPABASE CLIENT
+ * Returns a client with the current session token if available.
+ */
+export const getSupaClient = () => {
+  if (typeof window === 'undefined') return supabase;
+  
+  const token = localStorage.getItem('gm_session_token');
+  if (!token) return supabase;
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  });
+};
+
+/**
+ * Uploads a file to a Supabase bucket.
+ * @param bucket 'media' or 'avatars'
+ * @param file The File object from input
+ */
+export async function uploadFile(bucket: 'media' | 'avatars', file: File): Promise<string | null> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+  const filePath = `${fileName}`;
+
+  const { data, error } = await getSupaClient().storage
+    .from(bucket)
+    .upload(filePath, file);
+
+  if (error) {
+    console.error(`Upload error to ${bucket}:`, error);
+    return null;
+  }
+
+  const { data: { publicUrl } } = getSupaClient().storage
+    .from(bucket)
+    .getPublicUrl(data.path);
+
+  return publicUrl;
+}
