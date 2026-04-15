@@ -4,7 +4,7 @@ import * as jose from 'jose';
 
 export async function POST(req: NextRequest) {
   try {
-    const { address, username, bio, avatar_url } = await req.json();
+    const { username, bio, avatar_url } = await req.json();
     const authHeader = req.headers.get('Authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
@@ -13,20 +13,13 @@ export async function POST(req: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     
-    // 1. Verify Local Session
+    // 1. Verify Session Token
     if (!process.env.LOCAL_SESSION_SECRET) {
       throw new Error('LOCAL_SESSION_SECRET is not configured');
     }
-    
     const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
     const { payload } = await jose.jwtVerify(token, secret);
-    
     const sessionAddress = payload.address as string;
-    
-    // Security Check: Does the session address match the target address?
-    if (sessionAddress !== address) {
-      return NextResponse.json({ error: 'Address mismatch in session' }, { status: 403 });
-    }
 
     // 2. Perform Secure Upsert via Service Role
     const supabase = getServiceRoleClient();
