@@ -5,7 +5,7 @@ import { getProfileGradient, getAddressInitials } from '@/lib/utils/avatarUtils'
 
 interface IdentityAvatarProps {
   address: string | null;
-  src?: string;
+  src?: string | null;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
