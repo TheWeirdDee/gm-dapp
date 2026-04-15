@@ -175,14 +175,23 @@ export const getOnChainBlockHeight = async () => {
     }
 
     // --- STRATEGY 2: Fallback to Hiro API ---
-    try {
-      const response = await fetch('https://stacks-node-api.testnet.stacks.co/extended/v1/block?limit=1');
-      const bdata = await response.json();
-      const height = bdata.results?.[0]?.burn_block_height || bdata.results?.[0]?.height;
-      if (height) return Number(height);
-    } catch (e) {
-      console.warn('Hiro API unreachable (SSL or network error). Attempting Tertiary Time Fallback...');
+    const hiroEndpoints = [
+      'https://api.testnet.hiro.so/extended/v1/block?limit=1'
+    ];
+
+    for (const endpoint of hiroEndpoints) {
+      try {
+        const response = await fetch(endpoint, { signal: AbortSignal.timeout(5000) });
+        if (!response.ok) continue;
+        const bdata = await response.json();
+        const height = bdata.results?.[0]?.burn_block_height || bdata.results?.[0]?.height;
+        if (height) return Number(height);
+      } catch (e) {
+        console.warn(`Hiro API endpoint reachable failure (${endpoint}):`, e);
+      }
     }
+
+    console.warn('All Hiro API endpoints unreachable. Attempting Tertiary Time Fallback...');
 
     // --- STRATEGY 3: Tertiary Time-Based Fallback ---
     // Use a reference block height and current time to estimate the burns
@@ -219,3 +228,41 @@ export const callContract = async (options: any) => {
     network: APP_CONFIG.network, // Force global network from config
   });
 };
+/**
+ * SIGN IN WITH WALLET
+ * Requests a signature from the user's wallet and exchanges it for a Supabase JWT.
+ */
+export async function signInWithWallet(address: string) {
+  if (typeof window === 'undefined') return null;
+  
+  const { showSignMessage } = require('@stacks/connect');
+  
+  const message = `Sign in to Gm Social\nAddress: ${address}\nTimestamp: ${Date.now()}`;
+  
+  return new Promise((resolve, reject) => {
+    showSignMessage({
+      message,
+      onFinish: async (data: any) => {
+        try {
+          // Exchange signature for JWT
+          const response = await fetch('/api/auth/verify', {
+            method: 'POST',
+            body: JSON.stringify({
+              address,
+              message,
+              signature: data.signature
+            })
+          });
+
+          if (!response.ok) throw new Error('Verification failed');
+          
+          const { token } = await response.json();
+          resolve({ token, signature: data.signature });
+        } catch (err) {
+          reject(err);
+        }
+      },
+      onCancel: () => reject(new Error('User cancelled')),
+    });
+  });
+}
