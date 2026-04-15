@@ -4,7 +4,7 @@ import * as jose from 'jose';
 
 export async function POST(req: NextRequest) {
   try {
-    const { content, txId, address } = await req.json();
+    const { content, txId } = await req.json();
     const authHeader = req.headers.get('Authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
@@ -13,29 +13,47 @@ export async function POST(req: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     
-    // Defensive check: Is it a valid JWT format?
-    if (!token || token.split('.').length !== 3) {
-      console.error('❌ Malformed Token received:', token);
-      return NextResponse.json({ error: 'Unauthorized: Invalid token format' }, { status: 401 });
-    }
-    
-    // 1. Verify Local Session
+    // 1. Verify Session Token
     if (!process.env.LOCAL_SESSION_SECRET) {
       throw new Error('LOCAL_SESSION_SECRET is not configured');
     }
-    
     const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
     const { payload } = await jose.jwtVerify(token, secret);
-    
     const sessionAddress = payload.address as string;
-    
-    // Security Check: Does the session address match the target address?
-    if (sessionAddress !== address) {
-      return NextResponse.json({ error: 'Address mismatch in session' }, { status: 403 });
+
+    const supabase = getServiceRoleClient();
+
+    // 2. Anti-Spam: Rate Limit Check (30s)
+    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
+    const { data: lastPost, error: rateError } = await supabase
+      .from('posts')
+      .select('created_at, content')
+      .eq('address', sessionAddress)
+      .gt('created_at', thirtySecondsAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (lastPost) {
+      return NextResponse.json({ error: 'Please wait 30 seconds between posts' }, { status: 429 });
     }
 
-    // 2. Perform Secure Write via Service Role
-    const supabase = getServiceRoleClient();
+    // 3. Anti-Spam: Duplicate Content Check (2m)
+    const twoMinutesAgo = new Date(Date.now() - 120 * 1000).toISOString();
+    const { data: dupPost } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('address', sessionAddress)
+      .eq('content', content || 'Said GM!')
+      .gt('created_at', twoMinutesAgo)
+      .limit(1)
+      .maybeSingle();
+
+    if (dupPost) {
+      return NextResponse.json({ error: 'Duplicate post detected. Please vary your content.' }, { status: 409 });
+    }
+
+    // 4. Secure Write via Service Role
     const { data, error } = await supabase
       .from('posts')
       .insert([{
