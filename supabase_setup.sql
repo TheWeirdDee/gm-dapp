@@ -1,7 +1,7 @@
 -- GM DAPP SUPABASE SETUP SCRIPT
 -- Run this in the Supabase SQL Editor (https://supabase.com/dashboard/project/_/sql)
 
--- 1. Create the posts table
+-- 1. Create the posts table (Simplified)
 CREATE TABLE IF NOT EXISTS posts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     address TEXT NOT NULL,           -- Author's Stacks Address
@@ -9,31 +9,31 @@ CREATE TABLE IF NOT EXISTS posts (
     tx_id TEXT,                      -- Stacks Transaction ID
     points INT4 DEFAULT 5,           -- Points awarded
     is_pro BOOLEAN DEFAULT false,    -- Whether user was Pro at post time
-    gm_count INT4 DEFAULT 0,         -- Reactions
-    fire_count INT4 DEFAULT 0,
-    laugh_count INT4 DEFAULT 0,
-    comments_count INT4 DEFAULT 0,
-    reposts_count INT4 DEFAULT 0,
     avatar_url TEXT,                 -- Cache for author's identity avatar
     media_url TEXT,                  -- URL for attached image or video
     poll_data JSONB,                 -- JSON object for poll options and status
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 2. Add performance indexes
-CREATE INDEX IF NOT EXISTS idx_posts_address ON posts(address);
-CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
+-- 2. Create post_reactions table (NewEngagementModel)
+CREATE TABLE IF NOT EXISTS post_reactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    address TEXT NOT NULL,
+    reaction_type TEXT NOT NULL CHECK (reaction_type IN ('gm', 'fire', 'laugh')),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    -- Constraint: One user can only have ONE reaction per post
+    UNIQUE(post_id, address)
+);
 
--- 3. Set up Row Level Security (RLS)
-ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
-
--- Only allow SELECT for public read.
--- ALL mutations (Insert/Update/Delete) must flow through the Backend Proxy via service_role.
--- This ensures that anonymous users cannot spoof identity or spam the database.
-CREATE POLICY "Public read only" 
-ON posts FOR SELECT 
-TO anon 
-USING (true);
+-- 3. Create auth_nonces table (Security)
+CREATE TABLE IF NOT EXISTS auth_nonces (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    address TEXT NOT NULL,
+    nonce TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
 
 -- 4. Create the profiles table
 CREATE TABLE IF NOT EXISTS profiles (
@@ -44,13 +44,30 @@ CREATE TABLE IF NOT EXISTS profiles (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Profiles Security
+-- 5. Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_posts_address ON posts(address);
+CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reactions_post_id ON post_reactions(post_id);
+CREATE INDEX IF NOT EXISTS idx_nonces_address ON auth_nonces(address);
+
+-- 6. Row Level Security (RLS)
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE post_reactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE auth_nonces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Anyone can read profiles
-CREATE POLICY "Allow public read profiles" 
-ON profiles FOR SELECT TO anon USING (true);
+-- POLICY: Public Read (Anon)
+CREATE POLICY "Public read posts" ON posts FOR SELECT TO anon USING (true);
+CREATE POLICY "Public read reactions" ON post_reactions FOR SELECT TO anon USING (true);
+CREATE POLICY "Public read profiles" ON profiles FOR SELECT TO anon USING (true);
 
--- 5. Enable Realtime
+-- POLICY: NO Public Write (Anon)
+-- All mutations (Insert/Update/Delete) must flow through the Backend Proxy via service_role.
+
+-- POLICY: Strictly Private (Nonces)
+-- No public policies exist for auth_nonces, meaning even SELECT is denied to anon.
+
+-- 7. Enable Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE posts;
+ALTER PUBLICATION supabase_realtime ADD TABLE post_reactions;
 ALTER PUBLICATION supabase_realtime ADD TABLE profiles;

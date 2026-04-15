@@ -22,15 +22,63 @@ export default function ReactionBar({ postId, reactions }: ReactionBarProps) {
   const fireRef = useRef<HTMLButtonElement>(null);
   const laughRef = useRef<HTMLButtonElement>(null);
 
-  const handleReact = (type: 'gm' | 'fire' | 'laugh', ref: React.RefObject<HTMLButtonElement | null>) => {
-    dispatch(reactToPost({ postId, reactionType: type }));
-    
-    if (ref.current) {
-      gsap.fromTo(ref.current, 
-        { scale: 0.9, y: 2 }, 
-        { scale: 1, y: 0, duration: 0.3, ease: 'back.out(2)' }
-      );
+  const handleReact = async (type: 'gm' | 'fire' | 'laugh', ref: React.RefObject<HTMLButtonElement | null>) => {
+    if (typeof window === 'undefined') return;
+
+    const { showSignMessage } = require('@stacks/connect');
+    const { appDetails } = require('../lib/stacks');
+    const currentAddress = localStorage.getItem('gm_address');
+    const token = localStorage.getItem('gm_session_token');
+
+    if (!currentAddress || !token) {
+      alert('Please sign in to react!');
+      return;
     }
+
+    const message = `React to Post: ${postId}\nReaction: ${type}\nAddress: ${currentAddress}`;
+
+    showSignMessage({
+      message,
+      appDetails,
+      onFinish: async (data: any) => {
+        // Optimistic UI Update
+        dispatch(reactToPost({ postId, reactionType: type }));
+        
+        if (ref.current) {
+          gsap.fromTo(ref.current, 
+            { scale: 0.9, y: 2 }, 
+            { scale: 1, y: 0, duration: 0.3, ease: 'back.out(2)' }
+          );
+        }
+
+        try {
+          const response = await fetch(`/api/posts/${postId}/react`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              address: currentAddress,
+              reactionType: type,
+              signature: data.signature,
+              publicKey: data.publicKey
+            })
+          });
+
+          if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Failed to react');
+          }
+
+          // Force refresh state or add to local count if needed
+          // For now, we'll rely on the next fetch or a global refresh
+        } catch (err: any) {
+          console.error('Reaction failed:', err);
+          alert(err.message);
+        }
+      }
+    });
   };
 
   return (

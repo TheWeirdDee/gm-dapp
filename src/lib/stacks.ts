@@ -230,32 +230,46 @@ export const callContract = async (options: any) => {
 };
 /**
  * SIGN IN WITH WALLET
- * Requests a signature from the user's wallet and exchanges it for a Supabase JWT.
+ * Requests a secure nonce then a signature from the user's wallet.
  */
 export async function signInWithWallet(address: string) {
   if (typeof window === 'undefined') return null;
   
   const { showSignMessage } = require('@stacks/connect');
   
-  const message = `Sign in to Gm Social\nAddress: ${address}\nTimestamp: ${Date.now()}`;
+  // 1. Fetch a fresh nonce from the backend
+  const nonceRes = await fetch('/api/auth/nonce', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address })
+  });
+
+  if (!nonceRes.ok) throw new Error('Failed to get auth nonce');
+  const { nonce } = await nonceRes.json();
+
+  const message = `Sign in to GM DApp\nNonce: ${nonce}`;
   
   return new Promise((resolve, reject) => {
     showSignMessage({
       message,
+      appDetails,
       onFinish: async (data: any) => {
         try {
-          // Exchange signature for JWT
+          // 2. Verify everything on the backend
           const response = await fetch('/api/auth/verify', {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               address,
-              message,
               signature: data.signature,
               publicKey: data.publicKey
             })
           });
 
-          if (!response.ok) throw new Error('Verification failed');
+          if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Verification failed');
+          }
           
           const { token } = await response.json();
           resolve({ token, signature: data.signature });

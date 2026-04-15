@@ -21,31 +21,34 @@ export const fetchPostsFromSupabase = createAsyncThunk(
     try {
       const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select('*, post_reactions(reaction_type)')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
 
-      return (data || []).map((p: any) => ({
-        id: p.id,
-        authorAddress: p.address,
-        content: p.content || 'Said GM!',
-        timestamp: p.created_at,
-        txId: p.tx_id,
-        reactions: {
-          gm: p.gm_count || 0,
-          fire: p.fire_count || 0,
-          laugh: p.laugh_count || 0,
-        },
-        commentsCount: p.comments_count || 0,
-        repostsCount: p.reposts_count || 0,
-        points: 0, // Points are calculated on-chain, not stored in posts table
-        isPro: p.is_pro || false,
-        avatar: p.avatar_url || null,
-        mediaUrl: p.media_url || null,
-        pollData: p.poll_data || null,
-      })) as Post[];
+      return (data || []).map((p: any) => {
+        const reactions = p.post_reactions || [];
+        return {
+          id: p.id,
+          authorAddress: p.address,
+          content: p.content || 'Said GM!',
+          timestamp: p.created_at,
+          txId: p.tx_id,
+          reactions: {
+            gm: reactions.filter((r: any) => r.reaction_type === 'gm').length,
+            fire: reactions.filter((r: any) => r.reaction_type === 'fire').length,
+            laugh: reactions.filter((r: any) => r.reaction_type === 'laugh').length,
+          },
+          commentsCount: 0,
+          repostsCount: 0,
+          points: 0,
+          isPro: p.is_pro || false,
+          avatar: p.avatar_url || null,
+          mediaUrl: p.media_url || null,
+          pollData: p.poll_data || null,
+        };
+      }) as Post[];
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
