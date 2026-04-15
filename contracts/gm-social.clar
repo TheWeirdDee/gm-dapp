@@ -1,4 +1,4 @@
-;; Gm Social Protocol - On-Chain Reputation & Social Graph (Clarity v2)
+;; Gm Social Protocol - On-Chain Reputation & Social Graph (Clarity v4)
 
 ;; Error Codes
 (define-constant ERR-NOT-AUTHORIZED (err u100))
@@ -14,10 +14,10 @@
 
 ;; Constants
 (define-constant CONTRACT-OWNER tx-sender)
-(define-constant COOLDOWN-BLOCKS u144) ;; ~24 hours
-(define-constant GRACE-PERIOD-BLOCKS u288) ;; ~48 hours
+(define-constant COOLDOWN-SECONDS u86400) ;; Exact 24 hours
+(define-constant GRACE-PERIOD-SECONDS u172800) ;; Exact 48 hours
 (define-constant PRO-PRICE u10000000) ;; 10 STX in microSTX
-(define-constant SUBSCRIPTION-DURATION u4320) ;; ~30 days
+(define-constant SUBSCRIPTION-DURATION-SECONDS u2592000) ;; Exact 30 days
 (define-constant INITIAL-HEALS u2)
 
 ;; Data Maps
@@ -45,18 +45,18 @@
 (define-public (say-gm)
   (let (
         (user-data (get-user-profile tx-sender))
-        (current-height burn-block-height)
+        (current-time stacks-block-time)
         (last-gm (get last-gm user-data))
-        (blocks-passed (if (> current-height last-gm) (- current-height last-gm) u0))
+        (seconds-passed (if (> current-time last-gm) (- current-time last-gm) u0))
         (is-currently-pro (is-pro-active tx-sender))
     )
     
     ;; 1. Check if 24h passed
-    (asserts! (or (is-eq last-gm u0) (> blocks-passed COOLDOWN-BLOCKS)) ERR-COOLDOWN-ACTIVE)
+    (asserts! (or (is-eq last-gm u0) (> seconds-passed COOLDOWN-SECONDS)) ERR-COOLDOWN-ACTIVE)
 
     ;; 2. Logic for streak
     (let (
-            (new-streak (if (<= blocks-passed GRACE-PERIOD-BLOCKS)
+            (new-streak (if (<= seconds-passed GRACE-PERIOD-SECONDS)
                 (+ (get streak user-data) u1)
                 u1 ;; Reset streak if missed grace period
             ))
@@ -66,13 +66,13 @@
         )
         (map-set users tx-sender
             (merge user-data {
-                last-gm: current-height,
+                last-gm: current-time,
                 streak: new-streak,
                 points: new-points,
                 is-pro: is-currently-pro
             })
         )
-        (print { event: "gm", user: tx-sender, streak: new-streak, points: new-points })
+        (print { event: "gm", user: tx-sender, streak: new-streak, points: new-points, timestamp: current-time })
         (ok { streak: new-streak, points: new-points })
     )
   )
@@ -87,7 +87,7 @@
 (define-public (subscribe-pro)
   (let (
     (user-data (get-user-profile tx-sender))
-    (current-height burn-block-height)
+    (current-time stacks-block-time)
   )
     ;; 0. Check if already Pro
     (asserts! (not (is-pro-active tx-sender)) ERR-ALREADY-PRO)
@@ -102,7 +102,7 @@
     (map-set users tx-sender
         (merge user-data {
             is-pro: true,
-            pro-expiry: (+ current-height SUBSCRIPTION-DURATION),
+            pro-expiry: (+ current-time SUBSCRIPTION-DURATION-SECONDS),
             heal-count: INITIAL-HEALS
         })
     )
@@ -114,17 +114,17 @@
 (define-public (heal-streak)
   (let (
     (user-data (get-user-profile tx-sender))
-    (current-height burn-block-height)
+    (current-time stacks-block-time)
     (last-gm (get last-gm user-data))
-    (blocks-passed (if (> current-height last-gm) (- current-height last-gm) u0))
+    (seconds-passed (if (> current-time last-gm) (- current-time last-gm) u0))
   )
     (asserts! (is-pro-active tx-sender) ERR-NOT-PRO)
-    (asserts! (> blocks-passed GRACE-PERIOD-BLOCKS) ERR-STREAK-NOT-BROKEN)
+    (asserts! (> seconds-passed GRACE-PERIOD-SECONDS) ERR-STREAK-NOT-BROKEN)
     (asserts! (> (get heal-count user-data) u0) ERR-NO-HEALS-LEFT)
     
     (map-set users tx-sender
         (merge user-data {
-            last-gm: (- current-height COOLDOWN-BLOCKS), ;; Set it to just over 24h ago
+            last-gm: (- current-time COOLDOWN-SECONDS), ;; Set it to just over 24h ago
             heal-count: (- (get heal-count user-data) u1)
         })
     )
@@ -179,7 +179,7 @@
     (let (
         (user-data (default-to { pro-expiry: u0 } (map-get? users user)))
     )
-    (> (get pro-expiry user-data) burn-block-height)
+    (> (get pro-expiry user-data) stacks-block-time)
     )
 )
 
