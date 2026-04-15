@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyMessageSignatureRsv } from '@stacks/transactions';
+import { verifyMessageSignatureRsv } from '@stacks/encryption';
 import * as jose from 'jose';
 
 export async function POST(req: NextRequest) {
   try {
-    const { address, message, signature } = await req.json();
+    const { address, message, signature, publicKey } = await req.json();
 
-    if (!address || !message || !signature) {
+    if (!address || !message || !signature || !publicKey) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // 1. Verify the Stacks signature
     const isValid = verifyMessageSignatureRsv({
       message,
-      publicKey: undefined, // If we don't have PK, verifyMessageSignatureRsv can derive it if rsv is provided? 
-      // Actually, verifyMessageSignatureRsv requires either publicKey or signature as RSV.
-      // If we only have address and signature, we must verify the signature matches the address.
+      publicKey,
       signature,
     });
 
