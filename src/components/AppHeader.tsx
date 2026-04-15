@@ -77,7 +77,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
             >
               <IdentityAvatar address={address} size="xs" className="h-7 w-7 !rounded-full" />
               <span className="text-xs font-bold text-gray-300 hidden sm:inline">
-                {address?.substring(0, 4)}...{address?.substring(address.length - 4)}
+                {username || (address ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}` : 'Guest')}
               </span>
               <ChevronDown className="h-3 w-3 text-gray-500" />
             </button>
