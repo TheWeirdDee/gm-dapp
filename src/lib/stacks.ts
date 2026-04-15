@@ -250,7 +250,8 @@ export async function signInWithWallet(address: string) {
             body: JSON.stringify({
               address,
               message,
-              signature: data.signature
+              signature: data.signature,
+              publicKey: data.publicKey
             })
           });
 
