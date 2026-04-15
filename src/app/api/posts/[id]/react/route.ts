@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceRoleClient } from '@/lib/supabase';
 import { verifyMessageSignatureRsv } from '@stacks/encryption';
-import { getAddressFromPublicKey, TransactionVersion } from '@stacks/transactions';
+import { getAddressFromPublicKey, AddressVersion } from '@stacks/transactions';
 import * as jose from 'jose';
 
 export async function POST(
@@ -45,7 +45,7 @@ export async function POST(
 
     // Re-verify address from public key
     const networkType = process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet';
-    const version = networkType === 'mainnet' ? TransactionVersion.Mainnet : TransactionVersion.Testnet;
+    const version = networkType === 'mainnet' ? AddressVersion.MainnetSingleSig : AddressVersion.TestnetSingleSig;
     const derivedAddress = getAddressFromPublicKey(publicKey, version);
     
     if (derivedAddress !== address) {
