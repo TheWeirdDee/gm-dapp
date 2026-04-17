@@ -6,50 +6,61 @@ import { useState, useEffect } from 'react';
 import { getUserSession } from '../lib/stacks';
 import { setUserData, setUsername, fetchOnChainStats } from '../lib/features/userSlice';
 
-function AuthHydrator({ children }: { children: React.ReactNode }) {
+function AuthHydrator({ 
+  children, 
+  initialAddress 
+}: { 
+  children: React.ReactNode, 
+  initialAddress: string | null 
+}) {
   const dispatch = useDispatch();
   const [mounted, setMounted] = useState(false);
+
+  // 1. Instant Hydration (on first render)
+  if (!mounted && initialAddress) {
+    dispatch(setUserData({
+      address: initialAddress,
+      profile: { stxAddress: initialAddress } // Minimal profile to bridge hydration
+    }));
+  }
 
   useEffect(() => {
     setMounted(true);
     
-    const session = getUserSession();
-    if (session && session.isUserSignedIn()) {
-      const userData = session.loadUserData();
-      const stxAddress = userData.profile.stxAddress;
-      const addressString = typeof stxAddress === 'string' 
-        ? stxAddress 
-        : (stxAddress?.mainnet || stxAddress?.testnet || userData.authResponseToken);
-
-      // Hydration: Check for cached profile in localStorage
-      let cachedData = null;
-      try {
-        const saved = localStorage.getItem(`gm_profile_${addressString}`);
-        if (saved) {
-          cachedData = JSON.parse(saved);
+    // 2. Deep Hydration (fetch on-chain state if we have an address)
+    const effectiveAddress = initialAddress || localStorage.getItem('gm_user_address');
+    
+    if (effectiveAddress) {
+      if (!initialAddress) {
+        // Fallback for non-cookie based dev sessions
+        const session = getUserSession();
+        if (session?.isUserSignedIn()) {
+          const userData = session.loadUserData();
+          dispatch(setUserData({
+            address: effectiveAddress,
+            profile: userData.profile
+          }));
         }
-      } catch (e) {
-        console.warn('Failed to load cached profile');
       }
-
-      dispatch(setUserData({
-        address: addressString,
-        profile: userData.profile
-      }));
       
-      // HYDRATION: Fetch real data from the blockchain immediately on mount
-      dispatch(fetchOnChainStats(addressString) as any);
+      // Fetch full on-chain stats (bio, streak, etc)
+      dispatch(fetchOnChainStats(effectiveAddress) as any);
     }
-  }, [dispatch]);
+  }, [dispatch, initialAddress]);
 
-  // Process hydration but allow children to render during build/SSR
   return <>{children}</>;
 }
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ 
+  children, 
+  initialAddress 
+}: { 
+  children: React.ReactNode, 
+  initialAddress: string | null 
+}) {
   return (
     <Provider store={store}>
-      <AuthHydrator>
+      <AuthHydrator initialAddress={initialAddress}>
         {children}
       </AuthHydrator>
     </Provider>
