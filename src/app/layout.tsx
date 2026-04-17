@@ -24,6 +24,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Gm | Own Your Social Graph",
   description: "Say GM. Build streaks. Earn reputation. Own your social graph.",
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/icon.svg',
+  },
   other: {
     "talentapp:project_verification": "5fe4a4a6b2e2883341806ae777a787c8b6ba28c5bb5ce5dca7df48a40a6ec9fcbcfcb7976960fef765b210965dfa0c98bf527a2cb453bc6f2abe28632aaaca3a",
   },
