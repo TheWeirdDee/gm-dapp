@@ -10,7 +10,13 @@ export async function POST(
 ) {
   try {
     const { id: postId } = await params;
-    const { reactionType } = await req.json();
+    const body = await req.json();
+    const reactionType = body.reactionType || body.type;
+    
+    if (!reactionType) {
+      return NextResponse.json({ error: 'Missing reactionType' }, { status: 400 });
+    }
+
     const authHeader = req.headers.get('Authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
@@ -26,20 +32,47 @@ export async function POST(
     const { payload } = await jose.jwtVerify(token, secret);
     const sessionAddress = payload.address as string;
 
-    // 2. Upsert Reaction via Service Role
+    // 2. Toggle Reaction logic via Service Role
     const supabase = getServiceRoleClient();
-    const { error: upsertError } = await supabase
+    
+    // Check if user already reacted
+    const { data: existing } = await supabase
       .from('post_reactions')
-      .upsert({
-        post_id: postId,
-        address: sessionAddress,
-        reaction_type: reactionType,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'post_id,address'
-      });
+      .select('id, reaction_type')
+      .eq('post_id', postId)
+      .eq('address', sessionAddress)
+      .single();
 
-    if (upsertError) throw upsertError;
+    if (existing) {
+      if (existing.reaction_type === reactionType) {
+        // SAME REACTION -> DELETE (Unlike)
+        const { error: deleteError } = await supabase
+          .from('post_reactions')
+          .delete()
+          .eq('id', existing.id);
+        
+        if (deleteError) throw deleteError;
+      } else {
+        // DIFFERENT REACTION -> UPDATE
+        const { error: updateError } = await supabase
+          .from('post_reactions')
+          .update({ reaction_type: reactionType, updated_at: new Date().toISOString() })
+          .eq('id', existing.id);
+          
+        if (updateError) throw updateError;
+      }
+    } else {
+      // NEW REACTION -> INSERT
+      const { error: insertError } = await supabase
+        .from('post_reactions')
+        .insert({
+          post_id: postId,
+          address: sessionAddress,
+          reaction_type: reactionType
+        });
+
+      if (insertError) throw insertError;
+    }
 
     // 4. Return updated counts
     const { data: counts, error: countError } = await supabase
