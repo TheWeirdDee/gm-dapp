@@ -23,7 +23,12 @@ export const fetchPostsFromSupabase = createAsyncThunk(
   'posts/fetchFromSupabase',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch('/api/posts/feed?limit=20');
+      const token = localStorage.getItem('gm_session_token');
+      const response = await fetch('/api/posts/feed?limit=20', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch feed');
       const data = await response.json();
       return {
@@ -41,7 +46,12 @@ export const fetchPaginatedPosts = createAsyncThunk(
   'posts/fetchMore',
   async (cursor: string, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/posts/feed?limit=20&cursor=${cursor}`);
+      const token = localStorage.getItem('gm_session_token');
+      const response = await fetch(`/api/posts/feed?limit=20&cursor=${cursor}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch more posts');
       const data = await response.json();
       return {
@@ -94,6 +104,8 @@ export const createRealPost = createAsyncThunk(
         body: JSON.stringify({
           content: postData.content,
           txId: postData.txId,
+          mediaUrl: postData.mediaUrl,
+          pollData: postData.pollData,
         })
       });
 
@@ -130,14 +142,19 @@ const postsSlice = createSlice({
         state.feed = [action.payload, ...state.feed];
       }
     },
-    reactToPost: (state, action: PayloadAction<{ postId: string; reactionType: 'gm' | 'fire' | 'laugh' }>) => {
-      const { postId, reactionType } = action.payload;
+    reactToPost: (state, action: PayloadAction<{ postId: string; reactionType: 'gm' | 'fire' | 'laugh'; decrement?: boolean }>) => {
+      const { postId, reactionType, decrement } = action.payload;
       const post = state.feed.find(p => p.id === postId);
       if (post) {
         if (!post.reactions) {
           post.reactions = { gm: 0, fire: 0, laugh: 0 };
         }
-        post.reactions[reactionType]++;
+        
+        if (decrement) {
+           post.reactions[reactionType] = Math.max(0, post.reactions[reactionType] - 1);
+        } else {
+           post.reactions[reactionType]++;
+        }
       }
     },
   },
