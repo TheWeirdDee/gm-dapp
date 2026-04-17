@@ -1,7 +1,11 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Syne, Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { cookies } from "next/headers";
+import * as jose from "jose";
+import { Providers } from "@/components/Providers";
 
 const syne = Syne({
   variable: "--font-syne",
@@ -36,11 +40,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+async function getInitialSession() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("gm_session_token")?.value;
+    
+    if (!token || !process.env.LOCAL_SESSION_SECRET) return null;
+
+    const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
+    const { payload } = await jose.jwtVerify(token, secret);
+    
+    return payload.address as string;
+  } catch (error) {
+    return null;
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialAddress = await getInitialSession();
+
   return (
     <html
       lang="en"
@@ -48,7 +70,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-black text-white" suppressHydrationWarning>
-        {children}
+        <Providers initialAddress={initialAddress}>
+          {children}
+        </Providers>
         <Toaster 
           position="bottom-right"
           toastOptions={{
