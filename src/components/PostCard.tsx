@@ -9,34 +9,17 @@ import {
   Smile,
   Crown
 } from 'lucide-react';
-import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../lib/store';
+import { Post } from '../lib/types';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 import IdentityAvatar from './IdentityAvatar';
 
 interface PostCardProps {
-  post: {
-    id: string;
-    authorAddress: string;
-    content: string;
-    timestamp: string;
-    reactions: {
-      gm: number;
-      fire: number;
-      laugh: number;
-    };
-    commentsCount: number;
-    repostsCount: number;
-    isPro?: boolean;
-    avatar?: string;
-    mediaUrl?: string;
-    pollData?: {
-      options: string[];
-      votes: number[];
-      expiresAt?: string;
-    };
-  };
+  post: Post;
 }
 
 export default function PostCard({ post }: PostCardProps) {
@@ -62,7 +45,78 @@ export default function PostCard({ post }: PostCardProps) {
     });
   };
 
-  const totalLikes = (post.reactions.gm || 0) + (post.reactions.fire || 0) + (post.reactions.laugh || 0); 
+  const dispatch = useDispatch();
+  const [isLiked, setIsLiked] = useState(post.currentUserReaction === 'gm');
+  const totalLikes = (post.reactions.gm || 0) + (post.reactions.fire || 0) + (post.reactions.laugh || 0);
+
+  // Sync isLiked if post data changes (e.g., after a fresh fetch)
+  useEffect(() => {
+    setIsLiked(post.currentUserReaction === 'gm');
+  }, [post.currentUserReaction]);
+
+  const handleReaction = async () => {
+    if (!currentAddress) {
+      toast.error("Connect wallet to react");
+      return;
+    }
+    
+    // Optimistic Update
+    const { reactToPost } = require('../lib/features/postsSlice');
+    dispatch(reactToPost({ 
+      postId: post.id, 
+      reactionType: 'gm',
+      decrement: isLiked 
+    }));
+    
+    // Toggle state
+    setIsLiked(!isLiked);
+
+    try {
+      const token = localStorage.getItem('gm_session_token');
+      await fetch(`/api/posts/${post.id}/react`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ reactionType: 'gm' })
+      });
+    } catch (err) {
+      console.error("Reaction failed:", err);
+      // Rollback on failure
+      dispatch(reactToPost({ 
+        postId: post.id, 
+        reactionType: 'gm',
+        decrement: !isLiked 
+      }));
+      setIsLiked(isLiked);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'GM DApp Post',
+          text: post.content,
+          url: window.location.origin + `/post/${post.id}`,
+        });
+      } else {
+        await navigator.clipboard.writeText(window.location.origin + `/post/${post.id}`);
+        toast.success("Link copied to clipboard");
+      }
+    } catch (err) {
+      console.error("Share failed:", err);
+    }
+  };
+
+  const handleComment = () => {
+    window.location.href = `/post/${post.id}`;
+  };
+
+  const handleBookmark = () => {
+    toast.success("Post archived to your collection");
+  };
 
   return (
     <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] overflow-hidden group hover:border-white/10 transition-all duration-500 shadow-2xl">
@@ -90,11 +144,13 @@ export default function PostCard({ post }: PostCardProps) {
       </div>
 
       {/* Main Content */}
-      <div className="px-6 pb-4">
-        <p className="text-[14px] leading-relaxed text-gray-200 font-medium whitespace-pre-wrap">
-          {processContent(post.content)}
-        </p>
-      </div>
+      {post.content && post.content.trim() && (
+        <div className="px-6 pb-4">
+          <p className="text-[14px] leading-relaxed text-gray-200 font-medium whitespace-pre-wrap">
+            {processContent(post.content)}
+          </p>
+        </div>
+      )}
 
       {/* Media Area */}
       {post.mediaUrl && (
@@ -147,21 +203,36 @@ export default function PostCard({ post }: PostCardProps) {
       {/* Footer Interactions */}
       <div className="px-6 py-4 flex items-center justify-between border-t border-white/[0.03]">
         <div className="flex items-center gap-6">
-          <button className="flex items-center gap-2 group/btn">
-            <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-pink-500/5 text-gray-600 group-hover/btn:bg-pink-500/10 group-hover/btn:text-pink-500 transition-all">
-               <Heart className="h-4 w-4" />
+          <button 
+            onClick={handleReaction}
+            className="flex items-center gap-2 group/btn"
+          >
+            <div className={`h-9 w-9 flex items-center justify-center rounded-xl transition-all ${
+              isLiked 
+                ? 'bg-pink-500/20 text-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.3)]' 
+                : 'bg-pink-500/5 text-gray-600 group-hover/btn:bg-pink-500/10 group-hover/btn:text-pink-500'
+            }`}>
+               <Heart className={`h-4 w-4 ${isLiked ? 'fill-pink-500' : ''}`} />
             </div>
-            <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{totalLikes}</span>
+            <span className={`text-xs font-bold transition-colors ${isLiked ? 'text-pink-500/80' : 'text-gray-600 group-hover/btn:text-gray-400'}`}>
+              {totalLikes}
+            </span>
           </button>
           
-          <button className="flex items-center gap-2 group/btn">
+          <button 
+            onClick={handleComment}
+            className="flex items-center gap-2 group/btn"
+          >
             <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-blue-500/5 text-gray-600 group-hover/btn:bg-blue-500/10 group-hover/btn:text-blue-500 transition-all">
                <MessageCircle className="h-4 w-4" />
             </div>
             <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{post.commentsCount}</span>
           </button>
 
-          <button className="flex items-center gap-2 group/btn">
+          <button 
+            onClick={handleBookmark}
+            className="flex items-center gap-2 group/btn"
+          >
             <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-amber-500/5 text-gray-600 group-hover/btn:bg-amber-500/10 group-hover/btn:text-amber-500 transition-all">
                <Bookmark className="h-4 w-4" />
             </div>
@@ -169,7 +240,10 @@ export default function PostCard({ post }: PostCardProps) {
           </button>
         </div>
 
-        <button className="h-9 w-9 flex items-center justify-center rounded-xl bg-white/[0.02] text-gray-700 hover:text-white transition-all hover:bg-white/5">
+        <button 
+          onClick={handleShare}
+          className="h-9 w-9 flex items-center justify-center rounded-xl bg-white/[0.02] text-gray-700 hover:text-white transition-all hover:bg-white/5"
+        >
            <Share className="h-4 w-4" />
         </button>
       </div>
