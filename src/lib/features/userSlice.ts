@@ -23,6 +23,7 @@ interface UserState {
   isOptimisticPro: boolean;
   sessionToken: string | null;
   avatar: string | null;
+  website: string | null;
 }
 
 const getInitialOptimisticState = () => {
@@ -85,6 +86,7 @@ const initialState: UserState = {
   isOptimisticPro: getInitialOptimisticState(),
   sessionToken: initialToken,
   avatar: null,
+  website: null,
 };
 
 const userSlice = createSlice({
@@ -153,6 +155,7 @@ const userSlice = createSlice({
       followers?: number;
       following?: number;
       healCount?: number;
+      website?: string | null;
     }>) {
       if (typeof window !== 'undefined') {
         if (action.payload.streak !== undefined) localStorage.setItem('gm_streak', action.payload.streak.toString());
@@ -171,6 +174,7 @@ const userSlice = createSlice({
       if (action.payload.following !== undefined) state.following = action.payload.following;
       if (action.payload.bio !== undefined) state.bio = action.payload.bio;
       if (action.payload.avatar !== undefined) state.avatar = action.payload.avatar;
+      if (action.payload.website !== undefined) state.website = action.payload.website;
       if (action.payload.healCount !== undefined) state.healCount = action.payload.healCount;
       
       if (action.payload.streak !== undefined) {
@@ -280,10 +284,12 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
       .maybeSingle(); // Better for handling "no profile" without throwing 406
 
     if (profile) {
+      const p = profile as any;
       dispatch(userSlice.actions.updateStats({
-        bio: profile.bio || '',
-        username: profile.username || null,
-        avatar: profile.avatar_url || null
+        bio: p.bio || '',
+        username: p.username || null,
+        avatar: p.avatar_url || null,
+        website: p.website || null
       }));
     } else {
       // Fallback to localStorage if no profile found in Supabase
