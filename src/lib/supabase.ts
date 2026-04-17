@@ -55,22 +55,25 @@ export const getServiceRoleClient = () => {
  * @param file The File object from input
  */
 export async function uploadFile(bucket: 'media' | 'avatars', file: File): Promise<string | null> {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-  const filePath = `${fileName}`;
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('bucket', bucket);
 
-  const { data, error } = await getSupaClient().storage
-    .from(bucket)
-    .upload(filePath, file);
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
 
-  if (error) {
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Upload failed');
+    }
+
+    const { url } = await response.json();
+    return url;
+  } catch (error) {
     console.error(`Upload error to ${bucket}:`, error);
     return null;
   }
-
-  const { data: { publicUrl } } = getSupaClient().storage
-    .from(bucket)
-    .getPublicUrl(data.path);
-
-  return publicUrl;
 }
