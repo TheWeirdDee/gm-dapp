@@ -21,8 +21,13 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   const router = useRouter();
   const { address, isConnected, username } = useSelector((state: RootState) => state.user);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const isGuestPath = pathname === '/feed' || pathname === '/leaderboard';
 
@@ -89,7 +94,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
           </button>
 
           <div className="relative" ref={dropdownRef}>
-            {isConnected ? (
+            {hasMounted && isConnected ? (
               <>
                 <button 
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
@@ -122,7 +127,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                   </div>
                 )}
               </>
-            ) : (
+            ) : hasMounted ? (
               <button 
                 onClick={authenticate}
                 className="flex items-center gap-2 rounded-full bg-[var(--color-secondary)] pl-2 pr-5 py-2 text-sm font-black text-white transition-all hover:bg-opacity-90 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] active:scale-95"
@@ -130,6 +135,8 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                 <Wallet className="h-4 w-4 ml-3" />
                 <span>Connect Wallet</span>
               </button>
+            ) : (
+               <div className="h-10 w-32 bg-white/5 animate-pulse rounded-full"></div>
             )}
           </div>
         </div>
