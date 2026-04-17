@@ -8,19 +8,25 @@ import { setUserData, setUsername, fetchOnChainStats } from '../lib/features/use
 
 function AuthHydrator({ 
   children, 
-  initialAddress 
+  initialUser 
 }: { 
   children: React.ReactNode, 
-  initialAddress: string | null 
+  initialUser: { address: string; username: string | null; avatar: string | null } | null 
 }) {
   const dispatch = useDispatch();
   const [mounted, setMounted] = useState(false);
 
   // 1. Instant Hydration (on first render)
-  if (!mounted && initialAddress) {
+  if (!mounted && initialUser) {
     dispatch(setUserData({
-      address: initialAddress,
-      profile: { stxAddress: initialAddress } // Minimal profile to bridge hydration
+      address: initialUser.address,
+      profile: { stxAddress: initialUser.address } // Minimal profile to bridge hydration
+    }));
+    
+    // Set metadata instantly to avoid flash
+    dispatch(updateStats({
+      username: initialUser.username,
+      avatar: initialUser.avatar
     }));
   }
 
@@ -28,10 +34,10 @@ function AuthHydrator({
     setMounted(true);
     
     // 2. Deep Hydration (fetch on-chain state if we have an address)
-    const effectiveAddress = initialAddress || localStorage.getItem('gm_user_address');
+    const effectiveAddress = initialUser?.address || localStorage.getItem('gm_user_address');
     
     if (effectiveAddress) {
-      if (!initialAddress) {
+      if (!initialUser) {
         // Fallback for non-cookie based dev sessions
         const session = getUserSession();
         if (session?.isUserSignedIn()) {
@@ -46,21 +52,21 @@ function AuthHydrator({
       // Fetch full on-chain stats (bio, streak, etc)
       dispatch(fetchOnChainStats(effectiveAddress) as any);
     }
-  }, [dispatch, initialAddress]);
+  }, [dispatch, initialUser]);
 
   return <>{children}</>;
 }
 
 export function Providers({ 
   children, 
-  initialAddress 
+  initialUser 
 }: { 
   children: React.ReactNode, 
-  initialAddress: string | null 
+  initialUser: { address: string; username: string | null; avatar: string | null } | null 
 }) {
   return (
     <Provider store={store}>
-      <AuthHydrator initialAddress={initialAddress}>
+      <AuthHydrator initialUser={initialUser}>
         {children}
       </AuthHydrator>
     </Provider>
