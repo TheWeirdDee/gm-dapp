@@ -35,7 +35,7 @@ Since you want it live, we'll use the easiest deployment method:
 2. **Deploy**:
    - Go to the [Stacks Explorer Sandbox](https://explorer.hiro.so/sandbox/deploy?chain=testnet).
    - Paste the contents of `contracts/gm-social.clar` into the editor.
-   - **Contract Name**: Use a descriptive name like `gm-social-v5`.
+   - **Contract Name**: Use a descriptive name like `gm-social-v6`.
    - **Important**: Ensure the Sandbox reflects the latest network state (Nakamoto/Epoch 3.x).
    - Click **Deploy**.
    - Confirm the transaction in your wallet.
