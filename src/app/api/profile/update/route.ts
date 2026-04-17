@@ -4,7 +4,7 @@ import * as jose from 'jose';
 
 export async function POST(req: NextRequest) {
   try {
-    const { username, bio, avatar_url } = await req.json();
+    const { username, bio, avatar_url, website } = await req.json();
     const authHeader = req.headers.get('Authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
         username,
         bio,
         avatar_url,
+        website,
         updated_at: new Date().toISOString()
       })
       .select()
