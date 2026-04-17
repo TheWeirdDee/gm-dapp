@@ -4,7 +4,7 @@
   --color-background: #0a0a0a;
   --color-foreground: #ededed;
   --color-card: #111111;
-  --color-accent: #22c55e;
+  --color-accent: #22d3ee;
   --color-secondary: #6366f1;
   --color-border: #222222;
   
@@ -22,6 +22,20 @@
 
 :root {
   color-scheme: dark;
+  --accent-glow: 0 0 15px rgba(34, 211, 238, 0.15);
+}
+
+/* ─── Global Input & Focus Styles ──────────────── */
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--color-accent) !important;
+  outline-offset: -1px;
+  box-shadow: var(--accent-glow);
+}
+
+/* Base focus-visible for keyboard nav */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* ─── Base typography ─────────────────────────── */
