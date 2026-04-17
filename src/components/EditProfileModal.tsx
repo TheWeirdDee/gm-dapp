@@ -17,9 +17,10 @@ interface EditProfileModalProps {
 }
 
 export default function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
-  const { address, bio: initialBio, username: initialUsername } = useSelector((state: RootState) => state.user);
+  const { address, bio: initialBio, username: initialUsername, website: initialWebsite } = useSelector((state: RootState) => state.user);
   const [bio, setBio] = useState(initialBio || '');
   const [newUsername, setNewUsername] = useState(initialUsername || '');
+  const [website, setWebsite] = useState(initialWebsite || '');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -81,7 +82,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
           address,
           username: newUsername,
           bio,
-          avatar_url: avatarPreview || undefined
+          avatar_url: avatarPreview || undefined,
+          website
         })
       });
 
@@ -94,7 +96,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
       dispatch(updateStats({ 
         bio, 
         username: newUsername,
-        avatar: avatarPreview || undefined 
+        avatar: avatarPreview || undefined,
+        website 
       } as any));
 
       if (address) {
@@ -178,6 +181,18 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
             <div className="text-right text-[10px] font-bold text-gray-700">
               {bio.length}/160
             </div>
+          </div>
+
+          {/* Website Section */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">Personal Website</label>
+            <input
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              placeholder="https://yourpage.com"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-[var(--color-accent)]/50 transition-all font-medium placeholder:text-gray-800"
+            />
           </div>
 
           <button
