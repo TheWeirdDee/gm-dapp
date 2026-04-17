@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { authenticate, signInWithWallet } from '@/lib/stacks';
@@ -12,18 +12,23 @@ import IdentityAvatar from './IdentityAvatar';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const dispatch = useDispatch();
   const { address, isConnected, username, sessionToken } = useSelector((state: RootState) => state.user);
   
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
+  const authInProgress = useRef(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // TRIGGER SIGNATURE FLOW IF CONNECTED BUT NO SESSION
   useEffect(() => {
     const handleAuth = async () => {
-       if (isConnected && address && !sessionToken) {
+       // Synchronous check using Ref to prevent race conditions
+       if (isConnected && address && !sessionToken && !authInProgress.current) {
           try {
+            authInProgress.current = true;
             console.log("Triggering signature request for session...");
+            
             const authData: any = await signInWithWallet(address);
             if (authData?.token) {
               dispatch(setSessionToken(authData.token));
@@ -34,8 +39,9 @@ export default function Navbar() {
             }
           } catch (err) {
             console.error("Auth failed:", err);
-            // Optionally disconnect or show error
             toast.error("Security Verification Failed");
+          } finally {
+            authInProgress.current = false;
           }
        }
     };
@@ -75,6 +81,10 @@ export default function Navbar() {
   const handleDisconnect = () => {
     dispatch(logout());
     setShowWalletDropdown(false);
+    router.push('/');
+    toast.success('Disconnected successfully', {
+      style: { background: '#0A0A0A', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }
+    });
   };
 
   return (
