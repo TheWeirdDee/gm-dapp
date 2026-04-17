@@ -40,6 +40,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { getServiceRoleClient } from "@/lib/supabase";
+
 async function getInitialSession() {
   try {
     const cookieStore = await cookies();
@@ -49,8 +51,21 @@ async function getInitialSession() {
 
     const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
     const { payload } = await jose.jwtVerify(token, secret);
+    const address = payload.address as string;
+
+    // Fetch basic metadata for zero-flicker UI
+    const supabase = getServiceRoleClient();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username, avatar_url')
+      .eq('address', address)
+      .maybeSingle();
     
-    return payload.address as string;
+    return {
+      address,
+      username: profile?.username || null,
+      avatar: profile?.avatar_url || null
+    };
   } catch (error) {
     return null;
   }
@@ -61,7 +76,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialAddress = await getInitialSession();
+  const initialUser = await getInitialSession();
 
   return (
     <html
@@ -70,7 +85,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-black text-white" suppressHydrationWarning>
-        <Providers initialAddress={initialAddress}>
+        <Providers initialUser={initialUser}>
           {children}
         </Providers>
         <Toaster 
