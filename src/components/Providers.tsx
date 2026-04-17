@@ -4,7 +4,7 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import { store, RootState } from '../lib/store';
 import { useState, useEffect } from 'react';
 import { getUserSession } from '../lib/stacks';
-import { setUserData, setUsername, fetchOnChainStats } from '../lib/features/userSlice';
+import { setUserData, setUsername, fetchOnChainStats, updateStats } from '../lib/features/userSlice';
 
 function AuthHydrator({ 
   children, 
