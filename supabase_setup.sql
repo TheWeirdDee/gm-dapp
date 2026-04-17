@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS post_reactions (
 -- 3. Create auth_nonces table (Security)
 CREATE TABLE IF NOT EXISTS auth_nonces (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    address TEXT NOT NULL,
+    address TEXT NOT NULL UNIQUE, -- ADDED UNIQUE
     nonce TEXT NOT NULL,
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
