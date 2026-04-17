@@ -22,12 +22,14 @@ import {
   LayoutDashboard,
   Award,
   Crown,
-  Heart
+  Heart,
+  Loader2
 } from 'lucide-react';
 
 import { callContract, getUserOnChainData } from '@/lib/stacks';
 import { useDispatch } from 'react-redux';
-import { updateStats } from '@/lib/features/userSlice';
+import { updateStats, fetchOnChainStats } from '@/lib/features/userSlice';
+import { fetchPostsFromSupabase } from '@/lib/features/postsSlice';
 import toast from 'react-hot-toast';
 
 export default function DashboardContent() {
@@ -48,7 +50,22 @@ export default function DashboardContent() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const dismissed = useRef(false);
+  const feed = useSelector((state: RootState) => state.posts.feed);
+  const [isMounted, setIsMounted] = useState(false);
   
+  useEffect(() => {
+    setIsMounted(true);
+    // 1. Ensure we have activity data for the charts
+    if (feed.length === 0) {
+      dispatch(fetchPostsFromSupabase() as any);
+    }
+    
+    // 2. FETCH REAL ON-CHAIN STATS
+    if (isConnected && address) {
+      dispatch(fetchOnChainStats(address) as any);
+    }
+  }, [dispatch, isConnected, address]);
+
   useEffect(() => {
     // Only show modal if: connected, no username set on-chain, and user hasn't dismissed it
     // Wait until loading is finished to decide whether to show onboarding
@@ -80,20 +97,29 @@ export default function DashboardContent() {
     ? "Loading profile..." 
     : (username || addressShort);
 
-  if (!isConnected) {
+  // 1. HYDRATION GUARD: Don't show anything (or a simple loader) until we know if we're in the browser
+  if (!isMounted) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
-        <div className="card p-6 md:p-12 bg-[#0A0A0A] border-[var(--color-border)] max-w-2xl w-full">
-          <Lock className="h-12 w-12 md:h-16 md:w-16 text-gray-700 mx-auto mb-6" />
-          <h1 className="text-2xl md:text-3xl font-black text-white mb-4">Dashboard Locked</h1>
-          <p className="text-gray-400 mb-8 text-sm md:text-base">Connect your Stacks wallet to access your profile, streaks, and reputation dashboard.</p>
-          <Link href="/" className="inline-block w-full sm:w-auto bg-[var(--color-accent)] text-black font-black py-4 px-10 rounded-2xl hover:bg-opacity-90 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-            Explore Landing Page
-          </Link>
-        </div>
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
+        <Loader2 className="h-10 w-10 text-white/10 animate-spin" />
       </div>
     );
   }
+
+  // 2. LOADING STATE GUARD: Prevent "Locked" screen from flashing on refresh
+  if (isLoading && !isConnected) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
+        <Loader2 className="h-12 w-12 text-white/20 animate-spin mb-4" />
+        <p className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Verifying Session...</p>
+      </div>
+    );
+  }
+
+  // 3. UNAUTHORIZED STATE
+  // REMOVED: No longer blocking guests from viewing the dashboard layout.
+  // Instead, the dashboard will render with guest defaults (0 stats) and 
+  // action buttons will trigger a login prompts.
 
   return (
     <div className="p-6 lg:p-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 max-w-[1600px] mx-auto">
@@ -149,7 +175,7 @@ export default function DashboardContent() {
              <div className="relative group">
                <StatCardVertical 
                   label="Days Streak" 
-                  value={(isConfirmedToday && (streak || 0) === 0) ? 1 : (streak || 0)} 
+                  value={streak || 0} 
                   icon={History} 
                   subtext={activePro ? "Streak protection active" : "Keep it up for bonuses!"}
                   isLoading={isLoading}
