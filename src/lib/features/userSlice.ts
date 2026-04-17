@@ -134,11 +134,16 @@ const userSlice = createSlice({
       state.sessionToken = null;
       
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('gm_user_address');
         localStorage.removeItem('gm_session_token');
         localStorage.removeItem('gm_is_optimistic_pro');
+        
+        // Clear the cookie via API
+        fetch('/api/auth/logout', { method: 'POST' }).catch(err => console.error('Logout error:', err));
+        
+        // Clear Stacks session
+        getUserSession()?.signUserOut();
       }
-      
-      getUserSession()?.signUserOut();
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
