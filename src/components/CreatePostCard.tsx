@@ -133,38 +133,38 @@ export default function CreatePostCard() {
             </div>
           )}
           
-          <div className="flex items-center justify-between mt-4 pt-6 border-t border-white/[0.03]">
-            <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 pt-6 border-t border-white/[0.03] gap-4">
+            <div className="flex items-center gap-4 sm:gap-6">
                <label className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group/btn cursor-pointer">
                   <div className="h-8 w-8 rounded-lg bg-white/[0.02] flex items-center justify-center group-hover/btn:bg-white/5">
                     {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest hidden sm:inline">Image</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">Image</span>
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, 'image')} disabled={isUploading} />
                </label>
                <label className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group/btn cursor-pointer">
                   <div className="h-8 w-8 rounded-lg bg-white/[0.02] flex items-center justify-center group-hover/btn:bg-white/5">
                     {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest hidden sm:inline">Video</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">Video</span>
                   <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileChange(e, 'video')} disabled={isUploading} />
                </label>
                <button onClick={() => setShowPoll(!showPoll)} className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group/btn">
                   <div className="h-8 w-8 rounded-lg bg-white/[0.02] flex items-center justify-center group-hover/btn:bg-white/5">
                     <BarChart2 className="h-4 w-4" />
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest hidden sm:inline">Poll</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">Poll</span>
                </button>
             </div>
 
-            <div className="flex items-center gap-4 relative">
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                <button 
                 onClick={() => setShowPrivacy(!showPrivacy)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-gray-500 hover:text-white transition-all text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-gray-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
                >
-                  <Globe className="h-3.5 w-3.5" />
-                  {privacy}
-                  <ChevronDown className="h-3 w-3 opacity-40 ml-1" />
+                  <Globe className="h-3 w-3" />
+                  <span className="opacity-70">{privacy}</span>
+                  <ChevronDown className="h-2.5 w-2.5 opacity-40" />
                </button>
 
                {showPrivacy && (
