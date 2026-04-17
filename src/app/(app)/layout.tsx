@@ -3,7 +3,6 @@
 import Sidebar from "@/components/Sidebar";
 import AppHeader from "@/components/AppHeader";
 import { useState } from "react";
-import { Providers } from "@/components/Providers";
 
 export default function AppLayout({
   children,
@@ -13,7 +12,6 @@ export default function AppLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <Providers>
       <div className="flex flex-col h-screen bg-black overflow-hidden">
         {/* AppHeader is at the top of the flex-col container, effectively acting as fixed/sticky top-0 */}
         <AppHeader onMenuClick={() => setIsSidebarOpen(true)} />
@@ -27,6 +25,5 @@ export default function AppLayout({
           </main>
         </div>
       </div>
-    </Providers>
   );
 }
