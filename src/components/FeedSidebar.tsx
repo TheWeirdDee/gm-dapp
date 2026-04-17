@@ -1,8 +1,14 @@
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/store';
 import IdentityAvatar from './IdentityAvatar';
 import { UserPlus, Heart, MessageSquare, ExternalLink, Search, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FeedSidebar() {
+  const { isConnected } = useSelector((state: RootState) => state.user);
+
+  if (!isConnected) return null;
+
   return (
     <div className="flex flex-col gap-8 h-[calc(100vh-120px)] sticky top-24 overflow-y-auto scrollbar-hide pr-2 pb-10">
       {/* Activity Section */}
