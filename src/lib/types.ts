@@ -33,4 +33,5 @@ export interface Post {
     votes: number[];
     expiresAt?: string;
   };
+  currentUserReaction?: string | null;
 }
