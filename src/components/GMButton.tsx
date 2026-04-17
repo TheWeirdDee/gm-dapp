@@ -77,9 +77,25 @@ export default function GMButton() {
           }
 
           const pointsToAdd = isPro ? 10 : 5;
+          
+          // 2. Optimistic Stats Update
           dispatch(updateStats({
             streak: (streak || 0) + 1,
             points: (points || 0) + pointsToAdd
+          }));
+
+          // 3. Optimistic Feed/Chart Update
+          const { addOptimisticPost } = require('../lib/features/postsSlice');
+          dispatch(addOptimisticPost({
+            id: `temp-gm-${Date.now()}`,
+            authorAddress: address,
+            content: 'Said GM!',
+            timestamp: new Date().toISOString(),
+            reactions: { gm: 0, fire: 0, laugh: 0 },
+            commentsCount: 0,
+            repostsCount: 0,
+            points: pointsToAdd,
+            isPro: isPro || false
           }));
           
           dispatch(fetchOnChainStats(address!) as any);
