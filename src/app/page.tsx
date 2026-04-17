@@ -1,7 +1,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Providers } from "@/components/Providers";
 
 const LandingContent = dynamic(() => import('@/app/LandingContent'), {
   ssr: false,
@@ -13,9 +12,5 @@ const LandingContent = dynamic(() => import('@/app/LandingContent'), {
 });
 
 export default function Home() {
-  return (
-    <Providers>
-      <LandingContent />
-    </Providers>
-  );
+  return <LandingContent />;
 }
