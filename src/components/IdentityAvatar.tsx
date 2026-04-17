@@ -11,12 +11,6 @@ interface IdentityAvatarProps {
 }
 
 export default function IdentityAvatar({ address, src, size = 'md', className = '' }: IdentityAvatarProps) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const sizeClasses = {
     xs: 'h-6 w-6 text-[8px] rounded-lg',
     sm: 'h-8 w-8 text-[10px] rounded-xl',
@@ -25,16 +19,15 @@ export default function IdentityAvatar({ address, src, size = 'md', className = 
     xl: 'h-32 w-32 text-3xl rounded-[2.5rem]',
   };
 
-  // Safe initial state for SSR
-  const gradient = isMounted ? getProfileGradient(address) : 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
-  const initials = isMounted ? getAddressInitials(address) : 'GM';
+  const gradient = getProfileGradient(address);
+  const initials = getAddressInitials(address);
 
   return (
     <div 
       className={`shrink-0 overflow-hidden border border-white/5 flex items-center justify-center font-black text-white/40 shadow-inner group-hover/avatar:scale-105 transition-all ${sizeClasses[size]} ${className}`}
       style={!src ? { background: gradient } : {}}
     >
-      {src && isMounted ? (
+      {src ? (
         <img src={src} alt="avatar" className="h-full w-full object-cover" />
       ) : (
         <span>{initials}</span>
