@@ -14,6 +14,7 @@ import { Post } from '@/lib/types';
 export default function FeedContent() {
   const dispatch = useDispatch<AppDispatch>();
   const { feed, isLoading, hasMore, lastCursor } = useSelector((state: RootState) => state.posts);
+  const { isConnected } = useSelector((state: RootState) => state.user);
   const [activeTab, setActiveTab] = useState('Recent');
   const [sortBy, setSortBy] = useState('Recent');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -106,11 +107,11 @@ export default function FeedContent() {
   const displayFeed = getDisplayFeed();
 
   return (
-    <div className="max-w-[1400px] mx-auto py-10 px-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className={`${isConnected ? 'max-w-[1400px]' : 'max-w-[1000px]'} mx-auto py-10 px-6 animate-in fade-in slide-in-from-bottom-4 duration-1000`}>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         
-        {/* Main Feed Content (Cols 1-8) */}
-        <div className="lg:col-span-8 space-y-8">
+        {/* Main Feed Content */}
+        <div className={`space-y-8 ${isConnected ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
           {/* Create Post Area */}
           <CreatePostCard />
 
