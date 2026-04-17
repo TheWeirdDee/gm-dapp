@@ -18,6 +18,10 @@ export async function POST(req: NextRequest) {
 
     // 3. Store nonce in Supabase via Service Role
     const supabase = getServiceRoleClient();
+    
+    // Explicitly clear any existing nonces for this address to prevent confusion
+    await supabase.from('auth_nonces').delete().eq('address', address);
+
     const { error } = await supabase
       .from('auth_nonces')
       .insert([{
