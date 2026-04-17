@@ -3,10 +3,10 @@ import { getServiceRoleClient } from '@/lib/supabase';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
-    const targetAddress = params.address;
+    const { address: targetAddress } = await params;
     const { searchParams } = new URL(req.url);
     const observer = searchParams.get('observer'); // The user viewing the profile
 
