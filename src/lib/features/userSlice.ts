@@ -32,10 +32,19 @@ const getInitialOptimisticState = () => {
   return false;
 };
 
+const getInitialAddress = () => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('gm_user_address');
+};
+
+const getInitialUsername = (address: string | null) => {
+  if (typeof window === 'undefined' || !address) return null;
+  return localStorage.getItem(`username_${address}`);
+};
+
 const getInitialSessionToken = () => {
   if (typeof window === 'undefined') return null;
   const token = localStorage.getItem('gm_session_token');
-  // Auto-clear invalid/stale tokens
   if (token && token.split('.').length !== 3) {
     localStorage.removeItem('gm_session_token');
     return null;
@@ -43,25 +52,38 @@ const getInitialSessionToken = () => {
   return token;
 };
 
+const getInitialNum = (key: string) => {
+  if (typeof window === 'undefined') return 0;
+  return Number(localStorage.getItem(key) || 0);
+};
+
+const getInitialBool = (key: string) => {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(key) === 'true';
+};
+
+const initialAddress = getInitialAddress();
+const initialToken = getInitialSessionToken();
+
 const initialState: UserState = {
-  address: null,
+  address: initialAddress,
   profile: null,
-  isConnected: false, 
-  isLoading: false,
-  username: null,
+  isConnected: !!initialToken, 
+  isLoading: !!initialToken,
+  username: getInitialUsername(initialAddress),
   bio: null,
-  streak: 0,
-  points: 0,
-  lastGm: 0,
-  isPro: false,
-  proExpiry: 0,
-  healCount: 0,
-  followers: 0,
-  following: 0,
+  streak: getInitialNum('gm_streak'),
+  points: getInitialNum('gm_points'),
+  lastGm: getInitialNum('gm_last_gm'),
+  isPro: getInitialBool('gm_is_pro'),
+  proExpiry: getInitialNum('gm_pro_expiry'),
+  healCount: getInitialNum('gm_heals'),
+  followers: getInitialNum('gm_followers'),
+  following: getInitialNum('gm_following'),
   currentBlockHeight: 0,
   isSimulationMode: false,
   isOptimisticPro: getInitialOptimisticState(),
-  sessionToken: getInitialSessionToken(),
+  sessionToken: initialToken,
   avatar: null,
 };
 
@@ -81,6 +103,10 @@ const userSlice = createSlice({
       state.address = action.payload.address;
       state.profile = action.payload.profile;
       state.isConnected = true;
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gm_user_address', action.payload.address);
+      }
       
       // Only set username if we don't already have a valid on-chain one
       if (!state.username || state.username.startsWith('ST')) {
@@ -103,6 +129,13 @@ const userSlice = createSlice({
       state.followers = 0;
       state.following = 0;
       state.avatar = null;
+      state.sessionToken = null;
+      
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('gm_session_token');
+        localStorage.removeItem('gm_is_optimistic_pro');
+      }
+      
       getUserSession()?.signUserOut();
     },
     setLoading(state, action: PayloadAction<boolean>) {
@@ -119,13 +152,26 @@ const userSlice = createSlice({
       proExpiry?: number;
       followers?: number;
       following?: number;
+      healCount?: number;
     }>) {
+      if (typeof window !== 'undefined') {
+        if (action.payload.streak !== undefined) localStorage.setItem('gm_streak', action.payload.streak.toString());
+        if (action.payload.points !== undefined) localStorage.setItem('gm_points', action.payload.points.toString());
+        if (action.payload.lastGm !== undefined) localStorage.setItem('gm_last_gm', action.payload.lastGm.toString());
+        if (action.payload.isPro !== undefined) localStorage.setItem('gm_is_pro', action.payload.isPro.toString());
+        if (action.payload.proExpiry !== undefined) localStorage.setItem('gm_pro_expiry', action.payload.proExpiry.toString());
+        if (action.payload.followers !== undefined) localStorage.setItem('gm_followers', action.payload.followers.toString());
+        if (action.payload.following !== undefined) localStorage.setItem('gm_following', action.payload.following.toString());
+        if (action.payload.healCount !== undefined) localStorage.setItem('gm_heals', action.payload.healCount.toString());
+      }
+
       if (action.payload.isPro !== undefined) state.isPro = action.payload.isPro;
       if (action.payload.proExpiry !== undefined) state.proExpiry = action.payload.proExpiry;
       if (action.payload.followers !== undefined) state.followers = action.payload.followers;
       if (action.payload.following !== undefined) state.following = action.payload.following;
       if (action.payload.bio !== undefined) state.bio = action.payload.bio;
       if (action.payload.avatar !== undefined) state.avatar = action.payload.avatar;
+      if (action.payload.healCount !== undefined) state.healCount = action.payload.healCount;
       
       if (action.payload.streak !== undefined) {
         state.streak = Math.max(state.streak, action.payload.streak);
@@ -198,15 +244,32 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
 
     const data: any = await getUserOnChainData(address);
     if (data) {
+      console.log('--- FETCH SUCCESS: Updating Redux Stats ---', data);
+      
+      // HYBRID SYNC: If chain says 0 but Supabase has current GM, bridge it
+      let finalStreak = data.streak;
+      let finalPoints = data.points;
+      
+      const today = new Date().toISOString().split('T')[0];
+      const hasLocalGm = localStorage.getItem(`gm_date_${address}`) === today;
+
+      if (finalStreak === 0 && hasLocalGm) {
+        console.log('--- HYBRID SYNC: Chain is lagging, using immediate activity data ---');
+        finalStreak = 1;
+        finalPoints = Math.max(finalPoints, 5); // 0.5 RP
+      }
+
       dispatch(userSlice.actions.updateStats({
-        streak: data.streak,
-        points: data.points,
+        streak: finalStreak,
+        points: finalPoints,
         username: data.username,
         isPro: data.isPro,
         proExpiry: data.proExpiry,
         followers: data.followers,
         following: data.following
       }));
+    } else {
+      console.warn('--- FETCH WARNING: No data returned from chain ---');
     }
 
     // --- FETCH SUPABASE PROFILE (Bio & Avatar) ---
