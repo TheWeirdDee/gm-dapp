@@ -8,8 +8,10 @@
 import { STACKS_MAINNET, STACKS_TESTNET } from '@stacks/network';
 
 export const appDetails = {
-  name: 'Gm',
-  icon: 'https://gm-dapp.vercel.app/logo.png',
+  name: 'GM DApp',
+  icon: typeof window !== 'undefined' 
+    ? `${window.location.origin}/logo.png` 
+    : 'https://gm-dapp.vercel.app/logo.png',
 };
 
 export const network = STACKS_TESTNET;
@@ -115,7 +117,6 @@ export const getUserOnChainData = async (userAddress: string) => {
     // 4. Safely extract numeric fields (handling BigInt from cvToValue)
     const getNum = (field: any) => {
       if (field === undefined || field === null) return 0;
-      // Convert BigInt to Number explicitly for UI consumption
       try {
         return typeof field === 'bigint' ? Number(field) : Number(field);
       } catch (e) {
@@ -123,22 +124,29 @@ export const getUserOnChainData = async (userAddress: string) => {
       }
     };
 
+    // Helper to check both hyphenated and camelCase keys
+    const getVal = (obj: any, key: string) => {
+      if (!obj) return undefined;
+      const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+      return obj[key] !== undefined ? obj[key] : obj[camelKey];
+    };
+
     // NOTE: Clarity keys are kebab-case 'last-gm', 'username', etc.
     const finalData = {
-      lastGm: getNum(unwrapped?.['last-gm']),
-      points: getNum(unwrapped?.['points']),
-      streak: getNum(unwrapped?.['streak']),
-      username: extractOptional(unwrapped?.username),
-      isPro: unwrapped?.['is-pro'] === true,
-      proExpiry: getNum(unwrapped?.['pro-expiry']),
-      healCount: getNum(unwrapped?.['heal-count']),
-      followers: getNum(unwrapped?.['followers']),
-      following: getNum(unwrapped?.['following'])
+      lastGm: getNum(getVal(unwrapped, 'last-gm')),
+      points: getNum(getVal(unwrapped, 'points')),
+      streak: getNum(getVal(unwrapped, 'streak')),
+      username: extractOptional(getVal(unwrapped, 'username')),
+      isPro: getVal(unwrapped, 'is-pro') === true,
+      proExpiry: getNum(getVal(unwrapped, 'pro-expiry')),
+      healCount: getNum(getVal(unwrapped, 'heal-count')),
+      followers: getNum(getVal(unwrapped, 'followers')),
+      following: getNum(getVal(unwrapped, 'following'))
     };
 
     console.log('--- FINAL DECODED UI STATE ---', finalData);
-    if (!finalData.username && !finalData.points && !finalData.streak) {
-      console.warn('WARNING: On-chain data exists but seems empty (all zeros). Check if current wallet address has interacted with this contract version.');
+    if (finalData.lastGm === 0 && finalData.points === 0 && finalData.streak === 0) {
+      console.warn('WARNING: On-chain data is all zeros for:', userAddress);
     }
     return finalData;
 
@@ -225,6 +233,7 @@ export const callContract = async (options: any) => {
 
   await openContractCall({
     ...options,
+    appDetails,
     network: APP_CONFIG.network, // Force global network from config
   });
 };
