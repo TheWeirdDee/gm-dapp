@@ -4,7 +4,7 @@ import * as jose from 'jose';
 
 export async function POST(req: NextRequest) {
   try {
-    const { content, txId } = await req.json();
+    const { content, txId, mediaUrl, pollData } = await req.json();
     const authHeader = req.headers.get('Authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
@@ -39,26 +39,33 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Anti-Spam: Duplicate Content Check (2m)
-    const twoMinutesAgo = new Date(Date.now() - 120 * 1000).toISOString();
-    const { data: dupPost } = await supabase
-      .from('posts')
-      .select('id')
-      .eq('address', sessionAddress)
-      .eq('content', content || 'Said GM!')
-      .gt('created_at', twoMinutesAgo)
-      .limit(1)
-      .maybeSingle();
+    // Only check if content is provided
+    if (content) {
+      const twoMinutesAgo = new Date(Date.now() - 120 * 1000).toISOString();
+      const { data: dupPost } = await supabase
+        .from('posts')
+        .select('id')
+        .eq('address', sessionAddress)
+        .eq('content', content)
+        .gt('created_at', twoMinutesAgo)
+        .limit(1)
+        .maybeSingle();
 
-    if (dupPost) {
-      return NextResponse.json({ error: 'Duplicate post detected. Please vary your content.' }, { status: 409 });
+      if (dupPost) {
+        return NextResponse.json({ error: 'Duplicate post detected. Please vary your content.' }, { status: 409 });
+      }
     }
 
     // 4. Secure Write via Service Role
+    const finalContent = content || (mediaUrl || pollData ? '' : 'Said GM!');
+
     const { data, error } = await supabase
       .from('posts')
       .insert([{
         address: sessionAddress,
-        content: content || 'Said GM!',
+        content: finalContent,
+        media_url: mediaUrl,
+        poll_data: pollData,
         tx_id: txId,
         created_at: new Date().toISOString()
       }])
