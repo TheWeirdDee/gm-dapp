@@ -114,20 +114,20 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={onClose} />
       
-      <div className="relative bg-[#0A0A0A] border border-white/10 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-300">
-        <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full bg-white/5 text-gray-400 hover:text-white transition-all">
+      <div className="relative bg-[#0A0A0A] border border-white/10 p-6 md:p-10 rounded-[2.5rem] w-full max-w-xl max-h-[90vh] overflow-y-auto hide-scrollbar shadow-2xl animate-in zoom-in-95 duration-300">
+        <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full bg-white/5 text-gray-400 hover:text-white transition-all z-10">
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tight">Edit Profile</h2>
+        <h2 className="text-3xl font-black text-white mb-8 uppercase tracking-tighter">Edit Identity</h2>
 
-        <div className="space-y-8">
+        <div className="space-y-8 pb-4">
           {/* Avatar Section */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative group">
-              <div className="h-24 w-24 rounded-[2rem] overflow-hidden border-2 border-white/10 group-hover:border-[var(--color-accent)] transition-all">
+              <div className="h-28 w-28 rounded-[2.5rem] overflow-hidden border-4 border-white/5 group-hover:border-[var(--color-accent)] transition-all shadow-2xl">
                 {avatarPreview ? (
                   <img src={avatarPreview} alt="Preview" className="h-full w-full object-cover" />
                 ) : (
@@ -137,7 +137,7 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
               <button 
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-[2rem]"
+                className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-[2.5rem]"
               >
                 {isUploading ? <Loader2 className="h-6 w-6 animate-spin text-white" /> : <Camera className="h-6 w-6 text-white" />}
               </button>
@@ -149,33 +149,47 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
               accept="image/*" 
               onChange={handleFileChange} 
             />
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-600">Change Profile Photo</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700">Change Profile Photo</p>
           </div>
 
-          {/* Username Section */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">Display Username</label>
-            <input
-              type="text"
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              placeholder="Your handle..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-[var(--color-accent)]/50 transition-all font-bold placeholder:text-gray-800"
-              disabled={!!initialUsername && !initialUsername.startsWith('ST')}
-            />
-            {initialUsername && !initialUsername.startsWith('ST') && (
-              <p className="text-[9px] text-gray-500 ml-1">Username is already locked on-chain.</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Username Section */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 ml-1">Display Username</label>
+              <input
+                type="text"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                placeholder="Your handle..."
+                className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white focus:outline-none transition-all font-bold placeholder:text-gray-800"
+                disabled={!!initialUsername && !initialUsername.startsWith('ST')}
+              />
+              {initialUsername && !initialUsername.startsWith('ST') && (
+                <p className="text-[9px] text-gray-500 ml-1">Username is locked on-chain.</p>
+              )}
+            </div>
+
+            {/* Website Section */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 ml-1">Website</label>
+              <input
+                type="url"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://..."
+                className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white focus:outline-none transition-all font-bold placeholder:text-gray-800"
+              />
+            </div>
           </div>
 
           {/* Bio Section */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">Biography</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 ml-1">Biography</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Tell the protocol about yourself..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-[var(--color-accent)]/50 transition-all font-medium placeholder:text-gray-800 min-h-[120px] resize-none"
+              className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white focus:outline-none transition-all font-medium placeholder:text-gray-800 min-h-[140px] resize-none"
               maxLength={160}
             />
             <div className="text-right text-[10px] font-bold text-gray-700">
@@ -183,25 +197,13 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
             </div>
           </div>
 
-          {/* Website Section */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">Personal Website</label>
-            <input
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://yourpage.com"
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-[var(--color-accent)]/50 transition-all font-medium placeholder:text-gray-800"
-            />
-          </div>
-
           <button
             onClick={handleSave}
             disabled={isSaving || isUploading}
-            className="w-full bg-white text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-all active:scale-[0.98] disabled:opacity-30"
+            className="w-full bg-[var(--color-accent)] text-black font-black py-4.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-cyan-300 transition-all active:scale-[0.98] disabled:opacity-30 shadow-[0_10px_30px_rgba(34,211,238,0.2)]"
           >
             {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-            Save Changes
+            Confirm Updates
           </button>
         </div>
       </div>
