@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { User } from '../types';
 import { getUserSession, getUserOnChainData, getOnChainBlockHeight } from '../stacks';
 import { supabase } from '../supabase';
+import type { RootState } from '../store';
 
 interface UserState {
   address: string | null;
