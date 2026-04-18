@@ -13,6 +13,7 @@ import {
   X,
   Gift
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
 import BrandLogo from './BrandLogo';
@@ -26,8 +27,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { address, isConnected, isPro, isOptimisticPro } = useSelector((state: RootState) => state.user);
   const activePro = isPro || isOptimisticPro;
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   
-  const navLinks = [
+  const publicLinks = [
+    { name: 'Feed', href: '/feed', icon: Rss },
+    { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
+  ];
+
+  const authLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Feed', href: '/feed', icon: Rss },
     { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
@@ -35,7 +46,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     ...(activePro ? [{ name: 'Rewards', href: '/rewards', icon: Gift }] : []),
   ];
 
-  if (!isConnected) return null;
+  const navLinks = isConnected ? authLinks : publicLinks;
+
+  if (!hasMounted) return null;
 
   return (
     <>
