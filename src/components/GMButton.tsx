@@ -21,7 +21,7 @@ export default function GMButton() {
   const [txId, setTxId] = useState<string | null>(null);
   const [localCooldown, setLocalCooldown] = useState(false);
   const dispatch = useDispatch();
-  const { address, isPro, currentBlockHeight, streak, points, lastGm } = useSelector((state: RootState) => state.user);
+  const { address, isPro, currentBlockHeight, streak, points, lastGm, avatar } = useSelector((state: RootState) => state.user);
 
   // 1. CALENDAR-DAY COOLDOWN (LocalStorage)
   useEffect(() => {
@@ -95,7 +95,8 @@ export default function GMButton() {
             commentsCount: 0,
             repostsCount: 0,
             points: pointsToAdd,
-            isPro: isPro || false
+            isPro: isPro || false,
+            avatar: avatar || undefined
           }));
           
           dispatch(fetchOnChainStats(address!) as any);
