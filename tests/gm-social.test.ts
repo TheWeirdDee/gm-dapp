@@ -1,3 +1,4 @@
+/// <reference types="@stacks/clarinet-sdk/vitest-helpers/src/vitest.d.ts" />
 import { describe, expect, it, beforeEach } from 'vitest';
 import { initSimnet } from '@stacks/clarinet-sdk';
 import { Cl } from '@stacks/transactions';
