@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import dynamic from 'next/dynamic';
+import { toast } from 'react-hot-toast';
 
 const Particles = dynamic(() => import('@/components/Particles'), { ssr: false });
 
@@ -48,10 +49,14 @@ export default function LandingContent() {
     }
   };
 
-  const handleHeroAction = (e: React.MouseEvent) => {
+  const handleHeroAction = async (e: React.MouseEvent) => {
     if (!isConnected) {
       e.preventDefault();
-      authenticate();
+      try {
+        await authenticate();
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Wallet connection failed');
+      }
     } else {
       router.push('/dashboard');
     }
