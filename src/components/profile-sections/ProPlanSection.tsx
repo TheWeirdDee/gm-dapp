@@ -5,9 +5,11 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useState } from 'react';
 import ProPlanModal from '@/components/ProPlanModal';
+import HealStreakButton from '@/components/HealStreakButton';
 
 export default function ProPlanSection() {
-  const { isPro, proExpiry } = useSelector((state: RootState) => state.user);
+  const { isPro, proExpiry, isOptimisticPro } = useSelector((state: RootState) => state.user);
+  const activePro = isPro || isOptimisticPro;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -22,9 +24,9 @@ export default function ProPlanSection() {
                <h3 className="text-sm font-black text-white uppercase tracking-[0.2em] mb-2">Protocol Membership</h3>
                <div className="flex items-center gap-3">
                   <span className={`text-3xl font-black tracking-tighter ${isPro ? 'text-amber-500' : 'text-gray-700'}`}>
-                    {isPro ? 'Pro Status' : 'Standard Node'}
+                    {activePro ? 'Pro Status' : 'Standard Node'}
                   </span>
-                  {isPro && (
+                  {activePro && (
                      <div className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] font-black text-amber-500 uppercase tracking-widest">
                         Active Lifetime
                      </div>
@@ -32,7 +34,7 @@ export default function ProPlanSection() {
                </div>
             </div>
             
-            {!isPro && (
+            {!activePro && (
               <button 
                 onClick={() => setIsModalOpen(true)}
                 className="bg-white text-black px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-all shadow-xl active:scale-95"
@@ -47,7 +49,7 @@ export default function ProPlanSection() {
                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
                   <Zap className="h-5 w-5" />
                </div>
-               <h4 className="text-sm font-bold text-white">1.0x Multiplier</h4>
+               <h4 className="text-sm font-bold text-white">{activePro ? '2.0x' : '1.0x'} Multiplier</h4>
                <p className="text-xs text-gray-500 font-medium">Earn maximum reputation points for every GM broadcast.</p>
             </div>
 
@@ -77,6 +79,12 @@ export default function ProPlanSection() {
                <button className="text-[10px] font-black text-amber-900/60 uppercase hover:text-amber-500 transition-colors">Billing Details</button>
             </div>
          </div>
+
+         {activePro && (
+           <div className="mt-6 pt-6 border-t border-white/[0.03]">
+             <HealStreakButton />
+           </div>
+         )}
       </div>
 
       <ProPlanModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
