@@ -6,12 +6,13 @@ import { TrendingUp } from 'lucide-react';
 import { useMemo } from 'react';
 
 export default function AnalyticsGraph() {
-  const { streak, points, address } = useSelector((state: RootState) => state.user);
+  const { streak, points, address, isPro, isOptimisticPro } = useSelector((state: RootState) => state.user);
   const feed = useSelector((state: RootState) => state.posts.feed);
   
   // Filter for this user's posts
   const userPosts = useMemo(() => {
-    return feed.filter(p => p.authorAddress === address);
+    const lowerAddress = address?.toLowerCase();
+    return feed.filter(p => p.authorAddress?.toLowerCase() === lowerAddress);
   }, [feed, address]);
 
   const hasActivity = userPosts.length > 0 || streak > 0;
@@ -34,7 +35,12 @@ export default function AnalyticsGraph() {
       const label = d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
       
       // Real activity: Check if user posted on this date
-      const active = postDates.has(isoDate);
+      let active = postDates.has(isoDate);
+      
+      // Fallback for TODAY: If they have a streak and it's today, show active 
+      // even if the post hasn't arrived in the feed yet.
+      if (i === 0 && streak > 0) active = true;
+
       data.push({ day: days - i, active, label });
     }
     return data;
