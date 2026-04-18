@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
       const token = authHeader.split(' ')[1];
       const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
       try {
-        const { payload } = await jose.jwtVerify(token, secret);
+        const { payload } = await jose.jwtVerify(token, secret, {
+          clockTolerance: 300
+        });
         sessionAddress = payload.address as string;
       } catch (e) {
         console.warn('Invalid token in feed request, proceeding as guest');
@@ -24,29 +26,51 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = getServiceRoleClient();
-    
-    let query = supabase
+
+    // 2. Fetch Posts first (Simple query to avoid missing relationship error)
+    const { data: rawPosts, error: postsError } = await supabase
       .from('posts')
-      .select('*, post_reactions(reaction_type, address)')
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    // If cursor is provided, fetch posts older than the cursor
-    if (cursor) {
-      query = query.lt('created_at', cursor);
+    if (postsError) throw postsError;
+
+    // 3. Batch fetch profiles for these addresses
+    const addresses = Array.from(new Set(rawPosts.map((p: any) => p.address)));
+    const { data: rawProfiles } = await supabase
+      .from('profiles')
+      .select('address, avatar_url, username')
+      .in('address', addresses);
+
+    const profileMap = (rawProfiles || []).reduce((acc: any, prof: any) => {
+      acc[prof.address] = prof;
+      return acc;
+    }, {});
+
+    // 4. Batch fetch reactions if table exists
+    let reactionsMap: any = {};
+    try {
+      const postIds = rawPosts.map((p: any) => p.id);
+      const { data: reactions } = await supabase
+        .from('post_reactions')
+        .select('*')
+        .in('post_id', postIds);
+      
+      (reactions || []).forEach((r: any) => {
+        if (!reactionsMap[r.post_id]) reactionsMap[r.post_id] = [];
+        reactionsMap[r.post_id].push(r);
+      });
+    } catch (e) {
+      console.warn('post_reactions table not available, skipping reactions');
     }
 
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    // Format the response consistent with the old fetch (to avoid breaking the frontend mapping)
-    const posts = (data || []).map((p: any) => {
-      const reactions = p.post_reactions || [];
-      
-      // Find current user's specific reaction if session exists
+    // 5. Connect the dots
+    const posts = rawPosts.map((p: any) => {
+      const authorProfile = profileMap[p.address] || {};
+      const postReactions = reactionsMap[p.id] || [];
       const userReactionObj = sessionAddress 
-        ? reactions.find((r: any) => r.address === sessionAddress)
+        ? postReactions.find((r: any) => r.address === sessionAddress)
         : null;
 
       return {
@@ -56,15 +80,16 @@ export async function GET(req: NextRequest) {
         timestamp: p.created_at,
         txId: p.tx_id,
         reactions: {
-          gm: reactions.filter((r: any) => r.reaction_type === 'gm').length,
-          fire: reactions.filter((r: any) => r.reaction_type === 'fire').length,
-          laugh: reactions.filter((r: any) => r.reaction_type === 'laugh').length,
+          gm: postReactions.filter((r: any) => r.reaction_type === 'gm').length,
+          fire: postReactions.filter((r: any) => r.reaction_type === 'fire').length,
+          laugh: postReactions.filter((r: any) => r.reaction_type === 'laugh').length,
         },
         commentsCount: 0,
         repostsCount: 0,
         points: p.points || 0,
         isPro: p.is_pro || false,
-        avatar: p.avatar_url || null,
+        avatar: authorProfile.avatar_url || null,
+        username: authorProfile.username || null,
         mediaUrl: p.media_url || null,
         pollData: p.poll_data || null,
         currentUserReaction: userReactionObj ? userReactionObj.reaction_type : null
@@ -77,6 +102,11 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Feed API error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    }, { status: 500 });
   }
 }
