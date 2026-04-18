@@ -21,7 +21,7 @@ const PRIVACY_OPTIONS = [
 ];
 
 export default function CreatePostContent() {
-  const { address, isConnected, username, streak, points, followers } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, username, streak, points, followers, avatar } = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -133,7 +133,7 @@ export default function CreatePostContent() {
         
         {/* Author Strip */}
         <div className="flex items-center gap-4 px-8 py-6 border-b border-white/[0.03]">
-          <IdentityAvatar address={address || ''} size="md" className="h-12 w-12 !rounded-2xl" />
+          <IdentityAvatar address={address || ''} src={avatar} size="md" className="h-12 w-12 !rounded-2xl" />
           <div>
             <p className="text-sm font-black text-white uppercase tracking-tight">You</p>
             <p className="text-[10px] text-gray-600 font-mono">{displayAddress}</p>
