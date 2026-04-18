@@ -26,10 +26,9 @@
 }
 
 /* ─── Global Input & Focus Styles ──────────────── */
+/* Global Input Focus */
 input:focus, textarea:focus, select:focus {
-  outline: 2px solid var(--color-accent) !important;
-  outline-offset: -1px;
-  box-shadow: var(--accent-glow);
+  outline: none;
 }
 
 /* Base focus-visible for keyboard nav */
