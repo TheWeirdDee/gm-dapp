@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Image as ImageIcon, Video, BarChart2, Smile, Globe, ChevronDown, Loader2 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
@@ -8,6 +8,8 @@ import { createRealPost } from '@/lib/features/postsSlice';
 import { uploadFile } from '@/lib/supabase';
 import IdentityAvatar from './IdentityAvatar';
 import { AppDispatch } from '@/lib/store';
+import { logout as logoutAction } from '@/lib/features/userSlice';
+import Link from 'next/link';
 
 export default function CreatePostCard() {
   const [content, setContent] = useState('');
@@ -18,8 +20,14 @@ export default function CreatePostCard() {
   const [attachments, setAttachments] = useState<{type: 'image' | 'video', url: string}[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   
-  const { address, isConnected, isPro } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, isPro, avatar, isOptimisticPro } = useSelector((state: RootState) => state.user);
+  const activePro = isPro || isOptimisticPro;
   const dispatch = useDispatch<AppDispatch>();
 
   const handleAddOption = () => {
@@ -63,33 +71,34 @@ export default function CreatePostCard() {
         content: content.trim() || (attachments.length > 0 ? '' : 'Said GM!'),
         mediaUrl: attachments[0]?.url, // Support single media for now
         pollData,
-        isPro: isPro || false
+        isPro: activePro || false
       })).unwrap();
 
       setContent('');
       setAttachments([]);
       setShowPoll(false);
       setPollOptions(['', '']);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Post creation failed:', err);
     } finally {
       setIsPosting(false);
     }
   };
 
-  if (!isConnected) return null;
+  if (!hasMounted || !isConnected) return null;
 
   return (
     <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-6 shadow-2xl transition-all hover:border-white/10 group">
       <div className="flex gap-5">
-        <IdentityAvatar address={address || ''} size="md" />
+        <IdentityAvatar address={address || ''} src={avatar} size="md" />
         
         <div className="flex-1">
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Share something..."
-            className="w-full bg-transparent border-none text-white resize-none outline-none text-lg min-h-[60px] placeholder-gray-600 font-medium py-2"
+            className="w-full bg-transparent border-none text-white resize-none text-lg min-h-[60px] placeholder-gray-600 font-medium py-2 shadow-none focus:ring-0 focus:outline-none ring-0 outline-none"
+            style={{ outline: 'none', boxShadow: 'none', border: 'none', WebkitAppearance: 'none' }}
           />
 
           {/* Attachments Preview */}
