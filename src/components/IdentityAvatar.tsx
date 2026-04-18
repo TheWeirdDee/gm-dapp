@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/lib/store';
 import { getProfileGradient, getAddressInitials } from '@/lib/utils/avatarUtils';
 
 interface IdentityAvatarProps {
@@ -11,6 +13,12 @@ interface IdentityAvatarProps {
 }
 
 export default function IdentityAvatar({ address, src, size = 'md', className = '' }: IdentityAvatarProps) {
+  const { address: currentUserAddress, avatar: currentUserAvatar } = useSelector((state: RootState) => state.user);
+  
+  // Robust Fallback: If this is the current user's address, and no specific src was passed,
+  // use the avatar from our global state (which is initialized from localStorage).
+  const finalSrc = src || (address && currentUserAddress && address === currentUserAddress ? currentUserAvatar : null);
+
   const sizeClasses = {
     xs: 'h-6 w-6 text-[8px] rounded-lg',
     sm: 'h-8 w-8 text-[10px] rounded-xl',
@@ -25,10 +33,10 @@ export default function IdentityAvatar({ address, src, size = 'md', className = 
   return (
     <div 
       className={`shrink-0 overflow-hidden border border-white/5 flex items-center justify-center font-black text-white/40 shadow-inner group-hover/avatar:scale-105 transition-all ${sizeClasses[size]} ${className}`}
-      style={!src ? { background: gradient } : {}}
+      style={!finalSrc ? { background: gradient } : {}}
     >
-      {src ? (
-        <img src={src} alt="avatar" className="h-full w-full object-cover" />
+      {finalSrc ? (
+        <img src={finalSrc} alt="avatar" className="h-full w-full object-cover" />
       ) : (
         <span>{initials}</span>
       )}
