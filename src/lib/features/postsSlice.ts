@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Post } from '@/lib/types';
+import { logout } from './userSlice';
 import { supabase, getSupaClient } from '@/lib/supabase';
 
 interface PostsState {
@@ -111,7 +112,15 @@ export const createRealPost = createAsyncThunk(
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || 'Failed to create post');
+        const errMsg = errData.error || 'Failed to create post';
+        
+        // Handle session expiration (the "exp" claim error)
+        if (errMsg.toLowerCase().includes('exp') || errMsg.toLowerCase().includes('unauthorized') || response.status === 401) {
+          dispatch(logout());
+          throw new Error('Your session has expired. Please sign in again.');
+        }
+
+        throw new Error(errMsg);
       }
 
       const { data } = await response.json();
