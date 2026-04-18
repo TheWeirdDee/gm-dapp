@@ -44,7 +44,8 @@ export default function DashboardContent() {
     followers, 
     following, 
     isPro, 
-    isOptimisticPro 
+    isOptimisticPro,
+    avatar
   } = useSelector((state: RootState) => state.user);
   const activePro = isPro || isOptimisticPro;
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -232,7 +233,7 @@ export default function DashboardContent() {
              {followers === 0 ? (
                <div className="flex flex-col items-center gap-3 py-4 text-center">
                  <div className="flex -space-x-3">
-                   <IdentityAvatar address={address || ''} size="xs" className="h-10 w-10 !rounded-full border-2 border-[#0a0a0a]" />
+                   <IdentityAvatar address={address || ''} src={avatar} size="xs" className="h-10 w-10 !rounded-full border-2 border-[#0a0a0a]" />
                    {[1,2].map(i => (
                      <div key={i} className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-white/[0.03] flex items-center justify-center">
                        <Users className="h-4 w-4 text-gray-700" />
