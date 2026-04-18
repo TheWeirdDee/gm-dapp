@@ -72,7 +72,7 @@ export const authenticate = async () => {
 
   try {
     const response = await connect({
-      network: APP_CONFIG.network.isMainnet ? 'mainnet' : 'testnet',
+      network: APP_CONFIG.isMainnet ? 'mainnet' : 'testnet',
     });
 
     console.log('--- RAW LEATHER RESPONSE ---', response);

@@ -60,10 +60,10 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
     try {
       // Get the ABSOLUTE LATEST address from the session, not just Redux
       const userData = getUserData();
-      const currentAddress = userData?.profile?.stxAddress?.testnet || 
-                            userData?.profile?.stxAddress?.mainnet || 
-                            userData?.profile?.stxAddress || 
-                            address;
+      const stxAddressObj = userData?.profile?.stxAddress;
+      const currentAddress = (typeof stxAddressObj === 'string' 
+        ? stxAddressObj 
+        : (stxAddressObj?.mainnet || stxAddressObj?.testnet)) || address;
 
       console.log('--- PRO PURCHASE DEBUG INFO ---', {
         reduxAddress: address,
