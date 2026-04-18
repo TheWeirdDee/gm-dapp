@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
       throw new Error('LOCAL_SESSION_SECRET is not configured');
     }
     const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
-    const { payload } = await jose.jwtVerify(token, secret);
+    const { payload } = await jose.jwtVerify(token, secret, {
+      clockTolerance: 300 // 5 minutes tolerance for drift
+    });
     const sessionAddress = payload.address as string;
 
     const supabase = getServiceRoleClient();
