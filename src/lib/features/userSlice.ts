@@ -85,7 +85,7 @@ const initialState: UserState = {
   isSimulationMode: false,
   isOptimisticPro: getInitialOptimisticState(),
   sessionToken: initialToken,
-  avatar: null,
+  avatar: typeof window !== 'undefined' ? localStorage.getItem('gm_avatar') : null,
   website: null,
 };
 
@@ -171,6 +171,7 @@ const userSlice = createSlice({
         if (action.payload.followers !== undefined) localStorage.setItem('gm_followers', action.payload.followers.toString());
         if (action.payload.following !== undefined) localStorage.setItem('gm_following', action.payload.following.toString());
         if (action.payload.healCount !== undefined) localStorage.setItem('gm_heals', action.payload.healCount.toString());
+        if (action.payload.avatar !== undefined && action.payload.avatar) localStorage.setItem('gm_avatar', action.payload.avatar);
       }
 
       if (action.payload.isPro !== undefined) state.isPro = action.payload.isPro;
@@ -243,7 +244,7 @@ const userSlice = createSlice({
   },
 });
 
-export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
+export const fetchOnChainStats = (address: string) => async (dispatch: any, getState: any) => {
   dispatch(userSlice.actions.setLoading(true));
   try {
     const height = await getOnChainBlockHeight();
@@ -265,7 +266,12 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
       if (finalStreak === 0 && hasLocalGm) {
         console.log('--- HYBRID SYNC: Chain is lagging, using immediate activity data ---');
         finalStreak = 1;
-        finalPoints = Math.max(finalPoints, 5); // 0.5 RP
+        
+        // Multiplier fix: 1.0 RP for Pro (10), 0.5 RP for Standard (5)
+        const userState = (getState() as RootState).user;
+        const isProUser = data.isPro || userState.isOptimisticPro;
+        const lagPoints = isProUser ? 10 : 5;
+        finalPoints = Math.max(finalPoints, lagPoints);
       }
 
       dispatch(userSlice.actions.updateStats({
