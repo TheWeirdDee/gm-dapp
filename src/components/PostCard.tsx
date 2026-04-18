@@ -114,6 +114,8 @@ export default function PostCard({ post }: PostCardProps) {
     window.location.href = `/post/${post.id}`;
   };
 
+  const { avatar: currentUserAvatar } = useSelector((state: RootState) => state.user);
+  const postAvatar = post.avatar || (post.authorAddress === currentAddress ? currentUserAvatar : null);
   const handleBookmark = () => {
     toast.success("Post archived to your collection");
   };
@@ -124,7 +126,7 @@ export default function PostCard({ post }: PostCardProps) {
       <div className="p-6 flex items-start justify-between">
         <div className="flex gap-4">
           <Link href={`/profile/${post.authorAddress}`} className="shrink-0 group/avatar">
-            <IdentityAvatar address={post.authorAddress} src={post.avatar} size="md" />
+            <IdentityAvatar address={post.authorAddress} src={postAvatar} size="md" />
           </Link>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
