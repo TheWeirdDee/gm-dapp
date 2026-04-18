@@ -17,7 +17,7 @@ interface EditProfileModalProps {
 }
 
 export default function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
-  const { address, bio: initialBio, username: initialUsername, website: initialWebsite } = useSelector((state: RootState) => state.user);
+  const { address, bio: initialBio, username: initialUsername, website: initialWebsite, avatar: initialAvatar } = useSelector((state: RootState) => state.user);
   const [bio, setBio] = useState(initialBio || '');
   const [newUsername, setNewUsername] = useState(initialUsername || '');
   const [website, setWebsite] = useState(initialWebsite || '');
@@ -131,7 +131,7 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
                 {avatarPreview ? (
                   <img src={avatarPreview} alt="Preview" className="h-full w-full object-cover" />
                 ) : (
-                  <IdentityAvatar address={address || ''} size="lg" />
+                  <IdentityAvatar address={address || ''} src={initialAvatar} size="lg" />
                 )}
               </div>
               <button 
