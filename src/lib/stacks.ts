@@ -108,6 +108,41 @@ export const getUserData = () => {
 };
 
 /**
+ * GET GM TOKEN BALANCE
+ */
+export const getGmTokenBalance = async (userAddress: string) => {
+  if (typeof window === 'undefined') return 0;
+  
+  try {
+    const { fetchCallReadOnlyFunction, cvToValue, standardPrincipalCV } = require('@stacks/transactions');
+    const { APP_CONFIG } = require('./config');
+
+    const result = await fetchCallReadOnlyFunction({
+      network: APP_CONFIG.network,
+      contractAddress: APP_CONFIG.token.address,
+      contractName: APP_CONFIG.token.name,
+      functionName: 'get-balance',
+      functionArgs: [standardPrincipalCV(userAddress)],
+      senderAddress: userAddress,
+    });
+
+    const val = cvToValue(result);
+    // Standard response-ok unwrap
+    if (val && typeof val === 'object' && (val.type === 20 || val.type === 'response-ok')) {
+      return typeof val.value === 'bigint' ? Number(val.value) : Number(val.value);
+    }
+    return 0;
+  } catch (error: any) {
+    if (error.message?.includes('NoSuchContract')) {
+      console.warn(`GM Token contract not found at ${APP_CONFIG.token.address}. This is expected if the protocol hasn't been deployed to the current network yet.`);
+      return 0;
+    }
+    console.error('Error fetching GM balance:', error);
+    return 0;
+  }
+};
+
+/**
  * Wrapper for on-chain data retrieval
  */
 export const getUserOnChainData = async (userAddress: string) => {
@@ -126,8 +161,8 @@ export const getUserOnChainData = async (userAddress: string) => {
 
     const result = await fetchCallReadOnlyFunction({
       network: APP_CONFIG.network,
-      contractAddress: APP_CONFIG.contractAddress,
-      contractName: APP_CONFIG.contractName,
+      contractAddress: APP_CONFIG.social.address,
+      contractName: APP_CONFIG.social.name,
       functionName: 'get-user-data',
       functionArgs: [standardPrincipalCV(userAddress)],
       senderAddress: userAddress,
@@ -161,14 +196,20 @@ export const getUserOnChainData = async (userAddress: string) => {
     const extractOptional = (optVal: any): string | null => {
       if (optVal === null || optVal === undefined) return null;
       
-      // If it's a "Some" wrapper
+      // If it's a "Some" wrapper (type 10)
       if (typeof optVal === 'object' && (optVal.type === 10 || optVal.type === 'optional-some' || optVal.type?.startsWith('(optional'))) {
-        if (optVal.value === null) return null;
+        if (optVal.value === null || optVal.value === undefined) return null;
         return extractOptional(optVal.value);
+      }
+
+      // Explicitly handle "None" (type 9)
+      if (typeof optVal === 'object' && (optVal.type === 9 || optVal.type === 'optional-none')) {
+        return null;
       }
       
       if (typeof optVal === 'string') return optVal;
-      return String(optVal);
+      // If we get an unexpected object that isn't a Clarity wrapper, return null
+      return null;
     };
 
     // 4. Safely extract numeric fields (handling BigInt from cvToValue)
@@ -199,7 +240,9 @@ export const getUserOnChainData = async (userAddress: string) => {
       proExpiry: getNum(getVal(unwrapped, 'pro-expiry')),
       healCount: getNum(getVal(unwrapped, 'heal-count')),
       followers: getNum(getVal(unwrapped, 'followers')),
-      following: getNum(getVal(unwrapped, 'following'))
+      following: getNum(getVal(unwrapped, 'following')),
+      totalTipped: getNum(getVal(unwrapped, 'total-tipped')),
+      totalReceived: getNum(getVal(unwrapped, 'total-received'))
     };
 
     console.log('--- FINAL DECODED UI STATE ---', finalData);
@@ -230,11 +273,11 @@ export const getOnChainBlockHeight = async () => {
       try {
         const result = await fetchCallReadOnlyFunction({
           network: APP_CONFIG.network,
-          contractAddress: APP_CONFIG.contractAddress,
-          contractName: APP_CONFIG.contractName,
+          contractAddress: APP_CONFIG.social.address,
+          contractName: APP_CONFIG.social.name,
           functionName: 'get-current-burn-height',
           functionArgs: [],
-          senderAddress: APP_CONFIG.contractAddress,
+          senderAddress: APP_CONFIG.social.address,
         });
 
         const val = cvToValue(result);
@@ -304,7 +347,103 @@ export const callContract = async (options: any) => {
   await openContractCall({
     ...options,
     appDetails,
-    network: APP_CONFIG.network, // Force global network from config
+    network: APP_CONFIG.network,
+    onFinish: async (data: any) => {
+      console.log('--- TRANSACTION BROADCASTED ---', data.txId);
+      // Run the original onFinish if provided
+      if (options.onFinish) options.onFinish(data);
+      
+      // Start polling for final result (Diagnostics)
+      console.log('--- STARTING ON-CHAIN STATUS POLLING ---');
+      pollTransactionStatus(data.txId);
+    }
+  });
+};
+
+/**
+ * DIAGNOSTIC POLLER
+ * Tracks a transaction until it is confirmed or failed on-chain.
+ */
+async function pollTransactionStatus(txId: string) {
+  const { APP_CONFIG } = require('./config');
+  const apiUrl = APP_CONFIG.isMainnet 
+    ? `https://api.mainnet.hiro.so/extended/v1/tx/${txId}`
+    : `https://api.testnet.hiro.so/extended/v1/tx/${txId}`;
+
+  let attempts = 0;
+  const maxAttempts = 30; // ~5 minutes
+
+  const check = async () => {
+    try {
+      const res = await fetch(apiUrl);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.tx_status === 'success') {
+        console.log(`%c[SUCCESS] Transaction ${txId} confirmed!`, 'color: #10b981; font-weight: bold');
+        return;
+      }
+
+      if (data.tx_status === 'abort_by_response' || data.tx_status === 'abort_by_post_condition') {
+        console.error(`%c[FAILED] Transaction ${txId} aborted!`, 'color: #ef4444; font-weight: bold');
+        console.error('Failure Reason:', data.tx_result?.repr || 'Unknown');
+        return;
+      }
+
+      if (attempts < maxAttempts) {
+        attempts++;
+        setTimeout(check, 10000); // Poll every 10s
+      }
+    } catch (e) {
+      console.warn('Polling error:', e);
+    }
+  };
+
+  check();
+}
+
+/**
+ * TIP AUTHOR
+ * Transfers STX to an author and awards reputation
+ */
+export const tipAuthor = async (recipient: string, amountStx: number) => {
+  if (typeof window === 'undefined') return;
+  
+  const { 
+    uintCV, 
+    standardPrincipalCV,
+    Pc,
+    PostConditionMode,
+    FungibleConditionCode
+  } = require('@stacks/transactions');
+  const { APP_CONFIG } = require('./config');
+  
+  const amountMicroStx = Math.round(amountStx * 1000000);
+  const senderAddress = localStorage.getItem('gm_user_address');
+  
+  if (!senderAddress) throw new Error("Wallet not connected");
+
+  // Post-condition: Ensure ONLY the specified amount of STX can leave the wallet
+  const postCondition = Pc.principal(senderAddress)
+    .willSendEq(amountMicroStx)
+    .ustx();
+
+  await callContract({
+    contractAddress: APP_CONFIG.social.address,
+    contractName: APP_CONFIG.social.name,
+    functionName: 'tip-author',
+    functionArgs: [
+      standardPrincipalCV(recipient),
+      uintCV(amountMicroStx)
+    ],
+    postConditionMode: PostConditionMode.Deny, // Strict mode - only allowed transfers pass
+    postConditions: [postCondition],
+    onFinish: (data: any) => {
+      console.log('--- TIP BROADCASTED ---', data.txId);
+    },
+    onCancel: () => {
+      console.log('--- TIP CANCELLED ---');
+    }
   });
 };
 /**
