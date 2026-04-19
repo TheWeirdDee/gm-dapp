@@ -6,9 +6,21 @@ const IS_MAINNET = networkType === 'mainnet';
 
 // 2. Export Master Config
 export const APP_CONFIG = {
-  // Use environment variables or fallback to the current verified Testnet deployment
-  contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
-  contractName: process.env.NEXT_PUBLIC_CONTRACT_NAME || 'gm-social-v6',
+  // SOCIAL PROTOCOL (gm-social-v2)
+  social: {
+    address: process.env.NEXT_PUBLIC_SOCIAL_ADDRESS || 'SP2WKK2W5DR70D2YCHHBEF7R5EMK5NZNQE2Z8T3EF',
+    name: 'gm-social-v2',
+  },
+  
+  // TOKEN ECONOMY (gm-token-v2)
+  token: {
+    address: process.env.NEXT_PUBLIC_TOKEN_ADDRESS || 'SP2WKK2W5DR70D2YCHHBEF7R5EMK5NZNQE2Z8T3EF',
+    name: 'gm-token-v2',
+  },
+
+  // Legacy fallback (for backward compatibility during migration)
+  contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || 'SP2WKK2W5DR70D2YCHHBEF7R5EMK5NZNQE2Z8T3EF',
+  contractName: process.env.NEXT_PUBLIC_CONTRACT_NAME || 'gm-social-v2',
   
   // Set Network Object
   network: IS_MAINNET ? STACKS_MAINNET : STACKS_TESTNET,
