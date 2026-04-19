@@ -115,12 +115,21 @@ export default function GMButton() {
       await callContract(options);
     } catch (error: any) {
       if (error.message?.includes('u101')) {
+        console.log('--- GM FAILED (u101): Already done on-chain, showing confirmed state ---');
         const today = new Date().toISOString().split('T')[0];
         localStorage.setItem(`gm_date_${address}`, today);
         setLocalCooldown(true);
+        dispatch(fetchOnChainStats(address!) as any);
+        
+        // Show success state instead of error for a smoother UX
+        setState('success');
+        setTimeout(() => {
+          setState('idle');
+        }, 3000);
+      } else {
+        setState('error');
+        setTimeout(() => setState('idle'), 4000);
       }
-      setState('error');
-      setTimeout(() => setState('idle'), 4000);
     }
   };
 
