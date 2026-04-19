@@ -8,8 +8,8 @@ import BrandLogo from './BrandLogo';
 import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown, Home, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import IdentityAvatar from './IdentityAvatar';
-import { logout, setSessionToken } from '@/lib/features/userSlice';
-import { authenticate } from '@/lib/stacks';
+import { logout, setSessionToken, setAddress } from '@/lib/features/userSlice';
+import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { usePathname } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
@@ -21,6 +21,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   const dispatch = useDispatch();
   const router = useRouter();
   const { address, isConnected, username, avatar } = useSelector((state: RootState) => state.user);
+  const { login } = useWalletAuth();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -43,31 +44,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   }, []);
 
   const handleConnectWallet = async () => {
-    try {
-      // 1. Connect Wallet (Phase 1)
-      const stxAddress = await authenticate();
-      if (!stxAddress) return;
-
-      // 2. Sign In Message (Phase 2 - JWT Generation)
-      const { signInWithWallet } = require('@/lib/stacks');
-      toast.loading('Signing in...', { id: 'auth' });
-      
-      const authResult = await signInWithWallet(stxAddress as string);
-      
-      if (authResult?.token) {
-        dispatch(setSessionToken(authResult.token));
-        toast.success('Successfully logged in!', { id: 'auth' });
-        // Small delay to ensure state is saved before reload
-        setTimeout(() => window.location.reload(), 500);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('Origin not allowed')) {
-        toast.error('Another wallet (like OKX) is blocking the connection. Please disable other wallet extensions and try again.', { id: 'auth', duration: 6000 });
-      } else {
-        toast.error(msg || 'Login failed', { id: 'auth' });
-      }
-    }
+    await login();
   };
 
   return (
