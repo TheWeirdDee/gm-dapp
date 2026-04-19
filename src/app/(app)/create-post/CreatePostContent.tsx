@@ -6,6 +6,8 @@ import IdentityAvatar from '@/components/IdentityAvatar';
 import { RootState } from '@/lib/store';
 import { fetchPostsFromSupabase, addOptimisticPost } from '@/lib/features/postsSlice';
 import { useRouter } from 'next/navigation';
+import { useWalletAuth } from '@/hooks/useWalletAuth';
+import { toast } from 'react-hot-toast';
 import { 
   Image as ImageIcon, Video, BarChart2, Globe, ChevronDown, 
   Smile, X, ArrowLeft, Sparkles, Hash, AtSign, Loader2,
@@ -24,6 +26,7 @@ export default function CreatePostContent() {
   const { address, isConnected, username, streak, points, followers, avatar } = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const router = useRouter();
+  const { login } = useWalletAuth();
 
   const [content, setContent] = useState('');
   const [privacy, setPrivacy] = useState('public');
@@ -82,9 +85,12 @@ export default function CreatePostContent() {
         <div className="bg-[#0A0A0A] border border-white/5 max-w-md w-full rounded-[3rem] p-12 space-y-6">
           <h1 className="text-2xl font-black text-white tracking-tighter">Connect First</h1>
           <p className="text-gray-500 text-sm font-medium">You need a connected Stacks wallet to broadcast a post.</p>
-          <Link href="/" className="inline-block bg-white text-black font-black py-3 px-10 rounded-2xl hover:bg-gray-200 transition-all text-sm uppercase tracking-widest">
+          <button 
+            onClick={() => login()}
+            className="inline-block bg-white text-black font-black py-3 px-10 rounded-2xl hover:bg-gray-200 transition-all text-sm uppercase tracking-widest"
+          >
             Connect Wallet
-          </Link>
+          </button>
         </div>
       </div>
     );
