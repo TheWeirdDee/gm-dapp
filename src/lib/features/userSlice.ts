@@ -116,6 +116,13 @@ const userSlice = createSlice({
         state.username = fallbackName;
       }
     },
+    setAddress(state, action: PayloadAction<string>) {
+      state.address = action.payload;
+      state.isConnected = true;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gm_user_address', action.payload);
+      }
+    },
     logout(state) {
       state.address = null;
       state.profile = null;
@@ -163,9 +170,21 @@ const userSlice = createSlice({
       healCount?: number;
       website?: string | null;
     }>) {
-      if (typeof window !== 'undefined') {
-        if (action.payload.streak !== undefined) localStorage.setItem('gm_streak', action.payload.streak.toString());
-        if (action.payload.points !== undefined) localStorage.setItem('gm_points', action.payload.points.toString());
+      if (typeof window !== 'undefined' && action.payload) {
+        // Protect monotonic stats: Only update localStorage if the incoming value is actually greater
+        if (action.payload.streak !== undefined) {
+          const currentStreak = Number(localStorage.getItem('gm_streak') || 0);
+          if (action.payload.streak >= currentStreak) {
+            localStorage.setItem('gm_streak', action.payload.streak.toString());
+          }
+        }
+        if (action.payload.points !== undefined) {
+          const currentPoints = Number(localStorage.getItem('gm_points') || 0);
+          if (action.payload.points >= currentPoints) {
+            localStorage.setItem('gm_points', action.payload.points.toString());
+          }
+        }
+        
         if (action.payload.lastGm !== undefined) localStorage.setItem('gm_last_gm', action.payload.lastGm.toString());
         if (action.payload.isPro !== undefined) localStorage.setItem('gm_is_pro', action.payload.isPro.toString());
         if (action.payload.proExpiry !== undefined) localStorage.setItem('gm_pro_expiry', action.payload.proExpiry.toString());
@@ -254,38 +273,57 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
     }
 
     const data: any = await getUserOnChainData(address);
+    const userState = (getState() as RootState).user;
+
+    // --- HYBRID SYNC: Calculate effective stats using Unix Timestamps ---
+    const currentTimeSeconds = Math.floor(Date.now() / 1000);
+    const lastGmTimestamp = data?.lastGm || 0;
+    const secondsSinceLastGm = currentTimeSeconds - lastGmTimestamp;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const hasLocalGmToday = localStorage.getItem(`gm_date_${address}`) === today;
+    
+    // Lag Detection: If we said GM today locally, but the on-chain lastGm is from > 20 hours ago
+    // (A typical Stacks cooldown is 24h, so > 20h ago with a local GM today definitely means lag)
+    const isChainLagging = hasLocalGmToday && (
+      lastGmTimestamp === 0 || // New user
+      (secondsSinceLastGm > 20 * 3600) // Chain's last GM was from a previous cycle
+    );
+
+    let finalStreak = data?.streak !== undefined ? data.streak : userState.streak;
+    let finalPoints = data?.points !== undefined ? data.points : userState.points;
+    const finalIsPro = data?.isPro !== undefined ? data.isPro : userState.isPro;
+    
+    const isProUser = finalIsPro || userState.isOptimisticPro;
+    const pointsPerGm = isProUser ? 10 : 5;
+
+    if (isChainLagging) {
+      console.log('--- HYBRID SYNC: Blockchain is lagging. Using timestamp logic ---');
+      console.log('--- NOW:', currentTimeSeconds, 'LAST_GM:', lastGmTimestamp, 'DIFF:', secondsSinceLastGm);
+      
+      finalStreak = Math.max(finalStreak, (data?.streak || 0) + 1);
+      finalPoints = Math.max(finalPoints, (data?.points || 0) + pointsPerGm);
+    }
+    
+    console.log('--- SYNC COMPLETE: FINAL STREAK:', finalStreak, 'FINAL RP:', finalPoints / 10);
+    
+    console.log('--- SYNC COMPLETE: FINAL STREAK:', finalStreak, 'FINAL POINTS:', finalPoints, 'IS_PRO:', isProUser);
+
+    // Always update with the best available data
+    dispatch(userSlice.actions.updateStats({
+      streak: finalStreak,
+      points: finalPoints,
+      username: data?.username || userState.username,
+      isPro: finalIsPro,
+      proExpiry: data?.proExpiry || userState.proExpiry,
+      followers: data?.followers || userState.followers,
+      following: data?.following || userState.following
+    }));
+
     if (data) {
-      console.log('--- FETCH SUCCESS: Updating Redux Stats ---', data);
-      
-      // HYBRID SYNC: If chain says 0 but Supabase has current GM, bridge it
-      let finalStreak = data.streak;
-      let finalPoints = data.points;
-      
-      const today = new Date().toISOString().split('T')[0];
-      const hasLocalGm = localStorage.getItem(`gm_date_${address}`) === today;
-
-      if (finalStreak === 0 && hasLocalGm) {
-        console.log('--- HYBRID SYNC: Chain is lagging, using immediate activity data ---');
-        finalStreak = 1;
-        
-        // Multiplier fix: 1.0 RP for Pro (10), 0.5 RP for Standard (5)
-        const userState = (getState() as RootState).user;
-        const isProUser = data.isPro || userState.isOptimisticPro;
-        const lagPoints = isProUser ? 10 : 5;
-        finalPoints = Math.max(finalPoints, lagPoints);
-      }
-
-      dispatch(userSlice.actions.updateStats({
-        streak: finalStreak,
-        points: finalPoints,
-        username: data.username,
-        isPro: data.isPro,
-        proExpiry: data.proExpiry,
-        followers: data.followers,
-        following: data.following
-      }));
+      console.log('--- FETCH SUCCESS: Chain data received ---', data);
     } else {
-      console.warn('--- FETCH WARNING: No data returned from chain ---');
+      console.warn('--- FETCH WARNING: No data returned from chain, using local sync ---');
     }
 
     // --- FETCH SUPABASE PROFILE (Bio & Avatar) ---
@@ -321,6 +359,7 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
 
 export const { 
   setUserData, 
+  setAddress,
   logout, 
   updateStats, 
   setUsername, 
