@@ -1,13 +1,24 @@
 'use client';
 
-import LeaderboardTable from '@/components/LeaderboardTable';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { useState } from 'react';
-import { Trophy, Flame, Star, Target, Crown, Circle, HelpCircle, Users } from 'lucide-react';
-import { User } from '@/lib/types';
-import RulesModal from '@/components/RulesModal';
 import Link from 'next/link';
+import { 
+  Loader2, 
+  Trophy, 
+  Flame, 
+  Star, 
+  Target, 
+  Crown, 
+  Circle, 
+  HelpCircle, 
+  Users 
+} from 'lucide-react';
+
+import LeaderboardTable from '@/components/LeaderboardTable';
+import RulesModal from '@/components/RulesModal';
+import IdentityAvatar from '@/components/IdentityAvatar';
 
 // Helper for Nested Star Icon (Diamond Dev)
 const NestedStar = ({ className }: { className?: string }) => (
@@ -29,17 +40,32 @@ const NestedCircle = ({ className }: { className?: string }) => (
 );
 
 export default function LeaderboardPage() {
-  const [activeTab, setActiveTab] = useState<'streak' | 'points'>('streak');
-  
+  const [activeTab, setActiveTab] = useState<'streak' | 'points' | 'gm_balance' | 'impact'>('streak');
+  const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   
-  const usersArray: User[] = [];
-  const topStreaks = [...usersArray].sort((a, b) => b.streak - a.streak).slice(0, 50);
-  const topPoints = [...usersArray].sort((a, b) => b.points - a.points).slice(0, 50);
+  const fetchLeaderboard = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/leaderboard?type=${activeTab}&limit=50`);
+      const data = await res.json();
+      if (data.data) {
+        setUsers(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch leaderboard:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [activeTab]);
   
-  const currentLeaderboard = activeTab === 'streak' ? topStreaks : topPoints;
-  const top3 = currentLeaderboard.slice(0, 3);
-  const remainingUsers = currentLeaderboard.slice(3);
+  const top3 = users.slice(0, 3);
+  const remainingUsers = users.slice(3);
 
   // Dynamic Tier Metadata Helper
   const getTierMetadata = (rank: number) => {
@@ -75,8 +101,10 @@ export default function LeaderboardPage() {
   const leaderTier = getTierMetadata(1);
 
   const tabs = [
-    { id: 'streak', name: 'Top Streaks', icon: Flame, color: 'text-orange-500' },
-    { id: 'points', name: 'Global Reputation', icon: Star, color: 'text-yellow-500' },
+    { id: 'streak', name: 'Streaks', icon: Flame, color: 'text-orange-500' },
+    { id: 'points', name: 'Reputation', icon: Star, color: 'text-yellow-500' },
+    { id: 'gm_balance', name: 'Rewards', icon: Crown, color: 'text-purple-500' },
+    { id: 'impact', name: 'Impact', icon: Target, color: 'text-blue-500' },
   ];
 
   return (
@@ -187,8 +215,46 @@ export default function LeaderboardPage() {
              </div>
            ) : (
              <>
-               {/* Podium Rendering Logic... */}
-             </>
+              {top3.map((user, i) => {
+                const rank = i + 1;
+                const meta = getTierMetadata(rank);
+                const order = rank === 1 ? 'order-1 md:order-2 z-20 scale-110 mb-8' : rank === 2 ? 'order-2 md:order-1 z-10' : 'order-3 z-0 opacity-80';
+                
+                return (
+                  <div key={user.address} className={`flex flex-col items-center space-y-6 transition-all duration-1000 ${order}`}>
+                     <div className="relative group">
+                        <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient} rounded-[3rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity`}></div>
+                        <IdentityAvatar 
+                          address={user.address} 
+                          src={user.avatar} 
+                          size="lg" 
+                          className={`h-32 w-32 md:h-44 md:w-44 border-4 ${meta.borderColor} !rounded-[3rem] shadow-2xl relative z-10`} 
+                        />
+                        <div className={`absolute -bottom-4 -right-4 w-12 h-12 rounded-2xl ${meta.glowColor} bg-[#0A0A0A] border border-white/10 flex items-center justify-center z-20`}>
+                           <meta.icon className={`h-6 w-6 ${meta.color}`} />
+                        </div>
+                     </div>
+                     
+                     <div className="text-center space-y-2">
+                        <h3 className="text-xl font-black text-white tracking-tighter truncate max-w-[200px]">
+                          {user.username || (user.address ? `${user.address.substring(0, 6)}...` : 'User')}
+                        </h3>
+                        <div className="flex items-center justify-center gap-2">
+                           <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-white/5 border border-white/10 ${meta.color}`}>
+                              {meta.name}
+                           </span>
+                        </div>
+                        <div className="text-3xl font-black text-white">
+                          {activeTab === 'streak' && `${user.streak}d`}
+                          {activeTab === 'points' && user.points.toLocaleString()}
+                          {activeTab === 'gm_balance' && `${((user.gmBalance || 0) / 1000000).toLocaleString()} $GM`}
+                          {activeTab === 'impact' && `${((user.totalReceived || 0) / 1000000).toLocaleString()} STX`}
+                        </div>
+                     </div>
+                  </div>
+                );
+              })}
+            </>
            )}
         </section>
 
@@ -250,11 +316,18 @@ export default function LeaderboardPage() {
              </div>
           </div>
 
-          <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300">
-             <LeaderboardTable 
-               users={remainingUsers} 
-               type={activeTab} 
-             />
+          <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300 min-h-[400px]">
+             {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-40 bg-white/[0.02] border border-white/5 rounded-[2.5rem]">
+                   <Loader2 className="h-10 w-10 animate-spin text-gray-700 mb-4" />
+                   <p className="text-gray-500 font-bold animate-pulse">Scanning Protocol Records...</p>
+                </div>
+             ) : (
+                <LeaderboardTable 
+                  users={remainingUsers} 
+                  type={activeTab as any} 
+                />
+             )}
           </div>
         </div>
 
