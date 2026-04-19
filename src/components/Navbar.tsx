@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { authenticate, signInWithWallet } from '@/lib/stacks';
-import { logout, setSessionToken } from '@/lib/features/userSlice';
+import { logout, setSessionToken, setAddress } from '@/lib/features/userSlice';
+import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'react-hot-toast';
 import { Star, Info, Rss, Trophy, LayoutDashboard, User as UserIcon, Wallet, ChevronDown, LogOut } from 'lucide-react';
 import Link from 'next/link';
@@ -15,37 +15,15 @@ export default function Navbar() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { address, isConnected, username, avatar, sessionToken } = useSelector((state: RootState) => state.user);
+  const { login } = useWalletAuth();
   
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
   const authInProgress = useRef(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // TRIGGER SIGNATURE FLOW IF CONNECTED BUT NO SESSION
+  // TRIGGER SIGNATURE FLOW REMOVED - Using active click handler for reliability
   useEffect(() => {
-    const handleAuth = async () => {
-       // Synchronous check using Ref to prevent race conditions
-       if (isConnected && address && !sessionToken && !authInProgress.current) {
-          try {
-            authInProgress.current = true;
-            console.log("Triggering signature request for session...");
-            
-            const authData: any = await signInWithWallet(address);
-            if (authData?.token) {
-              dispatch(setSessionToken(authData.token));
-              toast.success("Identity Verified", {
-                style: { background: '#0A0A0A', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' },
-                icon: '🛡️'
-              });
-            }
-          } catch (err) {
-            console.error("Auth failed:", err);
-            toast.error("Security Verification Failed");
-          } finally {
-            authInProgress.current = false;
-          }
-       }
-    };
-    handleAuth();
+    // Session cleanup if needed logic was here but removed to simplify auth flow
   }, [isConnected, address, sessionToken, dispatch]);
 
   // Close dropdown when clicking outside
@@ -74,11 +52,7 @@ export default function Navbar() {
   const displayLinks = isConnected ? [...publicLinks, ...authLinks] : publicLinks;
 
   const handleWalletSelect = async () => {
-    try {
-      await authenticate();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Wallet connection failed');
-    }
+    await login();
     setShowWalletDropdown(false);
   };
 
