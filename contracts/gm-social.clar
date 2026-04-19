@@ -27,6 +27,14 @@
 (define-data-var total-gm-burned uint u0)
 (define-data-var active-proposal-round uint u1)
 
+(define-public (set-token-contract (contract principal))
+  (begin
+    (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
+    (var-set token-contract contract)
+    (ok true)
+  )
+)
+
 ;; Data Maps
 (define-map users
     principal
@@ -93,8 +101,11 @@
         ;; Note: We use micro-measurements so 1.0 GM = u1000000
         (let (
             (tokens-to-mint (if is-currently-pro u2000000 u1000000))
+            (recipient tx-sender)
         )
-            (try! (contract-call? .gm-token-v2 mint tokens-to-mint tx-sender))
+            ;; Safety Check: Ensure authorized token
+            (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
+            (try! (as-contract (contract-call? .gm-token-v2 mint tokens-to-mint recipient)))
         )
         
         (ok { streak: new-streak, points: new-points })
@@ -209,7 +220,11 @@
     })
 
     ;; 4. Award $GM Token "Gratitude" Reward to Tipper (5 $GM)
-    (try! (contract-call? .gm-token-v2 mint u5000000 tx-sender))
+    (let ((tipper tx-sender))
+      ;; Safety Check: Ensure authorized token
+      (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
+      (try! (as-contract (contract-call? .gm-token-v2 mint u5000000 tipper)))
+    )
 
     (ok true)
   )
@@ -239,7 +254,11 @@
     (current-burned (var-get total-gm-burned))
   )
     ;; 1. Burn the $GM tokens from the sender
-    (try! (contract-call? .gm-token-v2 burn BOOST-COST tx-sender))
+    (let ((sender tx-sender))
+      ;; Safety Check: Ensure authorized token
+      (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
+      (try! (as-contract (contract-call? .gm-token-v2 burn BOOST-COST sender)))
+    )
     
     ;; 2. Record the boost (lasts ~24 hours / 144 blocks)
     (map-set post-boosts post-txid 
@@ -322,6 +341,10 @@
         total-gm-burned: (var-get total-gm-burned),
         active-proposals: (- (var-get active-proposal-round) u1)
     })
+)
+
+(define-read-only (is-ready)
+  (ok (is-eq (var-get token-contract) .gm-token-v2))
 )
 
 (define-read-only (is-pro-active (user principal))
