@@ -4,7 +4,17 @@ import * as jose from 'jose';
 
 export async function POST(req: NextRequest) {
   try {
-    const { username, bio, avatar_url, website } = await req.json();
+    const { 
+      username, 
+      bio, 
+      avatar_url, 
+      website,
+      streak,
+      reputation,
+      gm_balance,
+      total_tipped,
+      total_received
+    } = await req.json();
     const authHeader = req.headers.get('Authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
@@ -31,6 +41,11 @@ export async function POST(req: NextRequest) {
         bio,
         avatar_url,
         website,
+        streak: streak || 0,
+        reputation: reputation || 0,
+        gm_balance: gm_balance || 0,
+        total_tipped: total_tipped || 0,
+        total_received: total_received || 0,
         updated_at: new Date().toISOString()
       })
       .select()
