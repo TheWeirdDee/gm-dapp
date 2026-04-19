@@ -12,11 +12,13 @@ import {
   Crown,
   ExternalLink,
   MapPin,
-  Clock
+  Clock,
+  Heart,
+  Award
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../lib/store';
-import { callContract, getUserOnChainData } from '../lib/stacks';
+import { callContract, getUserOnChainData, getGmTokenBalance } from '../lib/stacks';
 import { fetchOnChainStats, updateStats } from '../lib/features/userSlice';
 import { APP_CONFIG } from '../lib/config';
 import { 
@@ -39,6 +41,7 @@ interface ProfileData {
   followersCount: number;
   followingCount: number;
   isFollowing: boolean;
+  isPro: boolean;
 }
 
 export default function ProfileHeader({ targetAddress }: { targetAddress: string }) {
@@ -50,6 +53,13 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
   } = useSelector((state: RootState) => state.user);
   
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [onChainData, setOnChainData] = useState<{
+    streak: number;
+    points: number;
+    totalTipped: number;
+    totalReceived: number;
+    gmBalance: number;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowPending, setIsFollowPending] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -74,6 +84,30 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
 
   useEffect(() => {
     fetchProfile();
+    
+    // Fetch On-Chain Stats for this profile
+    const fetchOnChain = async () => {
+      try {
+        const [chainData, gmBalance] = await Promise.all([
+          getUserOnChainData(targetAddress),
+          getGmTokenBalance(targetAddress)
+        ]);
+        
+        if (chainData) {
+          setOnChainData({
+            streak: Number(chainData.streak) || 0,
+            points: Number(chainData.points) || 0,
+            totalTipped: Number(chainData.totalTipped) || 0,
+            totalReceived: Number(chainData.totalReceived) || 0,
+            gmBalance: Number(gmBalance) || 0
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch on-chain profile stats:', err);
+      }
+    };
+    
+    fetchOnChain();
   }, [targetAddress, currentAddress]);
 
   // 2. Handle On-Chain Follow with Shadow Index Sync
@@ -190,8 +224,8 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
               >
                 {isFollowPending ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Syncing...
+                    <Loader2 className="h-4 w-4 animate-spin text-white/50" />
+                    <span className="animate-pulse">Broadcasting...</span>
                   </>
                 ) : profile?.isFollowing ? (
                   <>
@@ -214,13 +248,46 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
           {/* Identity Info */}
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-4xl font-black text-white tracking-tighter">
+              <h1 className="text-4xl font-black text-white tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis max-w-[60vw]">
                 {profile?.username || (targetAddress ? `${targetAddress.substring(0, 6)}...${targetAddress.substring(targetAddress.length-4)}` : 'Anonymous')}
               </h1>
-              {(profile?.followersCount || 0) > 100 && (
-                <Crown className="w-6 h-6 text-yellow-500 fill-yellow-500/10 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]" />
-              )}
+              <div className="flex items-center gap-2">
+                 {profile?.isPro && (
+                    <Crown className="w-6 h-6 text-yellow-500 fill-yellow-500/10 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]" />
+                 )}
+                 {(onChainData?.streak || 0) >= 30 && (
+                    <div className="group/badge relative">
+                       <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                          <Flame className="h-4 w-4" />
+                       </div>
+                       <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[8px] font-black uppercase tracking-widest rounded opacity-0 group-hover/badge:opacity-100 transition-opacity whitespace-nowrap">Streak King</span>
+                    </div>
+                 )}
+                 {Number(onChainData?.points || 0) >= 1000 && (
+                    <div className="group/badge relative">
+                       <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                          <Award className="h-4 w-4" />
+                       </div>
+                       <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[8px] font-black uppercase tracking-widest rounded opacity-0 group-hover/badge:opacity-100 transition-opacity whitespace-nowrap">Influencer</span>
+                    </div>
+                 )}
+              </div>
             </div>
+            {/* Mutuals Indicator */}
+            {(profile?.followersCount || 0) > 0 && !isSelf && (
+              <div className="flex items-center gap-2 text-gray-600">
+                 <div className="flex -space-x-2">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="h-5 w-5 rounded-full border border-[#0A0A0A] bg-gray-900 flex items-center justify-center overflow-hidden">
+                         <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 opacity-50"></div>
+                      </div>
+                    ))}
+                 </div>
+                 <span className="text-[9px] font-bold italic tracking-tight">
+                    Followed by <span className="text-gray-400 font-black">Community</span> and others you follow
+                 </span>
+              </div>
+            )}
             <p className="text-gray-600 font-mono text-xs tracking-tighter opacity-80">{targetAddress}</p>
           </div>
           
@@ -265,13 +332,32 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
           </div>
         </div>
 
-        {/* Dynamic Achievements Mini-Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
           {[
-            { label: 'Protocal Rank', val: 'Active', icon: Activity, color: 'text-blue-500' },
-            { label: 'Network Points', val: '840.4', icon: Star, color: 'text-yellow-500' },
-            { label: 'Node Tier', val: 'Guardian', icon: Crown, color: 'text-purple-500' },
-            { label: 'Reputation', val: 'Expert', icon: Flame, color: 'text-orange-500' },
+            { 
+              label: 'Liquid Rewards', 
+              val: onChainData ? `${(onChainData.gmBalance / 1000000).toLocaleString()} $GM` : '...', 
+              icon: Crown, 
+              color: 'text-yellow-500' 
+            },
+            { 
+              label: 'Social Karma', 
+              val: onChainData ? `${(onChainData.totalTipped / 1000000).toLocaleString()} STX` : '...', 
+              icon: Heart, 
+              color: 'text-pink-500' 
+            },
+            { 
+              label: 'Protocol Impact', 
+              val: onChainData ? `${(onChainData.totalReceived / 1000000).toLocaleString()} STX` : '...', 
+              icon: Star, 
+              color: 'text-blue-500' 
+            },
+            { 
+              label: 'Consistency', 
+              val: onChainData ? `${onChainData.streak} Day Streak` : '...', 
+              icon: Flame, 
+              color: 'text-orange-500' 
+            },
           ].map((stat, i) => (
             <div key={i} className="bg-white/[0.02] rounded-[2rem] p-5 border border-white/5 hover:bg-white/[0.04] transition-colors group">
                <div className="flex items-center justify-between mb-3">
