@@ -29,12 +29,15 @@ interface LeaderboardUser {
   avatar?: string;
   streak: number;
   points: number;
+  gmBalance?: number;
+  totalReceived?: number;
+  totalTipped?: number;
   isPro?: boolean;
 }
 
 interface LeaderboardTableProps {
   users: LeaderboardUser[];
-  type: 'streak' | 'points';
+  type: 'streak' | 'points' | 'gm_balance' | 'impact';
 }
 
 export default function LeaderboardTable({ users, type }: LeaderboardTableProps) {
@@ -47,7 +50,10 @@ export default function LeaderboardTable({ users, type }: LeaderboardTableProps)
               <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Rank</th>
               <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Collector</th>
               <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 text-right">
-                {type === 'streak' ? 'Streak' : 'Reputation'}
+                {type === 'streak' && 'Streak'}
+                {type === 'points' && 'Reputation'}
+                {type === 'gm_balance' && 'Rewards ($GM)'}
+                {type === 'impact' && 'Impact (Received)'}
               </th>
             </tr>
           </thead>
@@ -94,15 +100,28 @@ export default function LeaderboardTable({ users, type }: LeaderboardTableProps)
                     </Link>
                   </td>
                   <td className="px-8 py-5 text-right font-black">
-                    {type === 'streak' ? (
+                    {type === 'streak' && (
                       <div className="flex items-center justify-end gap-2 text-xl text-orange-500">
                         {user.streak}
                         <Flame className="h-4 w-4 fill-orange-500/20" />
                       </div>
-                    ) : (
+                    )}
+                    {type === 'points' && (
                       <div className="flex items-center justify-end gap-2 text-xl text-yellow-500">
                         {user.points.toLocaleString()}
                         <Star className="h-4 w-4 fill-yellow-500/20" />
+                      </div>
+                    )}
+                    {type === 'gm_balance' && (
+                      <div className="flex items-center justify-end gap-2 text-xl text-purple-500">
+                        {((user.gmBalance || 0) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 1 })}
+                        <Crown className="h-4 w-4 fill-purple-500/20" />
+                      </div>
+                    )}
+                    {type === 'impact' && (
+                      <div className="flex items-center justify-end gap-2 text-xl text-blue-500">
+                        {((user.totalReceived || 0) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 1 })}
+                        <Star className="h-4 w-4 fill-blue-500/20" />
                       </div>
                     )}
                   </td>
