@@ -51,8 +51,8 @@ export default function GMButton() {
     try {
       const options = {
         anchorMode: AnchorMode.Any,
-        contractAddress: APP_CONFIG.contractAddress,
-        contractName: APP_CONFIG.contractName,
+        contractAddress: APP_CONFIG.social.address,
+        contractName: APP_CONFIG.social.name,
         functionName: 'say-gm',
         functionArgs: [],
         postConditionMode: PostConditionMode.Deny,
@@ -101,17 +101,17 @@ export default function GMButton() {
           
           dispatch(fetchOnChainStats(address!) as any);
           
+          setState('success');
           setTimeout(() => {
-            setState('success');
-            setTimeout(() => {
-              setState('idle');
-              setTxId(null);
-            }, 8000);
-          }, 3000);
+            setState('idle');
+            setTxId(null);
+          }, 8000);
         },
         onCancel: () => setState('idle'),
       };
 
+      // Transition to wallet interaction state
+      setState('wallet_open');
       await callContract(options);
     } catch (error: any) {
       if (error.message?.includes('u101')) {
@@ -169,10 +169,13 @@ export default function GMButton() {
           </>
         )}
         {state === 'pending' && (
-          <>
-            <Loader2 className="h-10 w-10 animate-spin mb-2 opacity-20" />
-            <span className="text-[10px] font-black uppercase tracking-widest opacity-30">Indexing...</span>
-          </>
+          <div className="flex flex-col items-center justify-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-white/10 animate-ping opacity-20"></div>
+              <Loader2 className="h-10 w-10 animate-spin relative z-10 text-white/40" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 animate-pulse">Broadcasting</span>
+          </div>
         )}
         {state === 'success' && (
           <>
