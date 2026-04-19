@@ -7,7 +7,13 @@ import {
   Bookmark, 
   MoreHorizontal,
   Smile,
-  Crown
+  Crown,
+  UserCheck,
+  UserPlus,
+  Rocket,
+  Flame,
+  Award,
+  Loader2
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -15,6 +21,9 @@ import { RootState } from '../lib/store';
 import { Post } from '../lib/types';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
+import { tipAuthor, callContract } from '../lib/stacks';
+import { APP_CONFIG } from '../lib/config';
+import { bufferCV } from '@stacks/transactions';
 
 import IdentityAvatar from './IdentityAvatar';
 
@@ -23,7 +32,11 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const { address: currentAddress } = useSelector((state: RootState) => state.user);
+  const { address: currentAddress, isConnected } = useSelector((state: RootState) => state.user);
+  const [showTipOptions, setShowTipOptions] = useState(false);
+  const [isTipping, setIsTipping] = useState(false);
+  const [isBoosting, setIsBoosting] = useState(false);
+  const [boostWeight, setBoostWeight] = useState(0);
   
   const displayAddress = `${post.authorAddress.substring(0, 5)}...${post.authorAddress.substring(post.authorAddress.length - 4)}`;
   const displayUsername = post.authorAddress === currentAddress ? "You" : `user_${post.authorAddress.substring(post.authorAddress.length - 4)}`;
@@ -112,6 +125,86 @@ export default function PostCard({ post }: PostCardProps) {
 
   const handleComment = () => {
     window.location.href = `/post/${post.id}`;
+  };
+  
+  const handleTip = async (amount: number) => {
+    if (!currentAddress) {
+      toast.error("Connect wallet to tip");
+      return;
+    }
+    
+    if (currentAddress === post.authorAddress) {
+      toast.error("You cannot tip yourself");
+      setShowTipOptions(false);
+      return;
+    }
+
+    try {
+      setIsTipping(true);
+      setShowTipOptions(false);
+      toast.loading(`Tipping ${amount} STX to author...`, { id: 'tip' });
+      
+      await tipAuthor(post.authorAddress, amount);
+      
+      // SYNC: Update Supabase Post Stats
+      try {
+        await fetch('/api/posts/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId: post.id, type: 'tip', amount: amount * 1000000 }) // Sync in microSTX
+        });
+      } catch (e) {
+        console.warn('Post Tip Sync failed:', e);
+      }
+
+      toast.success(`Successfully tipped ${amount} STX!`, { id: 'tip' });
+      
+      // SYNC: Immediately refresh stats to show reputation gain
+      const { fetchOnChainStats } = require('../lib/features/userSlice');
+      dispatch(fetchOnChainStats(currentAddress) as any);
+    } catch (err: any) {
+      console.error("Tip failed:", err);
+      toast.error(err.message || "Tipping failed", { id: 'tip' });
+    } finally {
+      setIsTipping(false);
+    }
+  };
+
+  const handleBoost = async () => {
+    if (!isConnected) return toast.error('Connect wallet to boost');
+    
+    try {
+      setIsBoosting(true);
+      
+      const options = {
+        contractAddress: APP_CONFIG.social.address,
+        contractName: APP_CONFIG.social.name,
+        functionName: 'boost-post',
+        functionArgs: [bufferCV(Buffer.from(post.id.replace('tx-', ''), 'hex'))],
+        onFinish: (data: any) => {
+          toast.success('Post Boosted! Scarcity Increased.', {
+            icon: '🚀',
+            style: { background: '#0A0A0A', color: '#fff', border: '1px solid rgba(255,165,0,0.2)' }
+          });
+          setBoostWeight(prev => prev + 1);
+
+          // SYNC: Update Supabase Post Stats
+          fetch('/api/posts/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId: post.id, type: 'boost' })
+          }).catch(e => console.warn('Post Boost Sync failed:', e));
+        },
+        onCancel: () => setIsBoosting(false)
+      };
+
+      await callContract(options);
+    } catch (error) {
+      console.error('Boost error:', error);
+      toast.error('Boost failed');
+    } finally {
+      setIsBoosting(false);
+    }
   };
 
   const { avatar: currentUserAvatar } = useSelector((state: RootState) => state.user);
@@ -230,6 +323,73 @@ export default function PostCard({ post }: PostCardProps) {
             </div>
             <span className="text-xs font-bold text-gray-600 group-hover/btn:text-gray-400">{post.commentsCount}</span>
           </button>
+
+            {/* Boost Button */}
+            <button 
+              onClick={handleBoost}
+              disabled={isBoosting}
+              className={`flex items-center gap-2 px-4 py-2 rounded-2xl transition-all group ${
+                boostWeight > 0 ? 'bg-orange-500/10 text-orange-500' : 'text-gray-500 hover:bg-orange-500/10 hover:text-orange-500'
+              }`}
+            >
+              <div className="relative">
+                {boostWeight > 0 && <div className="absolute inset-0 bg-orange-500/50 blur-sm rounded-full animate-pulse"></div>}
+                <Rocket className={`h-4 w-4 relative z-10 ${isBoosting ? 'animate-bounce' : 'group-hover:scale-110 transition-transform'}`} />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                {isBoosting ? 'Boosting...' : boostWeight > 0 ? `${boostWeight}x Boost` : 'Boost'}
+              </span>
+            </button>
+
+            {/* Tipping Feature */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowTipOptions(!showTipOptions)}
+                className={`flex items-center gap-2 group/btn transition-all ${showTipOptions ? 'scale-110' : ''}`}
+              >
+              <div className={`h-9 w-9 flex items-center justify-center rounded-xl transition-all ${
+                showTipOptions 
+                  ? 'bg-yellow-500/20 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' 
+                  : 'bg-yellow-500/5 text-gray-600 group-hover/btn:bg-yellow-500/10 group-hover/btn:text-yellow-500'
+              }`}>
+                 <div className="relative">
+                    <span className="text-xs font-black italic">$</span>
+                 </div>
+              </div>
+              <span className={`text-xs font-bold transition-colors ${showTipOptions ? 'text-yellow-500' : 'text-gray-600 group-hover/btn:text-gray-400'}`}>
+                Tip
+              </span>
+            </button>
+
+            {showTipOptions && (
+              <div className="absolute bottom-full left-0 mb-4 w-52 bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 animate-in fade-in slide-in-from-bottom-2 duration-300 backdrop-blur-xl">
+                {isTipping ? (
+                  <div className="py-6 flex flex-col items-center justify-center gap-3">
+                    <div className="relative">
+                       <div className="absolute inset-0 rounded-full bg-yellow-500/20 animate-ping"></div>
+                       <Loader2 className="h-8 w-8 text-yellow-500 animate-spin relative z-10" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500/50 animate-pulse">Broadcasting...</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-[10px] uppercase font-black text-gray-600 px-3 py-2 tracking-widest text-center opacity-70">Support Author</p>
+                    <div className="grid grid-cols-3 gap-2">
+                       {[1, 5, 10].map(amount => (
+                         <button 
+                           key={amount}
+                           onClick={() => handleTip(amount)}
+                           className="py-3 rounded-2xl bg-white/[0.03] hover:bg-yellow-500/20 text-white font-black text-xs transition-all border border-white/5 hover:border-yellow-500/30 active:scale-95"
+                         >
+                           {amount}
+                         </button>
+                       ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
           <button 
             onClick={handleBookmark}
