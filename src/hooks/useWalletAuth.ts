@@ -1,0 +1,62 @@
+'use client';
+
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-hot-toast';
+import { authenticate, signInWithWallet } from '@/lib/stacks';
+import { setAddress, setSessionToken } from '@/lib/features/userSlice';
+import { useRouter } from 'next/navigation';
+
+export const useWalletAuth = () => {
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const login = async () => {
+    try {
+      console.log('--- UNIFIED LOGIN INITIATED ---');
+      
+      // 1. Phase 1: Connect
+      const stxAddress = await authenticate();
+      if (!stxAddress) {
+        console.warn('--- LOGIN CANCELED: NO ADDRESS RETURNED ---');
+        return null;
+      }
+      
+      console.log('--- PHASE 1 SUCCESS: ADDRESS ---', stxAddress);
+      
+      // Update Redux immediately so UI shows "Connected" state
+      dispatch(setAddress(stxAddress));
+      
+      // 2. Phase 2: Sign Message
+      console.log('--- STARTING PHASE 2: SIGNATURE ---');
+      toast.loading('Verifying identity...', { id: 'auth' });
+      
+      const authData = await signInWithWallet(stxAddress);
+      
+      if (authData?.token) {
+        console.log('--- PHASE 2 SUCCESS: JWT RECEIVED ---');
+        dispatch(setSessionToken(authData.token));
+        toast.success("Security Verification Successful", { id: 'auth' });
+        
+        // Refresh or Redirect
+        setTimeout(() => {
+          // If we are on landing, go to dashboard. Otherwise refresh current page.
+          if (window.location.pathname === '/') {
+            router.push('/dashboard');
+          } else {
+            window.location.reload();
+          }
+        }, 800);
+        
+        return { address: stxAddress, token: authData.token };
+      }
+      
+      return null;
+    } catch (err: any) {
+      console.error('--- UNIFIED AUTH CRASH ---', err);
+      toast.error(err.message || 'Login failed', { id: 'auth' });
+      return null;
+    }
+  };
+
+  return { login };
+};
