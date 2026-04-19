@@ -9,6 +9,10 @@ import {
   Zap, Clock, Eye, EyeOff
 } from 'lucide-react';
 import Link from 'next/link';
+import { authenticate, signInWithWallet } from '@/lib/stacks';
+import { setAddress, setSessionToken, logout } from '@/lib/features/userSlice';
+import { useWalletAuth } from '@/hooks/useWalletAuth';
+import { toast } from 'react-hot-toast';
 
 type SettingsTab = 'appearance' | 'notifications' | 'privacy' | 'network' | 'advanced';
 
@@ -49,6 +53,13 @@ function SettingRow({
 
 export default function SettingsContent() {
   const { address, isConnected } = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
+  const { login } = useWalletAuth();
+  
+  const handleLogin = async () => {
+    await login();
+  };
+
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
   const [theme, setTheme] = useState<'dark' | 'system'>('dark');
   const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
@@ -74,9 +85,12 @@ export default function SettingsContent() {
             <h1 className="text-2xl font-black text-white tracking-tighter">Settings</h1>
             <p className="text-gray-500 text-sm font-medium">Connect your wallet to manage your protocol settings.</p>
           </div>
-          <Link href="/" className="inline-block bg-white text-black font-black py-3 px-10 rounded-2xl hover:bg-gray-200 transition-all text-sm uppercase tracking-widest">
+          <button 
+            onClick={handleLogin}
+            className="inline-block bg-white text-black font-black py-3 px-10 rounded-2xl hover:bg-gray-200 transition-all text-sm uppercase tracking-widest"
+          >
             Connect Wallet
-          </Link>
+          </button>
         </div>
       </div>
     );
