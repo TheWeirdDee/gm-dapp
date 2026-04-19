@@ -4,7 +4,7 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import { store, RootState } from '../lib/store';
 import { useState, useEffect } from 'react';
 import { getUserSession } from '../lib/stacks';
-import { setUserData, setUsername, fetchOnChainStats, updateStats } from '../lib/features/userSlice';
+import { setUserData, setUsername, fetchOnChainStats, updateStats, setSessionToken } from '../lib/features/userSlice';
 
 function AuthHydrator({ 
   children, 
@@ -34,11 +34,20 @@ function AuthHydrator({
     setMounted(true);
     
     // 2. Deep Hydration (fetch on-chain state if we have an address)
-    const effectiveAddress = initialUser?.address || localStorage.getItem('gm_user_address');
+    const storedAddress = localStorage.getItem('gm_user_address');
+    const storedToken = localStorage.getItem('gm_session_token');
+    const effectiveAddress = initialUser?.address || storedAddress;
     
     if (effectiveAddress) {
+      console.log('--- HYDRATOR: Recovering session for', effectiveAddress);
+      
+      // If we have a stored token but not in Redux (or server missed it)
+      if (storedToken) {
+        dispatch(setSessionToken(storedToken));
+      }
+
       if (!initialUser) {
-        // Fallback for non-cookie based dev sessions
+        // Fallback for non-cookie based sessions
         const session = getUserSession();
         if (session?.isUserSignedIn()) {
           const userData = session.loadUserData();
@@ -46,11 +55,19 @@ function AuthHydrator({
             address: effectiveAddress,
             profile: userData.profile
           }));
+        } else {
+          // Minimal hydration if we only have the address
+          dispatch(setUserData({
+            address: effectiveAddress,
+            profile: { stxAddress: effectiveAddress }
+          }));
         }
       }
       
       // Fetch full on-chain stats (bio, streak, etc)
       dispatch(fetchOnChainStats(effectiveAddress) as any);
+    } else {
+      console.log('--- HYDRATOR: No active session found ---');
     }
   }, [dispatch, initialUser]);
 
