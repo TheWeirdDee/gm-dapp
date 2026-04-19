@@ -34,12 +34,9 @@ export default function AnalyticsGraph() {
       const isoDate = d.toISOString().split('T')[0];
       const label = d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
       
-      // Real activity: Check if user posted on this date
-      let active = postDates.has(isoDate);
-      
-      // Fallback for TODAY: If they have a streak and it's today, show active 
-      // even if the post hasn't arrived in the feed yet.
-      if (i === 0 && streak > 0) active = true;
+      // Real activity: Check if user posted on this date OR if it is within their current streak
+      // (This ensures the 2d streak shows 2 GMs immediately)
+      let active = postDates.has(isoDate) || i < (streak || 0);
 
       data.push({ day: days - i, active, label });
     }
