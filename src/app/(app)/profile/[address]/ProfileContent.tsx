@@ -27,9 +27,8 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
   // Filter posts to only show this user's posts
   const userPosts = feed.filter(post => post.authorAddress === targetAddress);
   
-  // In Phase 1, we only consider the user "existent" if they are the current logged-in user.
-  // Phase 2 will check Supabase for other indexed principals.
-  const exists = (currentAddress === targetAddress);
+  // Every valid principal has a "Protocol Identity"
+  const exists = true; 
 
   if (!isConnected) {
     return (
@@ -45,20 +44,7 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
     );
   }
 
-  if (!exists) {
-    return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
-        <div className="h-20 w-20 bg-white/[0.02] rounded-full flex items-center justify-center mb-6 border border-white/5">
-           <ArrowLeft className="h-8 w-8 text-gray-700" />
-        </div>
-        <h1 className="text-4xl font-black text-white mb-4 tracking-tighter">Identity Not Found</h1>
-        <p className="text-gray-500 mb-8 max-w-sm font-medium">This principal hasn't been indexed by the Gm protocol yet.</p>
-        <Link href="/dashboard" className="text-[var(--color-accent)] font-black uppercase tracking-widest text-xs hover:underline">
-          Back to Dashboard
-        </Link>
-      </div>
-    );
-  }
+  // Identity check removed to support Protocol-Level Identities (vibrant on-chain stats)
 
   const renderSection = () => {
     switch (activeTab) {
