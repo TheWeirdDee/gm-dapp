@@ -311,10 +311,10 @@ export const callContract = async (options: any) => {
  * SIGN IN WITH WALLET
  * Requests a secure nonce then a signature from the user's wallet.
  */
-export async function signInWithWallet(address: string) {
+export async function signInWithWallet(address: string): Promise<{ token: string; signature: string } | null> {
   if (typeof window === 'undefined') return null;
   
-  const { showSignMessage } = require('@stacks/connect');
+  const { showSignMessage } = await import('@stacks/connect');
   
   // 1. Fetch a fresh nonce from the backend
   const nonceRes = await fetch('/api/auth/nonce', {
@@ -329,11 +329,16 @@ export async function signInWithWallet(address: string) {
   const message = `Sign in to GM DApp\nNonce: ${nonce}`;
   
   return new Promise((resolve, reject) => {
+    console.log('--- REQUESTING MESSAGE SIGNATURE FROM LEATHER ---');
+    console.log('Network configured as:', APP_CONFIG.network);
+    
     showSignMessage({
       message,
+      network: APP_CONFIG.isMainnet ? 'mainnet' : 'testnet', // Leather v8 prefers string network identifiers
       appDetails,
       onFinish: async (data: any) => {
         try {
+          console.log('--- SIGNATURE SUCCESS, VERIFYING ON BACKEND ---');
           // 2. Verify everything on the backend
           const response = await fetch('/api/auth/verify', {
             method: 'POST',
