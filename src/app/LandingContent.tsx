@@ -7,12 +7,14 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { authenticate } from '@/lib/stacks';
+import { authenticate, signInWithWallet } from '@/lib/stacks';
+import { setAddress, setSessionToken } from '@/lib/features/userSlice';
 import { useRouter } from 'next/navigation';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import dynamic from 'next/dynamic';
 import { toast } from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
 
 const Particles = dynamic(() => import('@/components/Particles'), { ssr: false });
 
@@ -22,6 +24,7 @@ export default function LandingContent() {
   const sectionsRef = useRef<HTMLElement[]>([]);
   const { isConnected } = useSelector((state: RootState) => state.user);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     sectionsRef.current.forEach((section) => {
@@ -53,9 +56,27 @@ export default function LandingContent() {
     if (!isConnected) {
       e.preventDefault();
       try {
-        await authenticate();
+        console.log('--- LANDING HERO LOGIN INITIATED ---');
+        
+        // 1. Phase 1: Connect
+        const stxAddress = await authenticate();
+        if (!stxAddress) return;
+        
+        // Update Redux immediately
+        dispatch(setAddress(stxAddress));
+        
+        // 2. Phase 2: Sign
+        toast.loading('Verifying identity...', { id: 'auth' });
+        const authData: any = await signInWithWallet(stxAddress);
+        
+        if (authData?.token) {
+          dispatch(setSessionToken(authData.token));
+          toast.success("Identity Verified", { id: 'auth' });
+          router.push('/dashboard');
+        }
       } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : 'Wallet connection failed');
+        console.error('Landing Auth Crash:', err);
+        toast.error(err instanceof Error ? err.message : 'Login failed', { id: 'auth' });
       }
     } else {
       router.push('/dashboard');
