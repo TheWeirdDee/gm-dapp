@@ -9,6 +9,7 @@ interface UserState {
   profile: any | null;
   isConnected: boolean;
   isLoading: boolean;
+  gmBalance: number;
   username: string | null;
   bio: string | null;
   streak: number;
@@ -19,6 +20,8 @@ interface UserState {
   healCount: number;
   followers: number;
   following: number;
+  totalTipped: number;
+  totalReceived: number;
   currentBlockHeight: number;
   isSimulationMode: boolean;
   isOptimisticPro: boolean;
@@ -72,6 +75,7 @@ const initialState: UserState = {
   profile: null,
   isConnected: !!initialToken, 
   isLoading: !!initialToken,
+  gmBalance: getInitialNum('gm_token_balance'),
   username: getInitialUsername(initialAddress),
   bio: null,
   streak: getInitialNum('gm_streak'),
@@ -82,6 +86,8 @@ const initialState: UserState = {
   healCount: getInitialNum('gm_heals'),
   followers: getInitialNum('gm_followers'),
   following: getInitialNum('gm_following'),
+  totalTipped: getInitialNum('gm_total_tipped'),
+  totalReceived: getInitialNum('gm_total_received'),
   currentBlockHeight: 0,
   isSimulationMode: false,
   isOptimisticPro: getInitialOptimisticState(),
@@ -128,6 +134,7 @@ const userSlice = createSlice({
       state.profile = null;
       state.isConnected = false;
       state.isLoading = false;
+      state.gmBalance = 0;
       state.username = null;
       state.bio = null;
       state.streak = 0;
@@ -138,6 +145,8 @@ const userSlice = createSlice({
       state.healCount = 0;
       state.followers = 0;
       state.following = 0;
+      state.totalTipped = 0;
+      state.totalReceived = 0;
       state.avatar = null;
       state.sessionToken = null;
       
@@ -163,11 +172,14 @@ const userSlice = createSlice({
       username?: string | null;
       bio?: string | null;
       avatar?: string | null;
+      gmBalance?: number;
       isPro?: boolean;
       proExpiry?: number;
       followers?: number;
       following?: number;
       healCount?: number;
+      totalTipped?: number;
+      totalReceived?: number;
       website?: string | null;
     }>) {
       if (typeof window !== 'undefined' && action.payload) {
@@ -186,12 +198,15 @@ const userSlice = createSlice({
         }
         
         if (action.payload.lastGm !== undefined) localStorage.setItem('gm_last_gm', action.payload.lastGm.toString());
+        if (action.payload.gmBalance !== undefined) localStorage.setItem('gm_token_balance', action.payload.gmBalance.toString());
         if (action.payload.isPro !== undefined) localStorage.setItem('gm_is_pro', action.payload.isPro.toString());
         if (action.payload.proExpiry !== undefined) localStorage.setItem('gm_pro_expiry', action.payload.proExpiry.toString());
         if (action.payload.followers !== undefined) localStorage.setItem('gm_followers', action.payload.followers.toString());
         if (action.payload.following !== undefined) localStorage.setItem('gm_following', action.payload.following.toString());
         if (action.payload.healCount !== undefined) localStorage.setItem('gm_heals', action.payload.healCount.toString());
         if (action.payload.avatar !== undefined && action.payload.avatar) localStorage.setItem('gm_avatar', action.payload.avatar);
+        if (action.payload.totalTipped !== undefined) localStorage.setItem('gm_total_tipped', action.payload.totalTipped.toString());
+        if (action.payload.totalReceived !== undefined) localStorage.setItem('gm_total_received', action.payload.totalReceived.toString());
       }
 
       if (action.payload.isPro !== undefined) state.isPro = action.payload.isPro;
@@ -202,6 +217,9 @@ const userSlice = createSlice({
       if (action.payload.avatar !== undefined) state.avatar = action.payload.avatar;
       if (action.payload.website !== undefined) state.website = action.payload.website;
       if (action.payload.healCount !== undefined) state.healCount = action.payload.healCount;
+      if (action.payload.gmBalance !== undefined) state.gmBalance = action.payload.gmBalance;
+      if (action.payload.totalTipped !== undefined) state.totalTipped = action.payload.totalTipped;
+      if (action.payload.totalReceived !== undefined) state.totalReceived = action.payload.totalReceived;
       
       if (action.payload.streak !== undefined) {
         state.streak = Math.max(state.streak, action.payload.streak);
@@ -267,12 +285,20 @@ const userSlice = createSlice({
 export const fetchOnChainStats = (address: string) => async (dispatch: any, getState: any) => {
   dispatch(userSlice.actions.setLoading(true));
   try {
-    const height = await getOnChainBlockHeight();
+    const heightPromise = getOnChainBlockHeight();
+    const dataPromise = getUserOnChainData(address);
+    const { getGmTokenBalance } = require('../stacks');
+    const gmBalancePromise = getGmTokenBalance(address);
+
+    const [height, data, gmBalance] = await Promise.all([
+      heightPromise,
+      dataPromise,
+      gmBalancePromise
+    ]);
+
     if (height > 0) {
       dispatch(userSlice.actions.setBlockHeight(height));
     }
-
-    const data: any = await getUserOnChainData(address);
     const userState = (getState() as RootState).user;
 
     // --- HYBRID SYNC: Calculate effective stats using Unix Timestamps ---
@@ -317,7 +343,10 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
       isPro: finalIsPro,
       proExpiry: data?.proExpiry || userState.proExpiry,
       followers: data?.followers || userState.followers,
-      following: data?.following || userState.following
+      following: data?.following || userState.following,
+      totalTipped: data?.totalTipped || userState.totalTipped,
+      totalReceived: data?.totalReceived || userState.totalReceived,
+      gmBalance: gmBalance !== undefined ? gmBalance : userState.gmBalance
     }));
 
     if (data) {
