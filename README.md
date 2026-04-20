@@ -1,5 +1,4 @@
-# Gm Social Protocol ☀️
-![Gm Banner](file:///C:/Users/DELL/.gemini/antigravity/brain/9f17eb26-6c46-4ee9-af47-e5b96da6aa04/gm_protocol_banner_1776648283908.png)
+# Gm Social Protocol
 
 [![Build Status](https://img.shields.io/badge/Clarinet-verified-brightgreen.svg)](https://hiro.so/clarinet)
 [![Network](https://img.shields.io/badge/Network-Stacks-blue.svg)](https://stacks.co)
@@ -10,7 +9,7 @@
 
 ---
 
-## 🚀 Overview
+## Overview
 Gm Social Protocol enables users to:
 - **Build reputation** through daily engagement (“say-gm”).
 - **Earn token rewards** for activity and consistency.
@@ -22,7 +21,7 @@ Gm Social Protocol enables users to:
 
 ---
 
-## 🏗️ Protocol Architecture
+## Protocol Architecture
 
 ```mermaid
 graph TD
@@ -42,7 +41,7 @@ graph TD
 
 ---
 
-## 🛡️ Security Features (V2 Hardened)
+## Security Features (V2 Hardened)
 The protocol includes multiple safeguards to ensure long-term stability:
 
 - **Macro-Economic Emission Cap**: Global daily limit of 50M micro-GM to prevent uncontrolled token inflation.
@@ -55,7 +54,7 @@ The protocol includes multiple safeguards to ensure long-term stability:
 
 ---
 
-## 🪙 Tokenomics & Emission Model
+## Tokenomics & Emission Model
 The **$GM Token** is a SIP-010 compliant fungible token regulated through:
 - **Daily Mint Cap**: Enforced at the contract level for all rewards.
 - **Activity Incentives**: Rewards minted for daily engagement and "Gratitude" tipping.
@@ -64,7 +63,7 @@ The **$GM Token** is a SIP-010 compliant fungible token regulated through:
 
 ---
 
-## 📜 Smart Contracts
+## Smart Contracts
 
 ### 1. [gm-social.clar](file:///c:/Users/DELL/Desktop/gm-dapp/contracts/gm-social.clar)
 Main protocol logic responsible for:
@@ -80,7 +79,7 @@ SIP-010 compliant governance asset:
 
 ---
 
-## 📊 Data Structures
+## Data Structures
 
 - **Users Map**: Stores profile metadata, streaks, reputation points, and Pro subscription status.
 - **Social Graph**: On-chain mapping of followers and following counts.
@@ -88,7 +87,7 @@ SIP-010 compliant governance asset:
 
 ---
 
-## 🛠️ Development Setup
+## Development Setup
 
 ### Prerequisites
 - [Clarinet](https://github.com/hirosystems/clarinet)
@@ -108,7 +107,7 @@ npm test
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 - [ ] Snapshot-based voting system upgrade
 - [ ] Multisig governor implementation (DAO transition)
 - [ ] Reputation decay mechanism
@@ -117,7 +116,7 @@ npm test
 
 ---
 
-## 🤝 Contributing
+## Contributing
 We welcome contributions from the **Stacks** and **Talent Protocol** communities!
 
 1. Fork the Project
@@ -128,4 +127,4 @@ We welcome contributions from the **Stacks** and **Talent Protocol** communities
 
 ---
 
-**Gm.** 🚀
+**Gm.**
