@@ -1,18 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 200 200" fill="none">
-  <!-- Stylized GM Square Icon - FIXED CENTERING -->
+  <!-- Gm Square Icon - FULL ACCURACY V3 -->
   <rect width="200" height="200" rx="40" fill="black"/>
-  <g transform="translate(25, 25)">
-    <!-- Stylized G (Shifted to prevent clipping) -->
-    <g transform="translate(10, 0)">
-      <path d="M 80 40 A 40 40 0 1 0 80 110" stroke="white" stroke-width="20" stroke-linecap="butt" fill="none"/>
-      <path d="M 80 75 L 45 75" stroke="white" stroke-width="20" stroke-linecap="butt" fill="none"/>
+  
+  <g transform="translate(30, 50)">
+    <!-- Stylized G (Exactly as in BrandLogo) -->
+    <g transform="translate(0, 0)">
+       <path d="M 64 28 A 32 32 0 1 0 64 52" stroke="white" stroke-width="12" stroke-linecap="butt" fill="none"/>
+       <path d="M 64 40 L 40 40" stroke="white" stroke-width="12" stroke-linecap="butt" fill="none"/>
     </g>
-    
-    <!-- Stylized M dots (Shifted to overlap G correctly) -->
-    <g transform="translate(50, 0)">
-      <circle cx="85" cy="50" r="14" fill="#22d3ee" />
-      <circle cx="85" cy="100" r="14" fill="#22d3ee" />
-      <path d="M 85 50 L 85 100" stroke="#22d3ee" stroke-width="12" stroke-linecap="round" />
+
+    <!-- Stylized M (FULL Reconstruction from BrandLogo) -->
+    <g transform="translate(60, 0)" opacity="0.8">
+      {/* Top Left Node + Line */}
+      <circle cx="12" cy="20" r="8" fill="#22d3ee" />
+      <rect x="8" cy="20" width="8" height="40" rx="4" fill="#22d3ee" />
+      <circle cx="12" cy="60" r="8" fill="#22d3ee" />
+      
+      {/* Middle Connection */}
+      <path d="M 16 24 L 36 40" stroke="#22d3ee" stroke-width="8" stroke-linecap="round" />
+      <circle cx="40" cy="44" r="8" fill="#22d3ee" />
+      
+      {/* Top Right Node + Connection */}
+      <path d="M 44 40 L 64 24" stroke="#22d3ee" stroke-width="8" stroke-linecap="round" />
+      <path d="M 64 24 L 64 40" stroke="#22d3ee" stroke-width="8" stroke-linecap="round" />
+      <circle cx="68" cy="20" r="8" fill="#22d3ee" />
+      
+      {/* Bottom Right Node */}
+      <circle cx="68" cy="60" r="8" fill="#22d3ee" />
     </g>
   </g>
 </svg>
