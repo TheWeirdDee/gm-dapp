@@ -149,10 +149,18 @@
     (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
     (try! (as-contract (contract-call? .gm-token-v2 burn BOOST-COST tx-sender)))
 
-    (map-set post-boosts post {
-      weight: (+ (default-to u0 (get weight (map-get? post-boosts post))) u1),
-      expiration: (+ burn-block-height u144)
-    })
+    ;; update boost safely
+    (let (
+      (existing (map-get? post-boosts post))
+      (new-weight (if (is-some existing)
+                    (+ (get weight (unwrap! existing (err u0))) u1)
+                    u1))
+    )
+      (map-set post-boosts post {
+        weight: new-weight,
+        expiration: (+ burn-block-height u144)
+      })
+    )
 
     (var-set total-gm-burned (+ burned BOOST-COST))
     (ok true)
@@ -166,7 +174,9 @@
   )
     (asserts! (get active p) ERR-NOT-AUTHORIZED)
     (asserts! (< burn-block-height (get end-time p)) ERR-NOT-AUTHORIZED)
-    (asserts! (is-none (map-get? proposal-votes { round: round, voter: tx-sender })) ERR-ALREADY-SET)
+    
+    ;; prevent double voting
+    (asserts! (is-none (map-get? proposal-votes { round: round, voter: tx-sender })) ERR-NOT-AUTHORIZED)
 
     (map-set proposal-votes { round: round, voter: tx-sender } { weight: bal, option: option })
 
@@ -179,10 +189,11 @@
 )
 
 (define-read-only (get-post-boost (post (buff 32)))
-  (match (map-get? post-boosts post) b
-    (if (< burn-block-height (get expiration b))
-        (get weight b)
-        u0)
+  (match (map-get? post-boosts post)
+    boost
+      (if (< burn-block-height (get expiration boost))
+          (get weight boost)
+          u0)
     u0
   )
 )
