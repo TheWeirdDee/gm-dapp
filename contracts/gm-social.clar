@@ -1,4 +1,4 @@
-;; Gm Social Protocol - FINAL SAFE VERSION
+;; Gm Social Protocol - SECURITY HARDENED V2
 
 ;; Error Codes
 (define-constant ERR-NOT-AUTHORIZED (err u100))
@@ -11,6 +11,9 @@
 (define-constant ERR-STREAK-NOT-BROKEN (err u107))
 (define-constant ERR-NO-HEALS-LEFT (err u108))
 (define-constant ERR-ALREADY-PRO (err u109))
+(define-constant ERR-COOLDOWN (err u110))
+(define-constant ERR-ALREADY-DONE (err u111))
+(define-constant ERR-INVALID (err u112))
 
 ;; Constants
 (define-constant CONTRACT-OWNER tx-sender)
@@ -21,15 +24,34 @@
 (define-constant INITIAL-HEALS u2)
 (define-constant BOOST-COST u5000000)
 
+;; V2 Security & Rate Limits
+(define-constant EMISSION-CAP u50000000) ;; Daily micro-GM minting cap
+(define-constant DAY-BLOCKS u1440) ;; Approximately 24 hours in blocks
+(define-constant BOOST-COOLDOWN u288) ;; ~48 hours
+(define-constant FOLLOW-COOLDOWN u50) ;; ~8.3 hours
+
 ;; Data Vars
 (define-data-var token-contract principal .gm-token-v2)
+(define-data-var governor principal tx-sender)
 (define-data-var total-gm-burned uint u0)
 (define-data-var active-proposal-round uint u1)
+
+;; V2 Emission Tracking
+(define-data-var daily-minted uint u0)
+(define-data-var last-day uint u0)
 
 (define-public (set-token-contract (contract principal))
   (begin
     (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
     (var-set token-contract contract)
+    (ok true)
+  )
+)
+
+(define-public (set-social-governor (new-governor principal))
+  (begin
+    (asserts! (is-eq tx-sender (var-get governor)) ERR-NOT-AUTHORIZED)
+    (var-set governor new-governor)
     (ok true)
   )
 )
@@ -46,6 +68,10 @@
 (define-map followers { user: principal, follower: principal } bool)
 (define-map follow-counts principal { followers: uint, following: uint })
 
+;; Action Rate Limits
+(define-map last-follow principal uint)
+(define-map last-boost principal uint)
+
 (define-map post-boosts (buff 32) { weight: uint, expiration: uint })
 (define-map proposals uint { title: (string-utf8 100), end-time: uint, active: bool })
 (define-map proposal-votes { round: uint, voter: principal } { weight: uint, option: uint })
@@ -58,6 +84,32 @@
     is-pro: false, pro-expiry: u0, heal-count: u0,
     total-tipped: u0, total-received: u0
   } (map-get? users user))
+)
+
+;; V2 Emission Helpers
+(define-private (current-day)
+  (/ burn-block-height DAY-BLOCKS)
+)
+
+(define-private (reset-emission-if-needed)
+  (let ((d (current-day)))
+    (if (not (is-eq d (var-get last-day)))
+        (begin
+          (var-set last-day d)
+          (var-set daily-minted u0)
+        )
+        true
+    )
+  )
+)
+
+(define-private (check-emission (amt uint))
+  (begin
+    (reset-emission-if-needed)
+    (asserts! (<= (+ (var-get daily-minted) amt) EMISSION-CAP) ERR-COOLDOWN)
+    (var-set daily-minted (+ (var-get daily-minted) amt))
+    (ok true)
+  )
 )
 
 (define-private (get-follow-counts (user principal))
@@ -85,6 +137,9 @@
       (pts (+ (get points u) (if pro u10 u5)))
       (mint-amount (if pro u2000000 u1000000))
     )
+      ;; V2: Emission Check
+      (try! (check-emission mint-amount))
+
       (map-set users tx-sender (merge u {
         last-gm: h, streak: streak, points: pts, is-pro: pro
       }))
@@ -102,10 +157,16 @@
   (let (
     (s (get-follow-counts tx-sender))
     (t (get-follow-counts target))
+    (h burn-block-height)
+    (last-f (default-to u0 (map-get? last-follow tx-sender)))
   )
     (asserts! (not (is-eq tx-sender target)) ERR-NOT-AUTHORIZED)
     (asserts! (is-none (map-get? followers { user: target, follower: tx-sender })) ERR-ALREADY-SET)
+    
+    ;; V2: Anti-Spam Check
+    (asserts! (>= (- h last-f) FOLLOW-COOLDOWN) ERR-COOLDOWN)
 
+    (map-set last-follow tx-sender h)
     (map-set followers { user: target, follower: tx-sender } true)
     (map-set follow-counts tx-sender (merge s { following: (+ (get following s) u1) }))
     (map-set follow-counts target (merge t { followers: (+ (get followers t) u1) }))
@@ -137,6 +198,9 @@
 
     ;; Safety Check & Bridge
     (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
+    
+    ;; V2: Emission Check
+    (try! (check-emission u5000000))
     (try! (as-contract (contract-call? .gm-token-v2 mint u5000000 tx-sender)))
 
     (ok true)
@@ -144,10 +208,19 @@
 )
 
 (define-public (boost-post (post (buff 32)))
-  (let ((burned (var-get total-gm-burned)))
+  (let (
+    (burned (var-get total-gm-burned))
+    (h burn-block-height)
+    (last-b (default-to u0 (map-get? last-boost tx-sender)))
+  )
+    ;; V2: Anti-Spam Check
+    (asserts! (>= (- h last-b) BOOST-COOLDOWN) ERR-COOLDOWN)
+    
     ;; Safety Check & Bridge
     (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
     (try! (as-contract (contract-call? .gm-token-v2 burn BOOST-COST tx-sender)))
+
+    (map-set last-boost tx-sender h)
 
     ;; update boost safely
     (let (
@@ -204,4 +277,12 @@
 
 (define-read-only (get-current-burn-height)
   (ok burn-block-height)
+)
+
+(define-read-only (get-daily-emission)
+  (ok (var-get daily-minted))
+)
+
+(define-read-only (get-day)
+  (ok (current-day))
 )
