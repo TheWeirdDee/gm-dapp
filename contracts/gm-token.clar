@@ -1,5 +1,4 @@
 ;; $GM Token - SIP-010 Fungible Token for GM Social Protocol
-;; (impl-trait 'SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard.sip-010-trait)
 
 ;; Errors
 (define-constant ERR-NOT-AUTHORIZED (err u401))
@@ -13,23 +12,24 @@
 ;; Governance
 (define-data-var governor principal tx-sender)
 
-;; Token Definitions
+;; Token Definition
 (define-fungible-token gm-token)
 
+;; ----------------------
 ;; Public Functions
+;; ----------------------
 
-;; @desc Transfer tokens - Standard SIP-010
+;; Transfer (SIP-010)
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
     (asserts! (is-eq tx-sender sender) ERR-NOT-AUTHORIZED)
     (asserts! (> amount u0) ERR-INVALID-AMOUNT)
     (try! (ft-transfer? gm-token amount sender recipient))
-    (match memo to-print (begin (print to-print) true) true)
     (ok true)
   )
 )
 
-;; @desc Mint tokens - Restricted to the Protocol Governor (GM Social Contract)
+;; Mint (Governor only)
 (define-public (mint (amount uint) (recipient principal))
   (begin
     (asserts! (is-eq tx-sender (var-get governor)) ERR-NOT-AUTHORIZED)
@@ -38,7 +38,7 @@
   )
 )
 
-;; @desc Burn tokens - Restricted to the Protocol Governor
+;; Burn (Governor only)
 (define-public (burn (amount uint) (sender principal))
   (begin
     (asserts! (is-eq tx-sender (var-get governor)) ERR-NOT-AUTHORIZED)
@@ -47,7 +47,7 @@
   )
 )
 
-;; @desc Update Governor - Allows the Protocol to evolve
+;; Set Governor
 (define-public (set-governor (new-governor principal))
   (begin
     (asserts! (is-eq tx-sender (var-get governor)) ERR-NOT-AUTHORIZED)
@@ -56,7 +56,9 @@
   )
 )
 
+;; ----------------------
 ;; Read-Only Functions
+;; ----------------------
 
 (define-read-only (get-name)
   (ok TOKEN-NAME)
