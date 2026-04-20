@@ -4,19 +4,21 @@
 [![Build Status](https://img.shields.io/badge/Clarinet-verified-brightgreen.svg)](https://hiro.so/clarinet)
 [![Network](https://img.shields.io/badge/Network-Stacks-blue.svg)](https://stacks.co)
 [![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
-[![Governance](https://img.shields.io/badge/Governance-V2--Hardened-purple.svg)](#security-v2-hardening)
+[![Governance](https://img.shields.io/badge/Governance-V2--Hardened-purple.svg)](#security-features)
 
-**Gm Social Protocol** is the premier decentralized social networking primitive on the Stacks blockchain. Built on Bitcoin's security, Gm enables a reputation-based social ecosystem where "GMing" is a core economic action.
+**Gm Social Protocol** is an on-chain social reputation and engagement system built on the Stacks blockchain. It combines social interaction, token incentives, and DAO governance into a unified protocol where user activity is permanently recorded and rewarded. Built on Bitcoin's security, Gm enables a reputation-based social ecosystem where "GMing" is a core economic action.
 
 ---
 
-## 🛡️ Security V2 Hardening
-The protocol has recently undergone a major **V2 Security Refactor** to ensure long-term stability and economic protection:
-
-- **Macro-Economic Emission Cap**: A global daily limit of 50M micro-GM to prevent token inflation.
-- **Micro-Rate Limiting**: Anti-spam cooldowns for high-frequency social actions (Following/Boosting).
-- **Social Governance**: Dedicated protocol governor for future DAO/Multi-sig evolution.
-- **Context-Safe Bridge**: Authorization-hardened cross-contract calls between `gm-social` and `gm-token`.
+## 🚀 Overview
+Gm Social Protocol enables users to:
+- **Build reputation** through daily engagement (“say-gm”).
+- **Earn token rewards** for activity and consistency.
+- **Follow other users** and grow social graphs on-chain.
+- **Tip creators** using STX directly.
+- **Boost content visibility** through token burning.
+- **Participate in DAO governance** using token-weighted voting.
+- **Access premium features** through a Pro subscription model.
 
 ---
 
@@ -40,16 +42,53 @@ graph TD
 
 ---
 
-## 🪙 Tokenomics
-The **$GM Token** is a SIP-010 compliant fungible token that powers the Gm ecosystem.
+## 🛡️ Security Features (V2 Hardened)
+The protocol includes multiple safeguards to ensure long-term stability:
 
-- **Rewards**: Earn GM by daily check-ins and receiving tips.
-- **Utility**: Burn GM to Boost posts and increase their visibility weight.
-- **Governance**: Vote on community proposals with your GM balance.
+- **Macro-Economic Emission Cap**: Global daily limit of 50M micro-GM to prevent uncontrolled token inflation.
+- **Anti-Spam Cooldowns**: Enforced block-based limits for key actions:
+    - **Follow Cooldown**: ~8.3 hours (50 blocks).
+    - **Boost Cooldown**: ~48 hours (288 blocks).
+    - **GM Cooldown**: 24 hours (144 blocks).
+- **Social Governance**: Dedicated protocol governor for future DAO/Multi-sig evolution.
+- **DAO Integrity**: Double-vote prevention included in the proposal system.
 
 ---
 
-## 🚀 Getting Started
+## 🪙 Tokenomics & Emission Model
+The **$GM Token** is a SIP-010 compliant fungible token regulated through:
+- **Daily Mint Cap**: Enforced at the contract level for all rewards.
+- **Activity Incentives**: Rewards minted for daily engagement and "Gratitude" tipping.
+- **Velocity Control**: Token burns are used to weight content visibility (Boosting).
+- **Authorization**: Controlled minting via the authorized Social Protocol governor only.
+
+---
+
+## 📜 Smart Contracts
+
+### 1. [gm-social.clar](file:///c:/Users/DELL/Desktop/gm-dapp/contracts/gm-social.clar)
+Main protocol logic responsible for:
+- User reputation and streak tracking.
+- Social graph management and follower counts.
+- Boosting, Tipping, and Pro subscription handling.
+- DAO proposal and voting aggregation.
+
+### 2. [gm-token.clar](file:///c:/Users/DELL/Desktop/gm-dapp/contracts/gm-token.clar)
+SIP-010 compliant governance asset:
+- Minting strictly controlled by the Protocol Governor.
+- Native support for supply tracking and standard SIP-010 interactions.
+
+---
+
+## 📊 Data Structures
+
+- **Users Map**: Stores profile metadata, streaks, reputation points, and Pro subscription status.
+- **Social Graph**: On-chain mapping of followers and following counts.
+- **Governance Proposals**: Tracks titles, expiration blocks, and weighted voting results.
+
+---
+
+## 🛠️ Development Setup
 
 ### Prerequisites
 - [Clarinet](https://github.com/hirosystems/clarinet)
@@ -57,18 +96,24 @@ The **$GM Token** is a SIP-010 compliant fungible token that powers the Gm ecosy
 
 ### Installation
 ```bash
-# Clone the repository
-git clone https://github.com/TheWeirdDee/gm-dapp.git
+# Install dependencies
+npm install
 
-# Navigate to project
-cd gm-dapp
-
-# Run contract tests
-clarinet test
-
-# Verify build
+# Run contract checks
 clarinet check
+
+# Run tests
+npm test
 ```
+
+---
+
+## 🗺️ Roadmap
+- [ ] Snapshot-based voting system upgrade
+- [ ] Multisig governor implementation (DAO transition)
+- [ ] Reputation decay mechanism
+- [ ] Advanced anti-sybil protections
+- [ ] Indexer integration for real-time analytics
 
 ---
 
@@ -80,11 +125,6 @@ We welcome contributions from the **Stacks** and **Talent Protocol** communities
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
----
-
-## 📜 License
-Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
