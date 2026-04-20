@@ -1,108 +1,91 @@
-# GM Social Protocol — The Decentralized Economy for Human Connection
+# Gm Social Protocol ☀️
+![Gm Banner](file:///C:/Users/DELL/.gemini/antigravity/brain/9f17eb26-6c46-4ee9-af47-e5b96da6aa04/gm_protocol_banner_1776648283908.png)
 
-**Built on Stacks. Powered by $GM. Owned by the Community.**
+[![Build Status](https://img.shields.io/badge/Clarinet-verified-brightgreen.svg)](https://hiro.so/clarinet)
+[![Network](https://img.shields.io/badge/Network-Stacks-blue.svg)](https://stacks.co)
+[![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
+[![Governance](https://img.shields.io/badge/Governance-V2--Hardened-purple.svg)](#security-v2-hardening)
 
-GM Social is a high-fidelity, on-chain social economy designed to gamify daily engagement and verify human reputation through a liquid, deflationary token economy ($GM).
-
-> [!IMPORTANT]
-> This is a **Hybrid Decentralized Protocol**. All social truth lives on the Stacks blockchain, while a high-performance **Shadow Sync** layer in Supabase ensures real-time discoverability and algorithmic relevance.
-
----
-
-## 🚀 The Protocol Economy
-
-GM Social introduces a circular social economy where attention has real value.
-
-### 🪙 The $GM Token
-*   **Minting (Social Mining)**: Earn $GM through daily check-ins (GMs) and by receiving tips from the community. Pro members earn 2x mining rewards.
-*   **Burning (Social Sinks)**: Users can permanently burn $GM to **Boost** posts. This deflationary mechanism ensures token scarcity while giving creators a path to amplified visibility.
-*   **Gratitude Rewards**: Tipping others initiates a protocol-level "Gratitude Mint" that rewards the tipper with bonus $GM.
-
-### ⚡ The "Vigor Scoring" Algorithm
-The global feed is powered by a decentralized discovery engine that weights posts based on:
-*   **Economic Signals (+50 pts)**: High-weight post boosts (burn events).
-*   **Community Validation (+5 pts/STX)**: Real-time tipping volume.
-*   **Author Reputation (+0.1 pts/Rep)**: Verified on-chain karma.
-*   **Social Proximity (+100 pts)**: Bonus points for content from followed users.
-*   **Freshness Decay (-2 pts/hr)**: Ensures the network "Pulse" remains current.
+**Gm Social Protocol** is the premier decentralized social networking primitive on the Stacks blockchain. Built on Bitcoin's security, Gm enables a reputation-based social ecosystem where "GMing" is a core economic action.
 
 ---
 
-## 🏛️ Governance & DAO
+## 🛡️ Security V2 Hardening
+The protocol has recently undergone a major **V2 Security Refactor** to ensure long-term stability and economic protection:
 
-The protocol is governed by its participants through the **Governance Hub**.
-*   **Weighted Voting**: Protocol proposals are decided using $GM-weighted voting.
-*   **Decentralized Prioritization**: Anyone can "Boost" a post to the top of the collective attention, creating an open market for social discovery.
-*   **Protocol Pulse**: A real-time analytics dashboard tracking tokenomics (Mint vs. Burn), social vigor, and global network health.
-
----
-
-## 🛠️ Technology Stack
-
-| Layer | Technology |
-|---|---|
-| **Social Core** | Clarity Smart Contracts (Stacks L2) |
-| **Identity Layer** | BNS / Stacks Principal Identities |
-| **Shadow Sync** | Supabase (PostgreSQL) + Real-time Change Data Capture |
-| **Vigor Engine** | PL/pgSQL Algorithmic Scoring Functions |
-| **UI Framework** | Next.js 15 (App Router), Tailwind CSS, Lucide Icons |
-| **State Engine** | Redux Toolkit (On-Chain Hydration) |
+- **Macro-Economic Emission Cap**: A global daily limit of 50M micro-GM to prevent token inflation.
+- **Micro-Rate Limiting**: Anti-spam cooldowns for high-frequency social actions (Following/Boosting).
+- **Social Governance**: Dedicated protocol governor for future DAO/Multi-sig evolution.
+- **Context-Safe Bridge**: Authorization-hardened cross-contract calls between `gm-social` and `gm-token`.
 
 ---
 
-## 📂 Project Structure
+## 🏗️ Protocol Architecture
 
-```
-gm-dapp/
-├── contracts/               # Clarity Smart Contracts ($GM Token, Social Core)
-├── src/
-│   ├── app/                 # Next.js App Router (Governance, Analytics, Feed)
-│   ├── components/          # High-Fidelity UI Components (Rocket Boost, HUD)
-│   ├── lib/
-│   │   ├── stacks.ts        # On-chain interaction layer
-│   │   ├── supabase.ts      # Shadow Sync client
-│   │   └── vigor.ts         # Algorithmic scoring logic
-│   └── store/               # Redux State (On-chain state hydration)
-├── migrations/              # SQL Vigor Score Migrations
-└── README.md
+```mermaid
+graph TD
+    User((User Wallet)) -->|say-gm| Social[gm-social.clar]
+    User -->|tip-author| Social
+    User -->|boost-post| Social
+    
+    Social -->|Check Emission| Cap{Daily Cap Helper}
+    Cap -->|Within Limit| Social
+    
+    Social -->|as-contract mint/burn| Token[gm-token-v2.clar]
+    Token -->|SIP-010 Transfer| Recipient((Recipient Wallet))
+    
+    Gov[Protocol Governor] -->|set-governor| Token
+    Gov -->|set-social-governor| Social
 ```
 
 ---
 
-## 🛤️ Roadmap: From dApp to Protocol
+## 🪙 Tokenomics
+The **$GM Token** is a SIP-010 compliant fungible token that powers the Gm ecosystem.
 
-### ✅ Phase 1-4: The Foundation
-*   Bulletproof GM/GN on-chain interactions.
-*   Identity system with avatars and bios.
-*   Follow/Unfollow social graph.
-
-### ✅ Phase 5-8: The Economy (Current)
-*   **$GM Token Launch**: SIP-010 compliant social mining.
-*   **Deflationary Boosts**: On-chain burn mechanism for post priority.
-*   **Vigor Discovery**: Algorithmic "For You" feed implementation.
-*   **Mobile Protocol HUD**: Real-time stats parity for all devices.
-
-### 🚀 Future: The Scale
-*   **Soulbound Badges**: Automatically minting reputation milestones.
-*   **Viral Loops**: Referral-based $GM incentives for network growth.
-*   **Mainnet Launch**: Transition from Devnet/Testnet to Stacks Mainnet.
+- **Rewards**: Earn GM by daily check-ins and receiving tips.
+- **Utility**: Burn GM to Boost posts and increase their visibility weight.
+- **Governance**: Vote on community proposals with your GM balance.
 
 ---
 
-## 🏗️ Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- [Leather Wallet](https://leather.io/)
 - [Clarinet](https://github.com/hirosystems/clarinet)
-- Supabase Project with `vigor_score` migration applied.
+- [Stacks Wallet](https://www.hiro.so/wallet)
 
-### Quick Start
-1. `npm install`
-2. Configure `.env.local` with your Supabase and Stacks credentials.
-3. `npm run dev`
-4. Run the `vigor_score_migration.sql` in your Supabase SQL Editor.
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/TheWeirdDee/gm-dapp.git
+
+# Navigate to project
+cd gm-dapp
+
+# Run contract tests
+clarinet test
+
+# Verify build
+clarinet check
+```
 
 ---
 
-Built with 🧡 on Stacks by [Divine Dilibe](https://github.com/TheWeirdDee).
-**Join the economy. Own your social.**
+## 🤝 Contributing
+We welcome contributions from the **Stacks** and **Talent Protocol** communities!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📜 License
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+**Gm.** 🚀
