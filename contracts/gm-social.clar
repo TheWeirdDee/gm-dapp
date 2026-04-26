@@ -31,7 +31,7 @@
 (define-constant FOLLOW-COOLDOWN u50) ;; ~8.3 hours
 
 ;; Data Vars
-(define-data-var token-contract principal .gm-token-v2)
+(define-data-var token-contract principal .gm-token-v13)
 (define-data-var governor principal tx-sender)
 (define-data-var total-gm-burned uint u0)
 (define-data-var active-proposal-round uint u1)
@@ -144,9 +144,9 @@
         last-gm: h, streak: streak, points: pts, is-pro: pro
       }))
 
-      ;; Safety Check & Bridge
-      (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
-      (try! (as-contract (contract-call? .gm-token-v2 mint mint-amount tx-sender)))
+      ;; Nakamoto-Ready Bridge (Clarity 4)
+      (asserts! (is-eq (var-get token-contract) .gm-token-v13) ERR-NOT-AUTHORIZED)
+      (try! (as-contract (contract-call? .gm-token-v13 mint mint-amount tx-sender)))
 
       (ok { streak: streak, points: pts })
     )
@@ -196,12 +196,12 @@
       total-received: (+ (get total-received r) amount)
     }))
 
-    ;; Safety Check & Bridge
-    (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
+    ;; Nakamoto-Ready Bridge (Clarity 4)
+    (asserts! (is-eq (var-get token-contract) .gm-token-v13) ERR-NOT-AUTHORIZED)
     
-    ;; V2: Emission Check
+    ;; V2/V11: Emission Check
     (try! (check-emission u5000000))
-    (try! (as-contract (contract-call? .gm-token-v2 mint u5000000 tx-sender)))
+    (try! (as-contract (contract-call? .gm-token-v13 mint u5000000 tx-sender)))
 
     (ok true)
   )
@@ -216,9 +216,9 @@
     ;; V2: Anti-Spam Check
     (asserts! (>= (- h last-b) BOOST-COOLDOWN) ERR-COOLDOWN)
     
-    ;; Safety Check & Bridge
-    (asserts! (is-eq (var-get token-contract) .gm-token-v2) ERR-NOT-AUTHORIZED)
-    (try! (as-contract (contract-call? .gm-token-v2 burn BOOST-COST tx-sender)))
+    ;; Nakamoto-Ready Bridge (Clarity 4)
+    (asserts! (is-eq (var-get token-contract) .gm-token-v13) ERR-NOT-AUTHORIZED)
+    (try! (as-contract (contract-call? .gm-token-v13 burn BOOST-COST tx-sender)))
 
     (map-set last-boost tx-sender h)
 
@@ -242,7 +242,7 @@
 
 (define-public (submit-vote (round uint) (option uint))
   (let (
-    (bal (unwrap! (contract-call? .gm-token-v2 get-balance tx-sender) ERR-NOT-AUTHORIZED))
+    (bal (unwrap! (contract-call? .gm-token-v13 get-balance tx-sender) ERR-NOT-AUTHORIZED))
     (p (unwrap! (map-get? proposals round) ERR-NOT-AUTHORIZED))
   )
     (asserts! (get active p) ERR-NOT-AUTHORIZED)
@@ -261,6 +261,52 @@
   )
 )
 
+(define-public (set-username (name (string-utf8 20)))
+  (let ((u (get-user-profile tx-sender)))
+    (asserts! (is-none (map-get? usernames name)) ERR-USERNAME-TAKEN)
+    (asserts! (is-none (get username u)) ERR-ALREADY-SET)
+    (map-set users tx-sender (merge u { username: (some name) }))
+    (map-set usernames name tx-sender)
+    (ok true)
+  )
+)
+
+(define-public (subscribe-pro)
+  (let ((u (get-user-profile tx-sender)))
+    ;; Allow renewal or fresh subscription
+    (try! (stx-transfer? PRO-PRICE tx-sender CONTRACT-OWNER))
+    (map-set users tx-sender (merge u {
+      is-pro: true,
+      pro-expiry: (+ burn-block-height SUBSCRIPTION-DURATION-BLOCKS),
+      heal-count: (+ (get heal-count u) INITIAL-HEALS)
+    }))
+    (ok true)
+  )
+)
+
+(define-public (heal-streak)
+  (let ((u (get-user-profile tx-sender)))
+    (asserts! (is-pro-active tx-sender) ERR-NOT-PRO)
+    (asserts! (> (get heal-count u) u0) ERR-NO-HEALS-LEFT)
+    ;; To heal, we refresh last-gm to 'now' so the Grace Period check passes in the next say-gm
+    (map-set users tx-sender (merge u {
+      last-gm: burn-block-height,
+      heal-count: (- (get heal-count u) u1)
+    }))
+    (ok true)
+  )
+)
+
+
+(define-read-only (get-user-data (user principal))
+  (let (
+    (u (get-user-profile user))
+    (f (get-follow-counts user))
+  )
+    (ok (merge u f))
+  )
+)
+
 (define-read-only (get-post-boost (post (buff 32)))
   (match (map-get? post-boosts post)
     boost
@@ -272,7 +318,7 @@
 )
 
 (define-read-only (is-ready)
-  (ok (is-eq (var-get token-contract) .gm-token-v2))
+  (ok (is-eq (var-get token-contract) .gm-token-v13))
 )
 
 (define-read-only (get-current-burn-height)
