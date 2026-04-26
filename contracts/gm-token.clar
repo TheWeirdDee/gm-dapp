@@ -34,7 +34,7 @@
   (begin
     (asserts! (is-eq contract-caller (var-get governor)) ERR-NOT-AUTHORIZED)
     (asserts! (> amount u0) ERR-INVALID-AMOUNT)
-    (ft-mint? gm-token amount recipient)
+    (ok (try! (ft-mint? gm-token amount recipient)))
   )
 )
 
@@ -43,7 +43,7 @@
   (begin
     (asserts! (is-eq contract-caller (var-get governor)) ERR-NOT-AUTHORIZED)
     (asserts! (> amount u0) ERR-INVALID-AMOUNT)
-    (ft-burn? gm-token amount sender)
+    (ok (try! (ft-burn? gm-token amount sender)))
   )
 )
 

@@ -114,7 +114,10 @@ export default function Navbar() {
               {isConnected ? (
                 <>
                   {address?.substring(0, 4)}...{address?.substring(address.length - 4)}
-                  <ChevronDown className="inline h-4 w-4 ml-1 opacity-50" />
+                  <ChevronDown 
+                    className="inline h-4 w-4 ml-1 opacity-50 transition-transform duration-300" 
+                    style={{ transform: showWalletDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  />
                 </>
               ) : (
                 'Connect Wallet'

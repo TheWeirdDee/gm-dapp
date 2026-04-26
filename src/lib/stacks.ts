@@ -347,6 +347,7 @@ export const callContract = async (options: any) => {
   const senderAddress = localStorage.getItem('gm_user_address') || undefined;
 
   await openContractCall({
+    postConditionMode: 0x01, // PostConditionMode.Allow (Simplified development)
     ...options,
     sponsored: false, // EXPLICIT: Disables bugged sponsored-transaction logic in Hiro Wallet
     stxAddress: senderAddress, // Provides address context to prevent internal lookup failures
