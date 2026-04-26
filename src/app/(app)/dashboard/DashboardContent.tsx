@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 
 import { callContract, getUserOnChainData } from '@/lib/stacks';
+import { APP_CONFIG } from '@/lib/config';
 import { useDispatch } from 'react-redux';
 import { updateStats, fetchOnChainStats } from '@/lib/features/userSlice';
 import { fetchPostsFromSupabase } from '@/lib/features/postsSlice';
@@ -45,6 +46,7 @@ export default function DashboardContent() {
     following, 
     isPro, 
     isOptimisticPro,
+    isStreakBroken,
     avatar
   } = useSelector((state: RootState) => state.user);
   const activePro = isPro || isOptimisticPro;
@@ -53,6 +55,7 @@ export default function DashboardContent() {
   const dismissed = useRef(false);
   const feed = useSelector((state: RootState) => state.posts.feed);
   const [isMounted, setIsMounted] = useState(false);
+  const [isHealing, setIsHealing] = useState(false);
   
   useEffect(() => {
     setIsMounted(true);
@@ -92,6 +95,32 @@ export default function DashboardContent() {
       setIsConfirmedToday(true);
     }
   }, [address, isConnected]);
+
+  const handleHealStreak = async () => {
+    if (!address || isHealing) return;
+    
+    setIsHealing(true);
+    try {
+      await callContract({
+        contractAddress: APP_CONFIG.social.address,
+        contractName: APP_CONFIG.social.name,
+        functionName: 'heal-streak',
+        functionArgs: [],
+        onFinish: (data: any) => {
+          toast.success("Streak Healed Successfully!");
+          dispatch(fetchOnChainStats(address) as any);
+          setIsHealing(false);
+        },
+        onCancel: () => {
+          setIsHealing(false);
+        }
+      });
+    } catch (err) {
+      console.error('Heal Streak Error:', err);
+      toast.error("Failed to heal streak");
+      setIsHealing(false);
+    }
+  };
 
   const addressShort = address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'GM User';
   const greeting = isLoading && !username 
@@ -173,15 +202,35 @@ export default function DashboardContent() {
 
           {/* 3. Stats Section */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6 order-3">
-             <div className="relative group">
                <StatCardVertical 
                   label="Days Streak" 
                   value={streak || 0} 
                   icon={History} 
-                  subtext={activePro ? "Streak protection active" : "Keep it up for bonuses!"}
+                  subtext={
+                    isStreakBroken 
+                      ? "Your streak has decayed!" 
+                      : activePro ? "Streak protection active" : "Keep it up for bonuses!"
+                  }
                   isLoading={isLoading}
+                  cta={isStreakBroken && (
+                    <button 
+                      onClick={() => activePro ? handleHealStreak() : setShowProModal(true)}
+                      disabled={isHealing}
+                      className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
+                        activePro ? 'bg-green-600 text-white' : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
+                      }`}
+                    >
+                      {isHealing ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : activePro ? (
+                        <CheckCircle2 className="w-3 h-3" />
+                      ) : (
+                        <Crown className="w-3 h-3" />
+                      )}
+                      {isHealing ? 'Healing...' : activePro ? 'Heal Streak' : 'Restore with Pro'}
+                    </button>
+                  )}
                />
-             </div>
              <StatCardVertical 
                 label="Social Reputation" 
                 value={((points || 0) / 10).toFixed(1)} 
