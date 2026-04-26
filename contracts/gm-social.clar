@@ -31,7 +31,7 @@
 (define-constant FOLLOW-COOLDOWN u50) ;; ~8.3 hours
 
 ;; Data Vars
-(define-data-var token-contract principal .gm-token-v14)
+(define-data-var token-contract principal tx-sender)
 (define-data-var governor principal tx-sender)
 (define-data-var total-gm-burned uint u0)
 (define-data-var active-proposal-round uint u1)
@@ -146,7 +146,7 @@
 
       ;; Nakamoto-Ready Bridge (Clarity 4)
       (asserts! (is-eq (var-get token-contract) .gm-token-v14) ERR-NOT-AUTHORIZED)
-      (try! (as-contract (contract-call? .gm-token-v14 mint mint-amount tx-sender)))
+      (try! (contract-call? .gm-token-v14 mint mint-amount tx-sender))
 
       (ok { streak: streak, points: pts })
     )
@@ -201,7 +201,7 @@
     
     ;; V2/V11: Emission Check
     (try! (check-emission u5000000))
-    (try! (as-contract (contract-call? .gm-token-v14 mint u5000000 tx-sender)))
+    (try! (contract-call? .gm-token-v14 mint u5000000 tx-sender))
 
     (ok true)
   )
@@ -218,7 +218,7 @@
     
     ;; Nakamoto-Ready Bridge (Clarity 4)
     (asserts! (is-eq (var-get token-contract) .gm-token-v14) ERR-NOT-AUTHORIZED)
-    (try! (as-contract (contract-call? .gm-token-v14 burn BOOST-COST tx-sender)))
+    (try! (contract-call? .gm-token-v14 burn BOOST-COST tx-sender))
 
     (map-set last-boost tx-sender h)
 
@@ -318,7 +318,7 @@
 )
 
 (define-read-only (is-ready)
-  (ok (is-eq (var-get token-contract) .gm-token-v13))
+  (ok (is-eq (var-get token-contract) .gm-token-v14))
 )
 
 (define-read-only (get-current-burn-height)

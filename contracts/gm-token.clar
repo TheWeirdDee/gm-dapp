@@ -32,7 +32,7 @@
 ;; Mint (Governor only)
 (define-public (mint (amount uint) (recipient principal))
   (begin
-    (asserts! (is-eq tx-sender (var-get governor)) ERR-NOT-AUTHORIZED)
+    (asserts! (is-eq contract-caller (var-get governor)) ERR-NOT-AUTHORIZED)
     (asserts! (> amount u0) ERR-INVALID-AMOUNT)
     (ft-mint? gm-token amount recipient)
   )
@@ -41,7 +41,7 @@
 ;; Burn (Governor only)
 (define-public (burn (amount uint) (sender principal))
   (begin
-    (asserts! (is-eq tx-sender (var-get governor)) ERR-NOT-AUTHORIZED)
+    (asserts! (is-eq contract-caller (var-get governor)) ERR-NOT-AUTHORIZED)
     (asserts! (> amount u0) ERR-INVALID-AMOUNT)
     (ft-burn? gm-token amount sender)
   )
@@ -50,7 +50,7 @@
 ;; Set Governor
 (define-public (set-governor (new-governor principal))
   (begin
-    (asserts! (is-eq tx-sender (var-get governor)) ERR-NOT-AUTHORIZED)
+    (asserts! (is-eq contract-caller (var-get governor)) ERR-NOT-AUTHORIZED)
     (var-set governor new-governor)
     (ok true)
   )
