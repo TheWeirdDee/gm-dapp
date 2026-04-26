@@ -344,8 +344,12 @@ export const callContract = async (options: any) => {
     network: APP_CONFIG.network.isMainnet ? 'Mainnet' : 'Testnet',
   });
 
+  const senderAddress = localStorage.getItem('gm_user_address') || undefined;
+
   await openContractCall({
     ...options,
+    sponsored: false, // EXPLICIT: Disables bugged sponsored-transaction logic in Hiro Wallet
+    stxAddress: senderAddress, // Provides address context to prevent internal lookup failures
     appDetails,
     network: APP_CONFIG.network,
     onFinish: async (data: any) => {
