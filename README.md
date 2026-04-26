@@ -10,7 +10,9 @@
 ---
 
 ## Overview
+
 Gm Social Protocol enables users to:
+
 - **Build reputation** through daily engagement (“say-gm”).
 - **Earn token rewards** for activity and consistency.
 - **Follow other users** and grow social graphs on-chain.
@@ -28,13 +30,13 @@ graph TD
     User((User Wallet)) -->|say-gm| Social[gm-social.clar]
     User -->|tip-author| Social
     User -->|boost-post| Social
-    
+
     Social -->|Check Emission| Cap{Daily Cap Helper}
     Cap -->|Within Limit| Social
-    
+
     Social -->|as-contract mint/burn| Token[gm-token-v2.clar]
     Token -->|SIP-010 Transfer| Recipient((Recipient Wallet))
-    
+
     Gov[Protocol Governor] -->|set-governor| Token
     Gov -->|set-social-governor| Social
 ```
@@ -42,20 +44,23 @@ graph TD
 ---
 
 ## Security Features (V2 Hardened)
+
 The protocol includes multiple safeguards to ensure long-term stability:
 
 - **Macro-Economic Emission Cap**: Global daily limit of 50M micro-GM to prevent uncontrolled token inflation.
 - **Anti-Spam Cooldowns**: Enforced block-based limits for key actions:
-    - **Follow Cooldown**: ~8.3 hours (50 blocks).
-    - **Boost Cooldown**: ~48 hours (288 blocks).
-    - **GM Cooldown**: 24 hours (144 blocks).
+  - **Follow Cooldown**: ~8.3 hours (50 blocks).
+  - **Boost Cooldown**: ~48 hours (288 blocks).
+  - **GM Cooldown**: 24 hours (144 blocks).
 - **Social Governance**: Dedicated protocol governor for future DAO/Multi-sig evolution.
 - **DAO Integrity**: Double-vote prevention included in the proposal system.
 
 ---
 
 ## Tokenomics & Emission Model
+
 The **$GM Token** is a SIP-010 compliant fungible token regulated through:
+
 - **Daily Mint Cap**: Enforced at the contract level for all rewards.
 - **Activity Incentives**: Rewards minted for daily engagement and "Gratitude" tipping.
 - **Velocity Control**: Token burns are used to weight content visibility (Boosting).
@@ -66,14 +71,18 @@ The **$GM Token** is a SIP-010 compliant fungible token regulated through:
 ## Smart Contracts
 
 ### 1. [gm-social.clar](file:///c:/Users/DELL/Desktop/gm-dapp/contracts/gm-social.clar)
+
 Main protocol logic responsible for:
+
 - User reputation and streak tracking.
 - Social graph management and follower counts.
 - Boosting, Tipping, and Pro subscription handling.
 - DAO proposal and voting aggregation.
 
 ### 2. [gm-token.clar](file:///c:/Users/DELL/Desktop/gm-dapp/contracts/gm-token.clar)
+
 SIP-010 compliant governance asset:
+
 - Minting strictly controlled by the Protocol Governor.
 - Native support for supply tracking and standard SIP-010 interactions.
 
@@ -90,10 +99,12 @@ SIP-010 compliant governance asset:
 ## Development Setup
 
 ### Prerequisites
+
 - [Clarinet](https://github.com/hirosystems/clarinet)
 - [Stacks Wallet](https://www.hiro.so/wallet)
 
 ### Installation
+
 ```bash
 # Install dependencies
 npm install
@@ -108,6 +119,7 @@ npm test
 ---
 
 ## Roadmap
+
 - [ ] Snapshot-based voting system upgrade
 - [ ] Multisig governor implementation (DAO transition)
 - [ ] Reputation decay mechanism
@@ -117,6 +129,7 @@ npm test
 ---
 
 ## Contributing
+
 We welcome contributions from the **Stacks** and **Talent Protocol** communities!
 
 1. Fork the Project
