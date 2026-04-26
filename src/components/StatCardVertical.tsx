@@ -10,9 +10,10 @@ interface StatCardVerticalProps {
   subtext: string;
   accentColor?: string;
   isLoading?: boolean;
+  cta?: React.ReactNode;
 }
 
-export default function StatCardVertical({ label, value, icon: Icon, subtext, accentColor = 'var(--color-accent)', isLoading }: StatCardVerticalProps) {
+export default function StatCardVertical({ label, value, icon: Icon, subtext, accentColor = 'var(--color-accent)', isLoading, cta }: StatCardVerticalProps) {
   return (
     <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-6 flex flex-col gap-4 relative overflow-hidden group hover:border-white/10 transition-all shadow-xl">
       <div className="flex items-center justify-between">
@@ -36,6 +37,12 @@ export default function StatCardVertical({ label, value, icon: Icon, subtext, ac
 
       <p className="text-xs text-gray-600 font-medium">{subtext}</p>
       
+      {cta && (
+        <div className="mt-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          {cta}
+        </div>
+      )}
+
       {/* Subtle indicator beam */}
       <div className="absolute top-0 right-0 w-[2px] h-full opacity-30 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: accentColor }}></div>
     </div>
