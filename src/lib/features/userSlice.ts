@@ -28,6 +28,7 @@ interface UserState {
   sessionToken: string | null;
   avatar: string | null;
   website: string | null;
+  isStreakBroken: boolean;
 }
 
 const getInitialOptimisticState = () => {
@@ -94,6 +95,7 @@ const initialState: UserState = {
   sessionToken: initialToken,
   avatar: typeof window !== 'undefined' ? localStorage.getItem('gm_avatar') : null,
   website: null,
+  isStreakBroken: false,
 };
 
 const userSlice = createSlice({
@@ -149,6 +151,7 @@ const userSlice = createSlice({
       state.totalReceived = 0;
       state.avatar = null;
       state.sessionToken = null;
+      state.isStreakBroken = false;
       
       if (typeof window !== 'undefined') {
         localStorage.removeItem('gm_user_address');
@@ -181,14 +184,12 @@ const userSlice = createSlice({
       totalTipped?: number;
       totalReceived?: number;
       website?: string | null;
+      isStreakBroken?: boolean;
     }>) {
       if (typeof window !== 'undefined' && action.payload) {
         // Protect monotonic stats: Only update localStorage if the incoming value is actually greater
         if (action.payload.streak !== undefined) {
-          const currentStreak = Number(localStorage.getItem('gm_streak') || 0);
-          if (action.payload.streak >= currentStreak) {
-            localStorage.setItem('gm_streak', action.payload.streak.toString());
-          }
+          localStorage.setItem('gm_streak', action.payload.streak.toString());
         }
         if (action.payload.points !== undefined) {
           const currentPoints = Number(localStorage.getItem('gm_points') || 0);
@@ -220,9 +221,10 @@ const userSlice = createSlice({
       if (action.payload.gmBalance !== undefined) state.gmBalance = action.payload.gmBalance;
       if (action.payload.totalTipped !== undefined) state.totalTipped = action.payload.totalTipped;
       if (action.payload.totalReceived !== undefined) state.totalReceived = action.payload.totalReceived;
+      if (action.payload.isStreakBroken !== undefined) state.isStreakBroken = action.payload.isStreakBroken;
       
       if (action.payload.streak !== undefined) {
-        state.streak = Math.max(state.streak, action.payload.streak);
+        state.streak = action.payload.streak;
       }
       if (action.payload.points !== undefined) {
         state.points = Math.max(state.points, action.payload.points);
@@ -301,22 +303,31 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
     }
     const userState = (getState() as RootState).user;
 
-    // --- HYBRID SYNC: Calculate effective stats using Unix Timestamps ---
-    const currentTimeSeconds = Math.floor(Date.now() / 1000);
-    const lastGmTimestamp = data?.lastGm || 0;
-    const secondsSinceLastGm = currentTimeSeconds - lastGmTimestamp;
+    // --- HYBRID SYNC: Calculate effective stats using Block Heights ---
+    const lastGmBlock = data?.lastGm || 0;
+    const blocksSinceLastGm = height > 0 && lastGmBlock > 0 ? (height - lastGmBlock) : 0;
     
+    // Streak Decay Logic: If > 288 blocks (~48 hours), the streak is technically broken
+    // The contract resets it on the NEXT 'say-gm', but UI should show 0 now for accuracy.
+    const GRACE_PERIOD_BLOCKS = 288;
+    const isStreakBroken = blocksSinceLastGm > GRACE_PERIOD_BLOCKS;
+
+    let finalStreak = data?.streak !== undefined ? data.streak : userState.streak;
+    
+    if (isStreakBroken) {
+      console.log('--- HYBRID SYNC: Streak has decayed due to inactivity (missing > 48h) ---');
+      // We keep the streak number in state but mark it broken so UI can show "Restore"
+    }
+
     const today = new Date().toISOString().split('T')[0];
     const hasLocalGmToday = localStorage.getItem(`gm_date_${address}`) === today;
     
-    // Lag Detection: If we said GM today locally, but the on-chain lastGm is from > 20 hours ago
-    // (A typical Stacks cooldown is 24h, so > 20h ago with a local GM today definitely means lag)
+    // Lag Detection: If we said GM today locally, but the on-chain lastGm is still old
     const isChainLagging = hasLocalGmToday && (
-      lastGmTimestamp === 0 || // New user
-      (secondsSinceLastGm > 20 * 3600) // Chain's last GM was from a previous cycle
+      lastGmBlock === 0 || 
+      (blocksSinceLastGm > 144) // Chain's last GM was from a previous cycle (> 24h ago)
     );
 
-    let finalStreak = data?.streak !== undefined ? data.streak : userState.streak;
     let finalPoints = data?.points !== undefined ? data.points : userState.points;
     const finalIsPro = data?.isPro !== undefined ? data.isPro : userState.isPro;
     
@@ -324,14 +335,12 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
     const pointsPerGm = isProUser ? 10 : 5;
 
     if (isChainLagging) {
-      console.log('--- HYBRID SYNC: Blockchain is lagging. Using timestamp logic ---');
-      console.log('--- NOW:', currentTimeSeconds, 'LAST_GM:', lastGmTimestamp, 'DIFF:', secondsSinceLastGm);
+      console.log('--- HYBRID SYNC: Blockchain is lagging. Using optimistic increment ---');
       
       finalStreak = Math.max(finalStreak, (data?.streak || 0) + 1);
       finalPoints = Math.max(finalPoints, (data?.points || 0) + pointsPerGm);
     }
     
-    console.log('--- SYNC COMPLETE: FINAL STREAK:', finalStreak, 'FINAL RP:', finalPoints / 10);
     
     console.log('--- SYNC COMPLETE: FINAL STREAK:', finalStreak, 'FINAL POINTS:', finalPoints, 'IS_PRO:', isProUser);
 
@@ -344,8 +353,10 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
       proExpiry: data?.proExpiry || userState.proExpiry,
       followers: data?.followers || userState.followers,
       following: data?.following || userState.following,
+      healCount: data?.healCount || userState.healCount,
       totalTipped: data?.totalTipped || userState.totalTipped,
       totalReceived: data?.totalReceived || userState.totalReceived,
+      isStreakBroken: isStreakBroken,
       gmBalance: gmBalance !== undefined ? gmBalance : userState.gmBalance
     }));
 
