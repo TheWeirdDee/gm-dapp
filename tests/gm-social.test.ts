@@ -3,7 +3,7 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import { initSimnet } from '@stacks/clarinet-sdk';
 import { Cl } from '@stacks/transactions';
 
-describe('gm-social-v13 contract', () => {
+describe('gm-social-v14 contract', () => {
   let simnet: any;
   const accounts = new Map();
   let WALLET_1: string;
@@ -13,14 +13,14 @@ describe('gm-social-v13 contract', () => {
     const accounts = simnet.getAccounts();
     WALLET_1 = accounts.get('wallet_1') || accounts.get('deployer')!;
     
-    // Set gm-social-v13-v12 as the governor for gm-token-v13
+    // Set gm-social-v14-v12 as the governor for gm-token-v14
     const deployer = accounts.get('deployer')!;
-    simnet.callPublicFn('gm-token-v13', 'set-governor', [Cl.principal(`${deployer}.gm-social-v13`)], deployer);
+    simnet.callPublicFn('gm-token-v14', 'set-governor', [Cl.principal(`${deployer}.gm-social-v14`)], deployer);
   });
 
   it('allows a user to say GM', () => {
     const { result } = simnet.callPublicFn(
-      'gm-social-v13',
+      'gm-social-v14',
       'say-gm',
       [],
       WALLET_1
@@ -34,11 +34,11 @@ describe('gm-social-v13 contract', () => {
 
   it('prevents saying GM twice in the same day (Clarity 4 stacks-block-time logic)', () => {
     // First GM
-    simnet.callPublicFn('gm-social-v13', 'say-gm', [], WALLET_1);
+    simnet.callPublicFn('gm-social-v14', 'say-gm', [], WALLET_1);
 
     // Second GM in the same block/time (fails)
     const { result } = simnet.callPublicFn(
-      'gm-social-v13',
+      'gm-social-v14',
       'say-gm',
       [],
       WALLET_1
@@ -50,14 +50,14 @@ describe('gm-social-v13 contract', () => {
 
   it('allows saying GM after 24 hours (86400 seconds)', () => {
     // First GM
-    simnet.callPublicFn('gm-social-v13', 'say-gm', [], WALLET_1);
+    simnet.callPublicFn('gm-social-v14', 'say-gm', [], WALLET_1);
 
     // Advance time by 145 blocks (144 is the cooldown)
     simnet.mineEmptyBurnBlocks(145);
 
     // Second GM (success)
     const { result } = simnet.callPublicFn(
-      'gm-social-v13',
+      'gm-social-v14',
       'say-gm',
       [],
       WALLET_1

@@ -31,7 +31,7 @@
 (define-constant FOLLOW-COOLDOWN u50) ;; ~8.3 hours
 
 ;; Data Vars
-(define-data-var token-contract principal .gm-token-v13)
+(define-data-var token-contract principal .gm-token-v14)
 (define-data-var governor principal tx-sender)
 (define-data-var total-gm-burned uint u0)
 (define-data-var active-proposal-round uint u1)
@@ -145,8 +145,8 @@
       }))
 
       ;; Nakamoto-Ready Bridge (Clarity 4)
-      (asserts! (is-eq (var-get token-contract) .gm-token-v13) ERR-NOT-AUTHORIZED)
-      (try! (as-contract (contract-call? .gm-token-v13 mint mint-amount tx-sender)))
+      (asserts! (is-eq (var-get token-contract) .gm-token-v14) ERR-NOT-AUTHORIZED)
+      (try! (as-contract (contract-call? .gm-token-v14 mint mint-amount tx-sender)))
 
       (ok { streak: streak, points: pts })
     )
@@ -197,11 +197,11 @@
     }))
 
     ;; Nakamoto-Ready Bridge (Clarity 4)
-    (asserts! (is-eq (var-get token-contract) .gm-token-v13) ERR-NOT-AUTHORIZED)
+    (asserts! (is-eq (var-get token-contract) .gm-token-v14) ERR-NOT-AUTHORIZED)
     
     ;; V2/V11: Emission Check
     (try! (check-emission u5000000))
-    (try! (as-contract (contract-call? .gm-token-v13 mint u5000000 tx-sender)))
+    (try! (as-contract (contract-call? .gm-token-v14 mint u5000000 tx-sender)))
 
     (ok true)
   )
@@ -217,8 +217,8 @@
     (asserts! (>= (- h last-b) BOOST-COOLDOWN) ERR-COOLDOWN)
     
     ;; Nakamoto-Ready Bridge (Clarity 4)
-    (asserts! (is-eq (var-get token-contract) .gm-token-v13) ERR-NOT-AUTHORIZED)
-    (try! (as-contract (contract-call? .gm-token-v13 burn BOOST-COST tx-sender)))
+    (asserts! (is-eq (var-get token-contract) .gm-token-v14) ERR-NOT-AUTHORIZED)
+    (try! (as-contract (contract-call? .gm-token-v14 burn BOOST-COST tx-sender)))
 
     (map-set last-boost tx-sender h)
 
@@ -242,7 +242,7 @@
 
 (define-public (submit-vote (round uint) (option uint))
   (let (
-    (bal (unwrap! (contract-call? .gm-token-v13 get-balance tx-sender) ERR-NOT-AUTHORIZED))
+    (bal (unwrap! (contract-call? .gm-token-v14 get-balance tx-sender) ERR-NOT-AUTHORIZED))
     (p (unwrap! (map-get? proposals round) ERR-NOT-AUTHORIZED))
   )
     (asserts! (get active p) ERR-NOT-AUTHORIZED)
