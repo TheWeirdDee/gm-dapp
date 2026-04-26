@@ -1,20 +1,26 @@
-/// <reference types="@stacks/clarinet-sdk/vitest-helpers/src/vitest.d.ts" />
+/// <reference path="../node_modules/@stacks/clarinet-sdk/vitest-helpers/src/vitest.d.ts" />
 import { describe, expect, it, beforeEach } from 'vitest';
 import { initSimnet } from '@stacks/clarinet-sdk';
 import { Cl } from '@stacks/transactions';
 
-describe('gm-social contract', () => {
+describe('gm-social-v13 contract', () => {
   let simnet: any;
   const accounts = new Map();
-  const WALLET_1 = 'ST1SJ3DTE5DN7XW54F2A5D2K9TXZ4V2S061E4K2E';
+  let WALLET_1: string;
 
   beforeEach(async () => {
     simnet = await initSimnet();
+    const accounts = simnet.getAccounts();
+    WALLET_1 = accounts.get('wallet_1') || accounts.get('deployer')!;
+    
+    // Set gm-social-v13-v12 as the governor for gm-token-v13
+    const deployer = accounts.get('deployer')!;
+    simnet.callPublicFn('gm-token-v13', 'set-governor', [Cl.principal(`${deployer}.gm-social-v13`)], deployer);
   });
 
   it('allows a user to say GM', () => {
     const { result } = simnet.callPublicFn(
-      'gm-social',
+      'gm-social-v13',
       'say-gm',
       [],
       WALLET_1
@@ -28,11 +34,11 @@ describe('gm-social contract', () => {
 
   it('prevents saying GM twice in the same day (Clarity 4 stacks-block-time logic)', () => {
     // First GM
-    simnet.callPublicFn('gm-social', 'say-gm', [], WALLET_1);
+    simnet.callPublicFn('gm-social-v13', 'say-gm', [], WALLET_1);
 
     // Second GM in the same block/time (fails)
     const { result } = simnet.callPublicFn(
-      'gm-social',
+      'gm-social-v13',
       'say-gm',
       [],
       WALLET_1
@@ -44,14 +50,14 @@ describe('gm-social contract', () => {
 
   it('allows saying GM after 24 hours (86400 seconds)', () => {
     // First GM
-    simnet.callPublicFn('gm-social', 'say-gm', [], WALLET_1);
+    simnet.callPublicFn('gm-social-v13', 'say-gm', [], WALLET_1);
 
-    // Advance time by 86401 seconds
-    simnet.setBurnBlockTimestamp(simnet.getBurnBlockTimestamp() + 86401);
+    // Advance time by 145 blocks (144 is the cooldown)
+    simnet.mineEmptyBurnBlocks(145);
 
     // Second GM (success)
     const { result } = simnet.callPublicFn(
-      'gm-social',
+      'gm-social-v13',
       'say-gm',
       [],
       WALLET_1
