@@ -9,18 +9,18 @@ export const APP_CONFIG = {
   // SOCIAL PROTOCOL (gm-social-v2)
   social: {
     address: process.env.NEXT_PUBLIC_SOCIAL_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
-    name: 'gm-social-v14',
+    name: 'gm-social-final-v1',
   },
   
   // TOKEN ECONOMY (gm-token-v2)
   token: {
     address: process.env.NEXT_PUBLIC_TOKEN_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
-    name: 'gm-token-v14',
+    name: 'gm-token-final-v1',
   },
 
   // Legacy fallback (for backward compatibility during migration)
   contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
-  contractName: process.env.NEXT_PUBLIC_CONTRACT_NAME || 'gm-social-v14',
+  contractName: process.env.NEXT_PUBLIC_CONTRACT_NAME || 'gm-social-final-v1',
   
   // Set Network Object
   network: IS_MAINNET ? STACKS_MAINNET : STACKS_TESTNET,
