@@ -106,23 +106,21 @@ export default function Navbar() {
             className="flex items-center gap-2 rounded-full bg-[var(--color-secondary)] pl-2 pr-5 py-2 text-sm font-black text-white transition-all hover:bg-opacity-90 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] active:scale-95"
           >
             {isConnected ? (
-              <IdentityAvatar address={address} src={avatar} size="xs" className="h-7 w-7 !rounded-full bg-white/10" />
-            ) : (
-              <Wallet className="h-4 w-4 ml-3" />
-            )}
-            <span>
-              {isConnected ? (
-                <>
+              <div className="flex items-center gap-2">
+                <IdentityAvatar address={address} src={avatar} size="xs" className="h-7 w-7 !rounded-full bg-white/10" />
+                <span>
                   {address?.substring(0, 4)}...{address?.substring(address.length - 4)}
-                  <ChevronDown 
-                    className="inline h-4 w-4 ml-1 opacity-50 transition-transform duration-300" 
-                    style={{ transform: showWalletDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  />
-                </>
-              ) : (
-                'Connect Wallet'
-              )}
-            </span>
+                </span>
+                <ChevronDown 
+                  className={`h-4 w-4 opacity-50 transition-transform duration-300 ${showWalletDropdown ? 'rotate-180' : 'rotate-0'}`} 
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 ml-3" />
+                <span>Connect Wallet</span>
+              </div>
+            )}
           </button>
 
           {/* Wallet Dropdown Menu (Authenticated Only) */}
