@@ -6,7 +6,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:contracts": "vitest run tests/gm-social.test.ts"
+    "test:contracts": "vitest run tests/gm-social.test.ts",
+    "deploy:mainnet": "ts-node scratch/deploy-mainnet.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
