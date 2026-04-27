@@ -89,13 +89,13 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
       console.log('Initiating Pro Purchase Transaction...', { 
         amount: amount.toString(), 
         principal: currentAddress,
-        contract: `${APP_CONFIG.contractAddress}.${APP_CONFIG.contractName}`
+        contract: `${APP_CONFIG.social.address}.${APP_CONFIG.social.name}`
       });
 
       await callContract({
         anchorMode: AnchorMode.Any,
-        contractAddress: APP_CONFIG.contractAddress,
-        contractName: APP_CONFIG.contractName,
+        contractAddress: APP_CONFIG.social.address,
+        contractName: APP_CONFIG.social.name,
         functionName: 'subscribe-pro',
         functionArgs: [],
         postConditionMode: PostConditionMode.Allow,
