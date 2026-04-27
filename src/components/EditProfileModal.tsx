@@ -54,8 +54,8 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
         try {
           await callContract({
             anchorMode: AnchorMode.Any,
-            contractAddress: APP_CONFIG.contractAddress,
-            contractName: APP_CONFIG.contractName,
+            contractAddress: APP_CONFIG.social.address,
+            contractName: APP_CONFIG.social.name,
             functionName: 'set-username',
             functionArgs: [stringUtf8CV(newUsername.trim())],
             postConditionMode: PostConditionMode.Deny,
