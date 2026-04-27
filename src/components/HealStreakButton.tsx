@@ -26,8 +26,8 @@ export default function HealStreakButton() {
     try {
       await callContract({
         anchorMode: AnchorMode.Any,
-        contractAddress: APP_CONFIG.contractAddress,
-        contractName: APP_CONFIG.contractName,
+        contractAddress: APP_CONFIG.social.address,
+        contractName: APP_CONFIG.social.name,
         functionName: 'heal-streak',
         functionArgs: [],
         postConditionMode: PostConditionMode.Deny,
