@@ -19,8 +19,8 @@ export const APP_CONFIG = {
   },
 
   // Legacy fallback (for backward compatibility during migration)
-  contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
-  contractName: process.env.NEXT_PUBLIC_CONTRACT_NAME || 'gm-social-final-v1',
+  contractAddress: process.env.NEXT_PUBLIC_SOCIAL_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
+  contractName: 'gm-social-final-v1',
   
   // Set Network Object
   network: IS_MAINNET ? STACKS_MAINNET : STACKS_TESTNET,
