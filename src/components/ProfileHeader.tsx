@@ -120,8 +120,8 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
 
       await callContract({
         anchorMode: AnchorMode.Any,
-        contractAddress: APP_CONFIG.contractAddress,
-        contractName: APP_CONFIG.contractName,
+        contractAddress: APP_CONFIG.social.address,
+        contractName: APP_CONFIG.social.name,
         functionName: 'follow',
         functionArgs: [principalCV(targetAddress)],
         postConditionMode: PostConditionMode.Deny,
