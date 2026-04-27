@@ -144,9 +144,9 @@
         last-gm: h, streak: streak, points: pts, is-pro: pro
       }))
 
-      ;; Nakamoto-Ready Bridge (Clarity 4)
-      (asserts! (is-eq (var-get token-contract) .gm-token-v14) ERR-NOT-AUTHORIZED)
-      (try! (contract-call? .gm-token-v14 mint mint-amount tx-sender))
+      ;; Bridge: call the deployed token contract
+      (asserts! (is-eq (var-get token-contract) .gm-token-final-v1) ERR-NOT-AUTHORIZED)
+      (try! (contract-call? .gm-token-final-v1 mint mint-amount tx-sender))
 
       (ok { streak: streak, points: pts })
     )
@@ -196,12 +196,12 @@
       total-received: (+ (get total-received r) amount)
     }))
 
-    ;; Nakamoto-Ready Bridge (Clarity 4)
-    (asserts! (is-eq (var-get token-contract) .gm-token-v14) ERR-NOT-AUTHORIZED)
+    ;; Bridge: call the deployed token contract
+    (asserts! (is-eq (var-get token-contract) .gm-token-final-v1) ERR-NOT-AUTHORIZED)
     
     ;; V2/V11: Emission Check
     (try! (check-emission u5000000))
-    (try! (contract-call? .gm-token-v14 mint u5000000 tx-sender))
+    (try! (contract-call? .gm-token-final-v1 mint u5000000 tx-sender))
 
     (ok true)
   )
@@ -216,9 +216,9 @@
     ;; V2: Anti-Spam Check
     (asserts! (>= (- h last-b) BOOST-COOLDOWN) ERR-COOLDOWN)
     
-    ;; Nakamoto-Ready Bridge (Clarity 4)
-    (asserts! (is-eq (var-get token-contract) .gm-token-v14) ERR-NOT-AUTHORIZED)
-    (try! (contract-call? .gm-token-v14 burn BOOST-COST tx-sender))
+    ;; Bridge: call the deployed token contract
+    (asserts! (is-eq (var-get token-contract) .gm-token-final-v1) ERR-NOT-AUTHORIZED)
+    (try! (contract-call? .gm-token-final-v1 burn BOOST-COST tx-sender))
 
     (map-set last-boost tx-sender h)
 
@@ -242,7 +242,7 @@
 
 (define-public (submit-vote (round uint) (option uint))
   (let (
-    (bal (unwrap! (contract-call? .gm-token-v14 get-balance tx-sender) ERR-NOT-AUTHORIZED))
+    (bal (unwrap! (contract-call? .gm-token-final-v1 get-balance tx-sender) ERR-NOT-AUTHORIZED))
     (p (unwrap! (map-get? proposals round) ERR-NOT-AUTHORIZED))
   )
     (asserts! (get active p) ERR-NOT-AUTHORIZED)
@@ -318,7 +318,7 @@
 )
 
 (define-read-only (is-ready)
-  (ok (is-eq (var-get token-contract) .gm-token-v14))
+  (ok (is-eq (var-get token-contract) .gm-token-final-v1))
 )
 
 (define-read-only (get-current-burn-height)
