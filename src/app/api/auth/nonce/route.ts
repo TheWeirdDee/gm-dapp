@@ -35,6 +35,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ nonce });
   } catch (error: any) {
     console.error('Nonce generation error:', error);
-    return NextResponse.json({ error: 'Failed to generate nonce' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to generate nonce',
+      details: error.message,
+      code: error.code
+    }, { status: 500 });
   }
 }
