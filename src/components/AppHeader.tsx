@@ -151,8 +151,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                       {username || (address ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}` : 'Guest')}
                     </span>
                     <ChevronDown 
-                      className="h-3 w-3 text-gray-500 transition-transform duration-300"
-                      style={{ transform: showUserDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                      className={`h-3 w-3 text-gray-500 transition-transform duration-300 ${showUserDropdown ? 'rotate-180' : 'rotate-0'}`}
                     />
                   </button>
 
