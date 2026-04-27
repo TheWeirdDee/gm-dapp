@@ -467,7 +467,11 @@ export async function signInWithWallet(address: string): Promise<{ token: string
     body: JSON.stringify({ address })
   });
 
-  if (!nonceRes.ok) throw new Error('Failed to get auth nonce');
+  if (!nonceRes.ok) {
+    const errorData = await nonceRes.json();
+    console.error('--- NONCE ERROR DETAILS ---', errorData);
+    throw new Error(errorData.details || 'Failed to get auth nonce');
+  }
   const { nonce } = await nonceRes.json();
 
   const message = `Sign in to GM DApp\nNonce: ${nonce}`;
