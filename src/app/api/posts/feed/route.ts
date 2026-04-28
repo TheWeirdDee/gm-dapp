@@ -58,19 +58,21 @@ export async function GET(req: NextRequest) {
     const reactionsMap: any = {};
 
     // 4. Batch fetch reactions for the current batch
-    try {
-      const postIds = postsData.map((p: any) => p.id);
-      const { data: reactions } = await supabase
-        .from('post_reactions')
-        .select('*')
-        .in('post_id', postIds);
-      
-      (reactions || []).forEach((r: any) => {
-        if (!reactionsMap[r.post_id]) reactionsMap[r.post_id] = [];
-        reactionsMap[r.post_id].push(r);
-      });
-    } catch (e) {
-      console.warn('post_reactions fetch failed, skipping reactions');
+    if (postsData.length > 0) {
+      try {
+        const postIds = postsData.map((p: any) => p.id);
+        const { data: reactions } = await supabase
+          .from('post_reactions')
+          .select('*')
+          .in('post_id', postIds);
+        
+        (reactions || []).forEach((r: any) => {
+          if (!reactionsMap[r.post_id]) reactionsMap[r.post_id] = [];
+          reactionsMap[r.post_id].push(r);
+        });
+      } catch (e) {
+        console.warn('post_reactions fetch failed, skipping reactions:', e);
+      }
     }
 
     // 5. Connect the dots
