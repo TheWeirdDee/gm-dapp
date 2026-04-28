@@ -143,8 +143,12 @@ export const getUserOnChainData = async (userAddress: string) => {
       streak: getNum(unwrapped.streak),
       username: extractOptional(unwrapped.username),
       isPro: (unwrapped['is-pro'] || unwrapped.isPro) === true,
+      proExpiry: getNum(unwrapped['pro-expiry'] || unwrapped.proExpiry),
+      healCount: getNum(unwrapped['heal-count'] || unwrapped.healCount),
       totalTipped: getNum(unwrapped['total-tipped'] || unwrapped.totalTipped),
       totalReceived: getNum(unwrapped['total-received'] || unwrapped.totalReceived),
+      followers: getNum(unwrapped.followers),
+      following: getNum(unwrapped.following),
     };
   } catch (error) {
     return null;
@@ -242,7 +246,7 @@ export const tipAuthor = async (recipient: string, amountStx: number, senderAddr
 /**
  * SIGN IN WITH WALLET
  */
-export const signInWithWallet = async (address: string) => {
+export const signInWithWallet = async (address: string): Promise<{ token: string } | null> => {
   if (typeof window === 'undefined') return null;
   try {
     const connect = getConnect();
@@ -261,7 +265,7 @@ export const signInWithWallet = async (address: string) => {
     const { nonce } = await response.json();
     return new Promise((resolve, reject) => {
       openSignatureRequest({
-        message: `Sign this message to verify your identity on GM Social.\n\nNonce: ${nonce}`,
+        message: `Sign in to GM DApp\nNonce: ${nonce}`,
         network: APP_CONFIG.network,
         appDetails,
         onFinish: async (data: any) => {
@@ -277,7 +281,7 @@ export const signInWithWallet = async (address: string) => {
               })
             });
             const { token } = await verifyRes.json();
-            resolve(token);
+            resolve({ token });
           } catch (err) {
             reject(err);
           }
