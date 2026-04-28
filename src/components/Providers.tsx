@@ -48,19 +48,28 @@ function AuthHydrator({
 
       if (!initialUser) {
         // Fallback for non-cookie based sessions
-        const session = getUserSession();
-        if (session?.isUserSignedIn()) {
-          const userData = session.loadUserData();
-          dispatch(setUserData({
-            address: effectiveAddress,
-            profile: userData.profile
-          }));
-        } else {
-          // Minimal hydration if we only have the address
-          dispatch(setUserData({
-            address: effectiveAddress,
-            profile: { stxAddress: effectiveAddress }
-          }));
+        try {
+          const session = getUserSession();
+          if (session?.isUserSignedIn()) {
+            const userData = session.loadUserData();
+            dispatch(setUserData({
+              address: effectiveAddress,
+              profile: userData.profile
+            }));
+          } else {
+            // Minimal hydration if we only have the address
+            dispatch(setUserData({
+              address: effectiveAddress,
+              profile: { stxAddress: effectiveAddress }
+            }));
+          }
+        } catch (e) {
+          console.warn('--- HYDRATOR: Stacks session corrupted. Clearing cache. ---', e);
+          localStorage.removeItem('blockstack-session'); // The exact key used by @stacks/auth
+          localStorage.removeItem('gm_user_address');
+          localStorage.removeItem('gm_session_token');
+          // Start fresh
+          window.location.reload(); 
         }
       }
       
