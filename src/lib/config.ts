@@ -35,7 +35,10 @@ export const APP_CONFIG = {
 /**
  * Generates a link to the Stacks Explorer for a given transaction ID.
  */
-export const getExplorerLink = (txId: string) => {
-  const cleanTxId = txId.startsWith('0x') ? txId : `0x${txId}`;
-  return `${APP_CONFIG.explorerUrl}/txid/${cleanTxId}`;
+export const getExplorerLink = (id: string) => {
+  if (!id) return APP_CONFIG.explorerUrl;
+  const isAddress = id.startsWith('S');
+  const path = isAddress ? 'address' : 'txid';
+  const cleanId = (isAddress || id.startsWith('0x')) ? id : `0x${id}`;
+  return `${APP_CONFIG.explorerUrl}/${path}/${cleanId}`;
 };

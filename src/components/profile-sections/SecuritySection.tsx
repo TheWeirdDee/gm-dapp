@@ -1,6 +1,7 @@
 'use client';
 
 import { Shield, ExternalLink, Key, Smartphone, Globe } from 'lucide-react';
+import { APP_CONFIG, getExplorerLink } from '@/lib/config';
 
 export default function SecuritySection({ address }: { address: string }) {
   return (
@@ -22,11 +23,11 @@ export default function SecuritySection({ address }: { address: string }) {
                  </div>
                  <div>
                     <p className="text-sm font-bold text-white">Wallet Connection</p>
-                    <p className="text-xs text-gray-500">Stacks Testnet via Leather/Xverse</p>
+                    <p className="text-xs text-gray-500">Stacks {APP_CONFIG.isMainnet ? 'Mainnet' : 'Testnet'} via Leather/Xverse</p>
                  </div>
               </div>
               <a 
-                href={`https://explorer.hiro.so/address/${address}?chain=testnet`} 
+                href={getExplorerLink(address)} 
                 target="_blank" 
                 rel="noreferrer"
                 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-white transition-colors"
