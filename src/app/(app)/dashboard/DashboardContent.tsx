@@ -7,6 +7,7 @@ import AnalyticsGraph from '@/components/AnalyticsGraph';
 import StatCardVertical from '@/components/StatCardVertical';
 import SetUsernameModal from '@/components/SetUsernameModal';
 import ProPlanModal from '@/components/ProPlanModal';
+import NetworkStats from '@/components/NetworkStats';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import Link from 'next/link';
@@ -156,6 +157,9 @@ export default function DashboardContent() {
       
       <SetUsernameModal isOpen={showOnboarding} onClose={handleCloseOnboarding} />
       <ProPlanModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
+
+      {/* Network Health Stats */}
+      <NetworkStats />
 
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10">
         
