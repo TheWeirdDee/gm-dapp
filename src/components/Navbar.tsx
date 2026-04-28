@@ -5,10 +5,14 @@ import { RootState } from '@/lib/store';
 import { logout, setSessionToken, setAddress } from '@/lib/features/userSlice';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'react-hot-toast';
-import { Star, Info, Rss, Trophy, LayoutDashboard, User as UserIcon, Wallet, ChevronDown, LogOut } from 'lucide-react';
+import { 
+  Star, Info, Rss, Trophy, LayoutDashboard, 
+  User as UserIcon, Wallet, ChevronDown, LogOut, Send 
+} from 'lucide-react';
 import Link from 'next/link';
 import BrandLogo from './BrandLogo';
 import IdentityAvatar from './IdentityAvatar';
+import SendSTXModal from './SendSTXModal';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -18,6 +22,7 @@ export default function Navbar() {
   const { login } = useWalletAuth();
   
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
   const authInProgress = useRef(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -145,6 +150,17 @@ export default function Navbar() {
                </Link>
 
                <button 
+                 onClick={() => {
+                   setShowSendModal(true);
+                   setShowWalletDropdown(false);
+                 }}
+                 className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-white/[0.03] transition-colors text-[var(--color-accent)] group"
+               >
+                 <Send className="h-4 w-4 opacity-70 group-hover:opacity-100" />
+                 <span className="font-bold text-sm">Send STX</span>
+               </button>
+
+               <button 
                  onClick={handleDisconnect}
                  className="w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-red-500/10 transition-colors text-red-400 group"
                >
@@ -156,6 +172,11 @@ export default function Navbar() {
         </div>
       </div>
       
+      <SendSTXModal 
+        isOpen={showSendModal} 
+        onClose={() => setShowSendModal(false)} 
+      />
+
       {/* Mobile Nav Tabs */}
       <div className="md:hidden flex flex-wrap items-center justify-around bg-[#0a0a0a] p-2 fixed bottom-0 w-full z-50 gap-y-2">
         {displayLinks.map((link) => {
@@ -174,6 +195,15 @@ export default function Navbar() {
             </Link>
           );
         })}
+        {isConnected && (
+          <button
+            onClick={() => setShowSendModal(true)}
+            className="flex flex-col items-center gap-1 text-[10px] sm:text-xs text-[var(--color-accent)] transition-colors px-2 py-1"
+          >
+            <Send className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="text-center">Send</span>
+          </button>
+        )}
       </div>
     </nav>
   );

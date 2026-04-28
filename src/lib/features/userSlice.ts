@@ -58,14 +58,14 @@ const getInitialSessionToken = () => {
   return token;
 };
 
-const getInitialNum = (key: string) => {
-  if (typeof window === 'undefined') return 0;
-  return Number(localStorage.getItem(key) || 0);
+const getInitialNum = (key: string, address: string | null) => {
+  if (typeof window === 'undefined' || !address) return 0;
+  return Number(localStorage.getItem(`${key}_${address}`) || 0);
 };
 
-const getInitialBool = (key: string) => {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem(key) === 'true';
+const getInitialBool = (key: string, address: string | null) => {
+  if (typeof window === 'undefined' || !address) return false;
+  return localStorage.getItem(`${key}_${address}`) === 'true';
 };
 
 const initialAddress = getInitialAddress();
@@ -76,24 +76,24 @@ const initialState: UserState = {
   profile: null,
   isConnected: !!initialToken, 
   isLoading: !!initialToken,
-  gmBalance: getInitialNum('gm_token_balance'),
+  gmBalance: getInitialNum('gm_token_balance', initialAddress),
   username: getInitialUsername(initialAddress),
   bio: null,
-  streak: getInitialNum('gm_streak'),
-  points: getInitialNum('gm_points'),
-  lastGm: getInitialNum('gm_last_gm'),
-  isPro: getInitialBool('gm_is_pro'),
-  proExpiry: getInitialNum('gm_pro_expiry'),
-  healCount: getInitialNum('gm_heals'),
-  followers: getInitialNum('gm_followers'),
-  following: getInitialNum('gm_following'),
-  totalTipped: getInitialNum('gm_total_tipped'),
-  totalReceived: getInitialNum('gm_total_received'),
+  streak: getInitialNum('gm_streak', initialAddress),
+  points: getInitialNum('gm_points', initialAddress),
+  lastGm: getInitialNum('gm_last_gm', initialAddress),
+  isPro: getInitialBool('gm_is_pro', initialAddress),
+  proExpiry: getInitialNum('gm_pro_expiry', initialAddress),
+  healCount: getInitialNum('gm_heals', initialAddress),
+  followers: getInitialNum('gm_followers', initialAddress),
+  following: getInitialNum('gm_following', initialAddress),
+  totalTipped: getInitialNum('gm_total_tipped', initialAddress),
+  totalReceived: getInitialNum('gm_total_received', initialAddress),
   currentBlockHeight: 0,
   isSimulationMode: false,
   isOptimisticPro: getInitialOptimisticState(),
   sessionToken: initialToken,
-  avatar: typeof window !== 'undefined' ? localStorage.getItem('gm_avatar') : null,
+  avatar: typeof window !== 'undefined' && initialAddress ? localStorage.getItem(`gm_avatar_${initialAddress}`) : null,
   website: null,
   isStreakBroken: false,
 };
@@ -132,38 +132,14 @@ const userSlice = createSlice({
       }
     },
     logout(state) {
-      state.address = null;
-      state.profile = null;
-      state.isConnected = false;
-      state.isLoading = false;
-      state.gmBalance = 0;
-      state.username = null;
-      state.bio = null;
-      state.streak = 0;
-      state.points = 0;
-      state.lastGm = 0;
-      state.isPro = false;
-      state.proExpiry = 0;
-      state.healCount = 0;
-      state.followers = 0;
-      state.following = 0;
-      state.totalTipped = 0;
-      state.totalReceived = 0;
-      state.avatar = null;
-      state.sessionToken = null;
-      state.isStreakBroken = false;
-      
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('gm_user_address');
-        localStorage.removeItem('gm_session_token');
-        localStorage.removeItem('gm_is_optimistic_pro');
-        
-        // Clear the cookie via API
-        fetch('/api/auth/logout', { method: 'POST' }).catch(err => console.error('Logout error:', err));
-        
-        // Clear Stacks session
-        getUserSession()?.signUserOut();
-      }
+      // Full reset of state to defaults
+      return {
+        ...initialState,
+        address: null,
+        isConnected: false,
+        isLoading: false,
+        sessionToken: null
+      };
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
@@ -186,28 +162,20 @@ const userSlice = createSlice({
       website?: string | null;
       isStreakBroken?: boolean;
     }>) {
-      if (typeof window !== 'undefined' && action.payload) {
-        // Protect monotonic stats: Only update localStorage if the incoming value is actually greater
-        if (action.payload.streak !== undefined) {
-          localStorage.setItem('gm_streak', action.payload.streak.toString());
-        }
-        if (action.payload.points !== undefined) {
-          const currentPoints = Number(localStorage.getItem('gm_points') || 0);
-          if (action.payload.points >= currentPoints) {
-            localStorage.setItem('gm_points', action.payload.points.toString());
-          }
-        }
-        
-        if (action.payload.lastGm !== undefined) localStorage.setItem('gm_last_gm', action.payload.lastGm.toString());
-        if (action.payload.gmBalance !== undefined) localStorage.setItem('gm_token_balance', action.payload.gmBalance.toString());
-        if (action.payload.isPro !== undefined) localStorage.setItem('gm_is_pro', action.payload.isPro.toString());
-        if (action.payload.proExpiry !== undefined) localStorage.setItem('gm_pro_expiry', action.payload.proExpiry.toString());
-        if (action.payload.followers !== undefined) localStorage.setItem('gm_followers', action.payload.followers.toString());
-        if (action.payload.following !== undefined) localStorage.setItem('gm_following', action.payload.following.toString());
-        if (action.payload.healCount !== undefined) localStorage.setItem('gm_heals', action.payload.healCount.toString());
-        if (action.payload.avatar !== undefined && action.payload.avatar) localStorage.setItem('gm_avatar', action.payload.avatar);
-        if (action.payload.totalTipped !== undefined) localStorage.setItem('gm_total_tipped', action.payload.totalTipped.toString());
-        if (action.payload.totalReceived !== undefined) localStorage.setItem('gm_total_received', action.payload.totalReceived.toString());
+      if (typeof window !== 'undefined' && action.payload && state.address) {
+        const addr = state.address;
+        if (action.payload.streak !== undefined) localStorage.setItem(`gm_streak_${addr}`, action.payload.streak.toString());
+        if (action.payload.points !== undefined) localStorage.setItem(`gm_points_${addr}`, action.payload.points.toString());
+        if (action.payload.lastGm !== undefined) localStorage.setItem(`gm_last_gm_${addr}`, action.payload.lastGm.toString());
+        if (action.payload.gmBalance !== undefined) localStorage.setItem(`gm_token_balance_${addr}`, action.payload.gmBalance.toString());
+        if (action.payload.isPro !== undefined) localStorage.setItem(`gm_is_pro_${addr}`, action.payload.isPro.toString());
+        if (action.payload.proExpiry !== undefined) localStorage.setItem(`gm_pro_expiry_${addr}`, action.payload.proExpiry.toString());
+        if (action.payload.followers !== undefined) localStorage.setItem(`gm_followers_${addr}`, action.payload.followers.toString());
+        if (action.payload.following !== undefined) localStorage.setItem(`gm_following_${addr}`, action.payload.following.toString());
+        if (action.payload.healCount !== undefined) localStorage.setItem(`gm_heals_${addr}`, action.payload.healCount.toString());
+        if (action.payload.avatar !== undefined && action.payload.avatar) localStorage.setItem(`gm_avatar_${addr}`, action.payload.avatar);
+        if (action.payload.totalTipped !== undefined) localStorage.setItem(`gm_total_tipped_${addr}`, action.payload.totalTipped.toString());
+        if (action.payload.totalReceived !== undefined) localStorage.setItem(`gm_total_received_${addr}`, action.payload.totalReceived.toString());
       }
 
       if (action.payload.isPro !== undefined) state.isPro = action.payload.isPro;
@@ -227,10 +195,10 @@ const userSlice = createSlice({
         state.streak = action.payload.streak;
       }
       if (action.payload.points !== undefined) {
-        state.points = Math.max(state.points, action.payload.points);
+        state.points = action.payload.points; // Trust the incoming on-chain/API sync data
       }
       if (action.payload.lastGm !== undefined) {
-        state.lastGm = Math.max(state.lastGm, action.payload.lastGm);
+        state.lastGm = action.payload.lastGm;
       }
       
       // Strict Persistence Logic: Supabase > localStorage > Address

@@ -144,7 +144,7 @@ export default function PostCard({ post }: PostCardProps) {
       setShowTipOptions(false);
       toast.loading(`Tipping ${amount} STX to author...`, { id: 'tip' });
       
-      await tipAuthor(post.authorAddress, amount);
+      await tipAuthor(post.authorAddress, amount, currentAddress);
       
       // SYNC: Update Supabase Post Stats
       try {
@@ -181,6 +181,7 @@ export default function PostCard({ post }: PostCardProps) {
         contractName: APP_CONFIG.social.name,
         functionName: 'boost-post',
         functionArgs: [bufferCV(Buffer.from(post.id.replace('tx-', ''), 'hex'))],
+        stxAddress: currentAddress,
         onFinish: (data: any) => {
           toast.success('Post Boosted! Scarcity Increased.', {
             icon: '🚀',

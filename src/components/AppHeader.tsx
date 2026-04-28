@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
 import BrandLogo from './BrandLogo';
-import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown, Home, Wallet } from 'lucide-react';
+import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown, Home, Wallet, Send } from 'lucide-react';
 import Link from 'next/link';
 import IdentityAvatar from './IdentityAvatar';
+import SendSTXModal from './SendSTXModal';
 import { logout, setSessionToken, setAddress } from '@/lib/features/userSlice';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { usePathname } from 'next/navigation';
@@ -23,6 +24,8 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   const { address, isConnected, username, avatar, gmBalance, streak, points } = useSelector((state: RootState) => state.user);
   const { login } = useWalletAuth();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -169,6 +172,19 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                         <span className="font-bold">Your Profile</span>
                       </Link>
 
+                      <button 
+                        onClick={() => {
+                          setShowSendModal(true);
+                          setShowUserDropdown(false);
+                        }}
+                        className="mx-2 w-[calc(100%-1rem)] flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 rounded-xl transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-[var(--color-accent)]/5 flex items-center justify-center group-hover:bg-[var(--color-accent)]/20 transition-colors">
+                          <Send className="h-4 w-4" />
+                        </div>
+                        <span className="font-bold">Send STX</span>
+                      </button>
+
                       <Link href="/settings" onClick={() => setShowUserDropdown(false)} className="mx-2 flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group">
                         <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                           <Settings className="h-4 w-4" />
@@ -207,6 +223,11 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
         </div>
       </div>
     </header>
+    
+    <SendSTXModal 
+      isOpen={showSendModal} 
+      onClose={() => setShowSendModal(false)} 
+    />
     
     {/* Mobile Protocol HUD - Sticky below header */}
     {hasMounted && isConnected && (

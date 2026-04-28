@@ -55,6 +55,7 @@ export default function GMButton() {
         contractName: APP_CONFIG.social.name,
         functionName: 'say-gm',
         functionArgs: [],
+        stxAddress: address,
         postConditionMode: PostConditionMode.Deny,
         postConditions: [],
         onFinish: async (data: any) => {
