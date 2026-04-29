@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     // 1. Fetch latest data from Stacks API (reading the contract state)
     // We call the read-only function 'get-user-data' from the contract
     const contractAddress = 'SP1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSRKP54QX';
-    const contractName = 'gm-social-final-v1';
+    const contractName = 'gm-social-final-v5';
     
     const readUrl = `https://api.mainnet.hiro.so/v2/contracts/call-read/${contractAddress}/${contractName}/get-user-data`;
     
