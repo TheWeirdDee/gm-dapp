@@ -8,14 +8,14 @@ const IS_MAINNET = networkType === 'mainnet';
 export const APP_CONFIG = {
   // SOCIAL PROTOCOL (gm-social-v2)
   social: {
-    address: process.env.NEXT_PUBLIC_SOCIAL_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
-    name: 'gm-social-final-v1',
+    address: 'SP1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSRKP54QX',
+    name: 'gm-social-final-v5',
   },
   
   // TOKEN ECONOMY (gm-token-v2)
   token: {
-    address: process.env.NEXT_PUBLIC_TOKEN_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
-    name: 'gm-token-final-v1',
+    address: 'SP1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSRKP54QX',
+    name: 'gm-social-token-v4',
   },
 
   // Legacy fallback (for backward compatibility during migration)
@@ -29,7 +29,11 @@ export const APP_CONFIG = {
   // Set Explorer Base URL
   explorerUrl: IS_MAINNET 
     ? 'https://explorer.hiro.so' 
-    : 'https://explorer.hiro.so?chain=testnet'
+    : 'https://explorer.hiro.so?chain=testnet',
+  
+  // DEFAULT FEE (in micro-STX)
+  // Setting this to 100,000 (0.1 STX) ensures ultra-fast confirmation
+  defaultFee: 100000,
 };
 
 /**
