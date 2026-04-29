@@ -10,6 +10,7 @@
 (define-constant TOKEN-DECIMALS u6)
 
 ;; Governance
+(define-constant CONTRACT-OWNER tx-sender)
 (define-data-var governor principal tx-sender)
 
 ;; Token Definition
@@ -50,7 +51,8 @@
 ;; Set Governor
 (define-public (set-governor (new-governor principal))
   (begin
-    (asserts! (is-eq contract-caller (var-get governor)) ERR-NOT-AUTHORIZED)
+    ;; Allow either the current governor OR the original contract owner to update this
+    (asserts! (or (is-eq contract-caller (var-get governor)) (is-eq tx-sender CONTRACT-OWNER)) ERR-NOT-AUTHORIZED)
     (var-set governor new-governor)
     (ok true)
   )
