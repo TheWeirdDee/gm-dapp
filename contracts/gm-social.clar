@@ -17,7 +17,7 @@
 
 ;; Constants
 (define-constant CONTRACT-OWNER tx-sender)
-(define-constant COOLDOWN-BLOCKS u144)
+(define-constant COOLDOWN-BLOCKS u0) ;; Removed cooldown
 (define-constant GRACE-PERIOD-BLOCKS u288)
 (define-constant PRO-PRICE u10000000)
 (define-constant SUBSCRIPTION-DURATION-BLOCKS u4320)
@@ -25,10 +25,10 @@
 (define-constant BOOST-COST u5000000)
 
 ;; V2 Security & Rate Limits
-(define-constant EMISSION-CAP u50000000) ;; Daily micro-GM minting cap
+(define-constant EMISSION-CAP u1000000000000000) ;; Effectively no limit (1B GM per day)
 (define-constant DAY-BLOCKS u1440) ;; Approximately 24 hours in blocks
-(define-constant BOOST-COOLDOWN u288) ;; ~48 hours
-(define-constant FOLLOW-COOLDOWN u50) ;; ~8.3 hours
+(define-constant BOOST-COOLDOWN u0)
+(define-constant FOLLOW-COOLDOWN u0)
 
 ;; Data Vars
 (define-data-var token-contract principal tx-sender)
@@ -130,7 +130,7 @@
     (passed (if (> h last) (- h last) u0))
     (pro (is-pro-active tx-sender))
   )
-    (asserts! (or (is-eq last u0) (> passed COOLDOWN-BLOCKS)) ERR-COOLDOWN-ACTIVE)
+    (asserts! (or (is-eq last u0) (>= passed COOLDOWN-BLOCKS)) ERR-COOLDOWN-ACTIVE)
 
     (let (
       (streak (if (<= passed GRACE-PERIOD-BLOCKS) (+ (get streak u) u1) u1))
@@ -145,8 +145,8 @@
       }))
 
       ;; Bridge: call the deployed token contract
-      (asserts! (is-eq (var-get token-contract) .gm-token-final-v1) ERR-NOT-AUTHORIZED)
-      (try! (contract-call? .gm-token-final-v1 mint mint-amount tx-sender))
+      (asserts! (is-eq (var-get token-contract) .gm-social-token-v4) ERR-NOT-AUTHORIZED)
+      (try! (contract-call? .gm-social-token-v4 mint mint-amount tx-sender))
 
       (ok { streak: streak, points: pts })
     )
@@ -197,11 +197,11 @@
     }))
 
     ;; Bridge: call the deployed token contract
-    (asserts! (is-eq (var-get token-contract) .gm-token-final-v1) ERR-NOT-AUTHORIZED)
+    (asserts! (is-eq (var-get token-contract) .gm-social-token-v4) ERR-NOT-AUTHORIZED)
     
     ;; V2/V11: Emission Check
     (try! (check-emission u5000000))
-    (try! (contract-call? .gm-token-final-v1 mint u5000000 tx-sender))
+    (try! (contract-call? .gm-social-token-v4 mint u5000000 tx-sender))
 
     (ok true)
   )
@@ -217,8 +217,8 @@
     (asserts! (>= (- h last-b) BOOST-COOLDOWN) ERR-COOLDOWN)
     
     ;; Bridge: call the deployed token contract
-    (asserts! (is-eq (var-get token-contract) .gm-token-final-v1) ERR-NOT-AUTHORIZED)
-    (try! (contract-call? .gm-token-final-v1 burn BOOST-COST tx-sender))
+    (asserts! (is-eq (var-get token-contract) .gm-social-token-v4) ERR-NOT-AUTHORIZED)
+    (try! (contract-call? .gm-social-token-v4 burn BOOST-COST tx-sender))
 
     (map-set last-boost tx-sender h)
 
@@ -242,7 +242,7 @@
 
 (define-public (submit-vote (round uint) (option uint))
   (let (
-    (bal (unwrap! (contract-call? .gm-token-final-v1 get-balance tx-sender) ERR-NOT-AUTHORIZED))
+    (bal (unwrap! (contract-call? .gm-social-token-v4 get-balance tx-sender) ERR-NOT-AUTHORIZED))
     (p (unwrap! (map-get? proposals round) ERR-NOT-AUTHORIZED))
   )
     (asserts! (get active p) ERR-NOT-AUTHORIZED)
@@ -318,7 +318,7 @@
 )
 
 (define-read-only (is-ready)
-  (ok (is-eq (var-get token-contract) .gm-token-final-v1))
+  (ok (is-eq (var-get token-contract) .gm-social-token-v4))
 )
 
 (define-read-only (get-current-burn-height)
