@@ -172,20 +172,51 @@ export const getOnChainBlockHeight = async () => {
 export const callContract = async (options: any) => {
   if (typeof window === 'undefined') return;
   const { openContractCall } = getConnect();
-  console.log('--- CONTRACT CALL v7 (Clarity 4 / Cl Namespace) ---', options.functionName);
-  const senderAddress = localStorage.getItem('gm_user_address') || undefined;
-  await openContractCall({
-    postConditionMode: 0x01,
-    stxAddress: senderAddress,
-    ...options,
-    appDetails,
-    network: APP_CONFIG.network,
-    onFinish: (data: any) => {
-      console.log('--- TRANSACTION BROADCASTED ---', data.txId);
-      if (options.onFinish) options.onFinish(data);
-      pollTransactionStatus(data.txId);
+  
+  // 1. Account Mismatch Check
+  const storedAddress = localStorage.getItem('gm_user_address');
+  const session = getUserSession();
+  
+  let sessionAddress = null;
+  if (session && session.isUserSignedIn()) {
+    try {
+      const userData = session.loadUserData();
+      sessionAddress = userData.profile?.stxAddress?.[APP_CONFIG.isMainnet ? 'mainnet' : 'testnet'];
+    } catch (e) {
+      console.warn('--- SESSION ERROR ---', e);
     }
-  });
+  }
+
+  if (storedAddress && sessionAddress && storedAddress !== sessionAddress) {
+    toast.error('Wallet account mismatch! Please re-login to Account ' + sessionAddress.substring(0, 8) + '...');
+    return;
+  }
+
+  console.log('--- CONTRACT CALL ---', options.functionName);
+  
+  try {
+    await openContractCall({
+      postConditionMode: 0x01,
+      stxAddress: storedAddress || undefined,
+      fee: options.fee || APP_CONFIG.defaultFee,
+      ...options,
+      appDetails,
+      network: APP_CONFIG.network,
+      onFinish: (data: any) => {
+        console.log('--- TRANSACTION BROADCASTED ---', data.txId);
+        toast.success('Transaction sent! Waiting for confirmation...', { id: data.txId });
+        if (options.onFinish) options.onFinish(data);
+        pollTransactionStatus(data.txId);
+      },
+      onCancel: () => {
+        console.log('--- TRANSACTION CANCELLED ---');
+        toast.error('Transaction cancelled by user.');
+      }
+    });
+  } catch (err: any) {
+    console.error('--- CONTRACT CALL ERROR ---', err);
+    toast.error('Failed to open wallet: ' + (err.message || 'Unknown error'));
+  }
 };
 
 /**
@@ -250,11 +281,18 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
   if (typeof window === 'undefined') return null;
   try {
     const connect = getConnect();
-    const openSignatureRequest = connect.openSignatureRequest || connect.default?.openSignatureRequest;
+    // Comprehensive discovery for different versions of @stacks/connect
+    const openSignatureRequest = 
+      connect.openSignatureRequest || 
+      connect.openSignatureRequestPopup ||
+      connect.default?.openSignatureRequest || 
+      connect.default?.openSignatureRequestPopup ||
+      (typeof window !== 'undefined' ? (window as any).StacksProvider?.openSignatureRequest : null);
     
     if (!openSignatureRequest) {
       console.error('--- DEBUG: @stacks/connect exports ---', Object.keys(connect));
-      throw new Error('Wallet signature function not found. Please refresh.');
+      toast.error('Wallet signature function not found. Please try a different browser or update your wallet extension.');
+      throw new Error('Wallet signature function not found.');
     }
 
     const response = await fetch('/api/auth/nonce', {
