@@ -1,26 +1,24 @@
 ;; $GM Token - SIP-010 Fungible Token for GM Social Protocol
 
-;; Errors
+
 (define-constant ERR-NOT-AUTHORIZED (err u401))
 (define-constant ERR-INVALID-AMOUNT (err u400))
 
-;; Constants
+
 (define-constant TOKEN-NAME "GM Social Token")
 (define-constant TOKEN-SYMBOL "GM")
 (define-constant TOKEN-DECIMALS u6)
 
-;; Governance
+
 (define-constant CONTRACT-OWNER tx-sender)
 (define-data-var governor principal tx-sender)
 
-;; Token Definition
+
 (define-fungible-token gm-token)
 
-;; ----------------------
-;; Public Functions
-;; ----------------------
 
-;; Transfer (SIP-010)
+
+
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
     (asserts! (is-eq tx-sender sender) ERR-NOT-AUTHORIZED)
@@ -30,7 +28,7 @@
   )
 )
 
-;; Mint (Governor only)
+
 (define-public (mint (amount uint) (recipient principal))
   (begin
     (asserts! (is-eq contract-caller (var-get governor)) ERR-NOT-AUTHORIZED)
@@ -39,7 +37,7 @@
   )
 )
 
-;; Burn (Governor only)
+
 (define-public (burn (amount uint) (sender principal))
   (begin
     (asserts! (is-eq contract-caller (var-get governor)) ERR-NOT-AUTHORIZED)
@@ -48,7 +46,7 @@
   )
 )
 
-;; Set Governor
+
 (define-public (set-governor (new-governor principal))
   (begin
     ;; Allow either the current governor OR the original contract owner to update this
@@ -58,9 +56,7 @@
   )
 )
 
-;; ----------------------
-;; Read-Only Functions
-;; ----------------------
+
 
 (define-read-only (get-name)
   (ok TOKEN-NAME)
