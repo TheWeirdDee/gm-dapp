@@ -58,14 +58,14 @@ export default function LandingContent() {
       try {
         console.log('--- LANDING HERO LOGIN INITIATED ---');
         
-        // 1. Phase 1: Connect
+
         const stxAddress = await authenticate();
         if (!stxAddress) return;
         
         // Update Redux immediately
         dispatch(setAddress(stxAddress));
         
-        // 2. Phase 2: Sign
+
         toast.loading('Verifying identity...', { id: 'auth' });
         const authData: any = await signInWithWallet(stxAddress);
         
@@ -87,9 +87,9 @@ export default function LandingContent() {
     <div className="bg-[#050505] min-h-screen text-white overflow-x-hidden pb-12 md:pb-32">
       <Navbar />
       
-      {/* 1. Hero Section */}
+
       <section className="relative py-12 md:py-20 lg:py-8 px-6 lg:px-12 xl:px-16 overflow-hidden flex justify-center">
-        {/* Particles background */}
+
         <div className="absolute inset-0 z-0">
           <Particles
             particleCount={270}
@@ -135,7 +135,7 @@ export default function LandingContent() {
         </div>
       </section>
 
-      {/* 2. Bento Grid Section */}
+
       <section id="features" ref={addToRefs} className="py-14 px-6 lg:px-12 xl:px-16 container mx-auto max-w-7xl">
         <div className="mb-16 max-w-3xl text-left md:text-left mx-auto md:mx-0">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Gamify Your <br /> Daily Engagement</h2>
