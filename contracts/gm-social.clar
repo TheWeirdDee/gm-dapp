@@ -1,6 +1,6 @@
 ;; Gm Social Protocol - SECURITY HARDENED V2
 
-;; Error Codes
+
 (define-constant ERR-NOT-AUTHORIZED (err u100))
 (define-constant ERR-COOLDOWN-ACTIVE (err u101))
 (define-constant ERR-USERNAME-TAKEN (err u102))
@@ -15,7 +15,7 @@
 (define-constant ERR-ALREADY-DONE (err u111))
 (define-constant ERR-INVALID (err u112))
 
-;; Constants
+
 (define-constant CONTRACT-OWNER tx-sender)
 (define-constant COOLDOWN-BLOCKS u0) ;; Removed cooldown
 (define-constant GRACE-PERIOD-BLOCKS u288)
@@ -30,13 +30,13 @@
 (define-constant BOOST-COOLDOWN u0)
 (define-constant FOLLOW-COOLDOWN u0)
 
-;; Data Vars
+
 (define-data-var token-contract principal tx-sender)
 (define-data-var governor principal tx-sender)
 (define-data-var total-gm-burned uint u0)
 (define-data-var active-proposal-round uint u1)
 
-;; V2 Emission Tracking
+
 (define-data-var daily-minted uint u0)
 (define-data-var last-day uint u0)
 
@@ -56,7 +56,7 @@
   )
 )
 
-;; Maps
+
 (define-map users principal {
   last-gm: uint, streak: uint, points: uint,
   username: (optional (string-utf8 20)),
@@ -68,7 +68,7 @@
 (define-map followers { user: principal, follower: principal } bool)
 (define-map follow-counts principal { followers: uint, following: uint })
 
-;; Action Rate Limits
+
 (define-map last-follow principal uint)
 (define-map last-boost principal uint)
 
@@ -77,7 +77,7 @@
 (define-map proposal-votes { round: uint, voter: principal } { weight: uint, option: uint })
 (define-map proposal-results { round: uint, option: uint } uint)
 
-;; Helpers
+
 (define-private (get-user-profile (user principal))
   (default-to {
     last-gm: u0, streak: u0, points: u0, username: none,
@@ -86,7 +86,7 @@
   } (map-get? users user))
 )
 
-;; V2 Emission Helpers
+
 (define-private (current-day)
   (/ burn-block-height DAY-BLOCKS)
 )
@@ -120,7 +120,7 @@
   (> (get pro-expiry (get-user-profile user)) burn-block-height)
 )
 
-;; CORE
+
 
 (define-public (say-gm)
   (let (
@@ -137,7 +137,7 @@
       (pts (+ (get points u) (if pro u10 u5)))
       (mint-amount (if pro u2000000 u1000000))
     )
-      ;; V2: Emission Check
+
       (try! (check-emission mint-amount))
 
       (map-set users tx-sender (merge u {
@@ -163,7 +163,7 @@
     (asserts! (not (is-eq tx-sender target)) ERR-NOT-AUTHORIZED)
     (asserts! (is-none (map-get? followers { user: target, follower: tx-sender })) ERR-ALREADY-SET)
     
-    ;; V2: Anti-Spam Check
+
     (asserts! (>= (- h last-f) FOLLOW-COOLDOWN) ERR-COOLDOWN)
 
     (map-set last-follow tx-sender h)
@@ -196,10 +196,10 @@
       total-received: (+ (get total-received r) amount)
     }))
 
-    ;; Bridge: call the deployed token contract
+
     (asserts! (is-eq (var-get token-contract) .gm-social-token-v4) ERR-NOT-AUTHORIZED)
     
-    ;; V2/V11: Emission Check
+
     (try! (check-emission u5000000))
     (try! (contract-call? .gm-social-token-v4 mint u5000000 tx-sender))
 
@@ -213,16 +213,16 @@
     (h burn-block-height)
     (last-b (default-to u0 (map-get? last-boost tx-sender)))
   )
-    ;; V2: Anti-Spam Check
+
     (asserts! (>= (- h last-b) BOOST-COOLDOWN) ERR-COOLDOWN)
     
-    ;; Bridge: call the deployed token contract
+
     (asserts! (is-eq (var-get token-contract) .gm-social-token-v4) ERR-NOT-AUTHORIZED)
     (try! (contract-call? .gm-social-token-v4 burn BOOST-COST tx-sender))
 
     (map-set last-boost tx-sender h)
 
-    ;; update boost safely
+
     (let (
       (existing (map-get? post-boosts post))
       (new-weight (if (is-some existing)
@@ -248,7 +248,7 @@
     (asserts! (get active p) ERR-NOT-AUTHORIZED)
     (asserts! (< burn-block-height (get end-time p)) ERR-NOT-AUTHORIZED)
     
-    ;; prevent double voting
+
     (asserts! (is-none (map-get? proposal-votes { round: round, voter: tx-sender })) ERR-NOT-AUTHORIZED)
 
     (map-set proposal-votes { round: round, voter: tx-sender } { weight: bal, option: option })
