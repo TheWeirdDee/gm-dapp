@@ -132,7 +132,7 @@ const userSlice = createSlice({
       }
     },
     logout(state) {
-      // Full reset of state to defaults
+
       return {
         ...initialState,
         address: null,
@@ -204,7 +204,7 @@ const userSlice = createSlice({
       // Strict Persistence Logic: Supabase > localStorage > Address
       let incomingName = action.payload.username;
       
-      // 1. If we have a real username (not ST...), set it and cache it
+
       if (incomingName && !incomingName.startsWith('ST')) {
         state.username = incomingName;
         if (typeof window !== 'undefined' && state.address) {
@@ -213,9 +213,9 @@ const userSlice = createSlice({
       } 
       // 2. If incoming is null/address and we are already set to a real name, keep it
       else if (state.username && !state.username.startsWith('ST')) {
-        // preserve current name
+
       } 
-      // 3. Fallback to localStorage
+
       else if (typeof window !== 'undefined' && state.address) {
         const cached = localStorage.getItem(`username_${state.address}`);
         if (cached) {
@@ -312,7 +312,7 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
     
     console.log('--- SYNC COMPLETE: FINAL STREAK:', finalStreak, 'FINAL POINTS:', finalPoints, 'IS_PRO:', isProUser);
 
-    // Always update with the best available data
+
     dispatch(userSlice.actions.updateStats({
       streak: finalStreak,
       points: finalPoints,
@@ -334,12 +334,11 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
       console.warn('--- FETCH WARNING: No data returned from chain, using local sync ---');
     }
 
-    // --- FETCH SUPABASE PROFILE (Bio & Avatar) ---
     const { data: profile, error: supabaseError } = await supabase
       .from('profiles')
       .select('bio, username, avatar_url')
       .eq('address', address)
-      .maybeSingle(); // Better for handling "no profile" without throwing 406
+      .maybeSingle();
 
     if (profile) {
       const p = profile as any;
