@@ -50,9 +50,7 @@ export const getUserSession = () => {
   return userSessionInstance;
 };
 
-/**
- * Wrapper for authentication
- */
+
 export const authenticate = async () => {
   if (typeof window === 'undefined') return;
   const { connect } = getConnect();
@@ -72,9 +70,7 @@ export const authenticate = async () => {
   }
 };
 
-/**
- * Wrapper for userData retrieval
- */
+
 export const getUserData = () => {
   if (typeof window === 'undefined') return null;
   const stxAddress = localStorage.getItem('gm_user_address');
@@ -82,9 +78,7 @@ export const getUserData = () => {
   return null;
 };
 
-/**
- * GET GM TOKEN BALANCE
- */
+
 export const getGmTokenBalance = async (userAddress: string) => {
   if (typeof window === 'undefined') return 0;
   try {
@@ -107,9 +101,7 @@ export const getGmTokenBalance = async (userAddress: string) => {
   }
 };
 
-/**
- * Wrapper for on-chain data retrieval
- */
+
 export const getUserOnChainData = async (userAddress: string) => {
   if (typeof window === 'undefined') return null;
   try {
@@ -166,14 +158,12 @@ export const getOnChainBlockHeight = async () => {
   }
 };
 
-/**
- * Wrapper for contract calls
- */
+
 export const callContract = async (options: any) => {
   if (typeof window === 'undefined') return;
   const { openContractCall } = getConnect();
   
-  // 1. Account Mismatch Check
+
   const storedAddress = localStorage.getItem('gm_user_address');
   const session = getUserSession();
   
@@ -219,9 +209,7 @@ export const callContract = async (options: any) => {
   }
 };
 
-/**
- * DIAGNOSTIC POLLER
- */
+
 async function pollTransactionStatus(txId: string) {
   const apiBase = APP_CONFIG.isMainnet ? 'https://api.mainnet.hiro.so' : 'https://api.testnet.hiro.so';
   const check = async () => {
@@ -250,9 +238,7 @@ async function pollTransactionStatus(txId: string) {
   check();
 }
 
-/**
- * TIP AUTHOR
- */
+
 export const tipAuthor = async (recipient: string, amountStx: number, senderAddress: string | null) => {
   if (typeof window === 'undefined') return;
   const { Cl, Pc } = getTransactions();
@@ -274,9 +260,7 @@ export const tipAuthor = async (recipient: string, amountStx: number, senderAddr
   });
 };
 
-/**
- * SIGN IN WITH WALLET
- */
+
 export const signInWithWallet = async (address: string): Promise<{ token: string } | null> => {
   if (typeof window === 'undefined') return null;
   try {
@@ -332,9 +316,7 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
   }
 };
 
-/**
- * INITIALIZE PROTOCOL (Admin Only)
- */
+
 export const initializeProtocol = async () => {
   const { Cl } = getTransactions();
   toast.loading('Step 1/2: Setting Token Governor...', { id: 'init-protocol' });
