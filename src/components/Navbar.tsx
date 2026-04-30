@@ -28,10 +28,10 @@ export default function Navbar() {
 
   // TRIGGER SIGNATURE FLOW REMOVED - Using active click handler for reliability
   useEffect(() => {
-    // Session cleanup if needed logic was here but removed to simplify auth flow
+
   }, [isConnected, address, sessionToken, dispatch]);
 
-  // Close dropdown when clicking outside
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -73,12 +73,12 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-[var(--color-border)] bg-[var(--color-background)]/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-12">
-        {/* Logo */}
+
         <Link href="/" className="transition-transform hover:scale-105">
            <BrandLogo size={32} />
         </Link>
 
-        {/* Desktop Nav */}
+
         <div className="hidden md:flex items-center gap-6">
           {displayLinks.map((link) => {
             const Icon = link.icon;
@@ -98,7 +98,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Wallet Connection */}
+
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => {
@@ -128,7 +128,7 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Wallet Dropdown Menu (Authenticated Only) */}
+
           {showWalletDropdown && isConnected && (
             <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/5 bg-[#0A0A0A] shadow-[0_10px_40px_rgba(0,0,0,0.5)] py-3 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-300">
                <div className="px-5 py-3 flex items-center gap-3 border-b border-white/[0.03] mb-2">
@@ -177,7 +177,7 @@ export default function Navbar() {
         onClose={() => setShowSendModal(false)} 
       />
 
-      {/* Mobile Nav Tabs */}
+
       <div className="md:hidden flex flex-wrap items-center justify-around bg-[#0a0a0a] p-2 fixed bottom-0 w-full z-50 gap-y-2">
         {displayLinks.map((link) => {
           const Icon = link.icon;
