@@ -19,7 +19,7 @@ const initialState: PostsState = {
   lastCursor: null,
 };
 
-// Initial Fetch (First Page)
+
 export const fetchPostsFromSupabase = createAsyncThunk(
   'posts/fetchFromSupabase',
   async (_, { rejectWithValue }) => {
@@ -42,7 +42,7 @@ export const fetchPostsFromSupabase = createAsyncThunk(
   }
 );
 
-// Fetch Next Page (Pagination)
+
 export const fetchPaginatedPosts = createAsyncThunk(
   'posts/fetchMore',
   async (cursor: string, { rejectWithValue }) => {
@@ -91,7 +91,7 @@ export const createRealPost = createAsyncThunk(
       pollData: postData.pollData,
     };
 
-    // 1. Optimistic Update (UI)
+
     dispatch(addOptimisticPost(optimisticPost));
 
     try {
@@ -125,10 +125,10 @@ export const createRealPost = createAsyncThunk(
 
       const { data } = await response.json();
       
-      // 2. Resolve temporary post with real data
+
       return { tempId, realPost: data };
     } catch (err: any) {
-      // 3. Rollback on failure
+
       dispatch(removeOptimisticPost(tempId));
       return rejectWithValue(err.message);
     }
