@@ -34,7 +34,6 @@ export default function ReactionBar({ postId, reactions }: ReactionBarProps) {
       return;
     }
 
-    // 1. Optimistic UI Update
     dispatch(reactToPost({ postId, reactionType: type }));
     
     if (ref.current) {
@@ -45,7 +44,6 @@ export default function ReactionBar({ postId, reactions }: ReactionBarProps) {
     }
 
     try {
-      // 2. Secure Backend Proxy (Instant)
       const response = await fetch(`/api/posts/${postId}/react`, {
         method: 'POST',
         headers: {
@@ -63,7 +61,7 @@ export default function ReactionBar({ postId, reactions }: ReactionBarProps) {
       }
     } catch (err: any) {
       console.error('Reaction failed:', err);
-      // alert(err.message);
+
     }
   };
 
