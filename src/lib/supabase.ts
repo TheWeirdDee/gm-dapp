@@ -7,16 +7,13 @@ if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
   console.error('CRITICAL: NEXT_PUBLIC_SUPABASE_URL is missing or invalid. Check your .env.local!');
 }
 
-// Global anonymous client
+
 export const supabase = createClient(
   supabaseUrl || 'https://missing-supabase-url.co', 
   supabaseAnonKey || 'missing-key'
 );
 
-/**
- * GET AUTHENTICATED SUPABASE CLIENT (Browser)
- * Returns a client with the current session token if available.
- */
+/** Authenticated client for browser-side requests using stored session token */
 export const getSupaClient = () => {
   if (typeof window === 'undefined') return supabase;
   
@@ -49,11 +46,7 @@ export const getServiceRoleClient = () => {
   });
 };
 
-/**
- * Uploads a file to a Supabase bucket.
- * @param bucket 'media' or 'avatars'
- * @param file The File object from input
- */
+/** Uploads file to media/avatars bucket via API proxy to handle storage keys securely */
 export async function uploadFile(bucket: 'media' | 'avatars', file: File): Promise<string | null> {
   try {
     const formData = new FormData();
