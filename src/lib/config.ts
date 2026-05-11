@@ -18,7 +18,6 @@ export const APP_CONFIG = {
     name: 'gm-social-token-v4',
   },
 
-  // Legacy fallback (for backward compatibility during migration)
   contractAddress: process.env.NEXT_PUBLIC_SOCIAL_ADDRESS || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
   contractName: 'gm-social-final-v1',
   
@@ -31,8 +30,6 @@ export const APP_CONFIG = {
     ? 'https://explorer.hiro.so' 
     : 'https://explorer.hiro.so?chain=testnet',
   
-  // DEFAULT FEE (in micro-STX)
-  // Setting this to 100,000 (0.1 STX) ensures ultra-fast confirmation
   defaultFee: 100000,
 };
 
