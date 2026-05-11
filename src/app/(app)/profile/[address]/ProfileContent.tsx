@@ -24,10 +24,8 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
   const feed = useSelector((state: RootState) => state.posts.feed);
   const { address: currentAddress, isConnected } = useSelector((state: RootState) => state.user);
   
-  // Filter posts to only show this user's posts
   const userPosts = feed.filter(post => post.authorAddress === targetAddress);
   
-  // Every valid principal has a "Protocol Identity"
   const exists = true; 
 
   if (!isConnected) {
@@ -44,7 +42,6 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
     );
   }
 
-  // Identity check removed to support Protocol-Level Identities (vibrant on-chain stats)
 
   const renderSection = () => {
     switch (activeTab) {
