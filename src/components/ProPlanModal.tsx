@@ -58,7 +58,6 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
     setState('wallet_open');
 
     try {
-      // Get the ABSOLUTE LATEST address from the session, not just Redux
       const userData = getUserData();
       const stxAddressObj = userData?.profile?.stxAddress;
       const currentAddress = (typeof stxAddressObj === 'string' 
@@ -71,7 +70,6 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
         network: APP_CONFIG.isMainnet ? 'Mainnet' : 'Testnet'
       });
 
-      // Network Prefix Validation (Safety check to prevent 'invalid contract' errors)
       const expectedPrefix = APP_CONFIG.isMainnet ? 'SP' : 'ST';
       if (currentAddress && !currentAddress.startsWith(expectedPrefix)) {
         setError(`Please switch your wallet to ${APP_CONFIG.isMainnet ? 'Mainnet' : 'Testnet'}. (Current: ${currentAddress.substring(0,2)})`);
@@ -79,7 +77,6 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
         return;
       }
 
-      // 10 STX exactly (micro-STX)
       const amount = BigInt(10000000); 
       
       const postConditions = currentAddress ? [
@@ -106,9 +103,7 @@ export default function ProPlanModal({ isOpen, onClose }: ProPlanModalProps) {
           setState('pending');
           
           if (address) {
-            // background fetch to prepare UI
             dispatch(fetchOnChainStats(address) as any);
-            // Optimistic Update
             dispatch(setOptimisticPro(true));
           }
           
