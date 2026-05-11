@@ -23,8 +23,6 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
   
   const isSelf = currentAddress === targetAddress;
   
-  // For Phase 1, we only show data for the connected user. 
-  // Phase 2 (Supabase) will allow viewing of other indexed users.
   const user = isSelf ? {
     username: currentUserData.username,
     bio: currentUserData.bio,
