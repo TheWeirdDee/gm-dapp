@@ -26,7 +26,6 @@ export default function Navbar() {
   const authInProgress = useRef(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // TRIGGER SIGNATURE FLOW REMOVED - Using active click handler for reliability
   useEffect(() => {
 
   }, [isConnected, address, sessionToken, dispatch]);
