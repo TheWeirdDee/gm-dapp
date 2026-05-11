@@ -57,7 +57,6 @@ export default function FollowersContent() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Pools are empty until Supabase/Indexer integration
   const displayList: string[] = [];
 
   const currentFilter = FILTERS.find(f => f.id === activeFilter) || FILTERS[0];
@@ -179,7 +178,6 @@ export default function FollowersContent() {
       {/* List */}
       <div className="space-y-3">
         {filtered.length === 0 ? (
-          // Empty state
           <div className="py-20 flex flex-col items-center gap-5 text-center">
             <div className="h-20 w-20 rounded-full bg-white/[0.02] border border-white/5 flex items-center justify-center">
               <Users className="h-9 w-9 text-gray-700" />
