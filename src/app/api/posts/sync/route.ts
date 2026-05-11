@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
     if (type === 'boost') {
       const { data, error } = await supabase.rpc('increment_post_boost', { row_id: postId });
       if (error) {
-        // Fallback if RPC doesn't exist yet
         await supabase
           .from('posts')
           .update({ boost_count: supabase.rpc('increment') as any })
@@ -23,7 +22,6 @@ export async function POST(req: NextRequest) {
     } else if (type === 'tip') {
       const { data, error } = await supabase.rpc('increment_post_tips', { row_id: postId, tip_amount: amount });
       if (error) {
-         // Fallback manual update
          const { data: post } = await supabase.from('posts').select('total_tips').eq('id', postId).single();
          await supabase
           .from('posts')
