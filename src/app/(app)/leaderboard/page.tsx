@@ -20,7 +20,6 @@ import LeaderboardTable from '@/components/LeaderboardTable';
 import RulesModal from '@/components/RulesModal';
 import IdentityAvatar from '@/components/IdentityAvatar';
 
-// Helper for Nested Star Icon (Diamond Dev)
 const NestedStar = ({ className }: { className?: string }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
     <Star className="h-7 w-7 fill-current opacity-20 animate-pulse" />
@@ -29,7 +28,6 @@ const NestedStar = ({ className }: { className?: string }) => (
   </div>
 );
 
-// Helper for Vanguard Icon - 4 hollow concentric rings matching reference
 const NestedCircle = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 100 100" className={className}>
     <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" opacity="0.2" />
@@ -67,7 +65,6 @@ export default function LeaderboardPage() {
   const top3 = users.slice(0, 3);
   const remainingUsers = users.slice(3);
 
-  // Dynamic Tier Metadata Helper
   const getTierMetadata = (rank: number) => {
     if (rank <= 10) return {
       name: 'Grandmaster',
