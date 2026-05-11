@@ -41,14 +41,12 @@ export default function PostCard({ post }: PostCardProps) {
   const displayAddress = `${post.authorAddress.substring(0, 5)}...${post.authorAddress.substring(post.authorAddress.length - 4)}`;
   const displayUsername = post.authorAddress === currentAddress ? "You" : `user_${post.authorAddress.substring(post.authorAddress.length - 4)}`;
 
-  // Formatting timestamp
   const timeAgo = new Date().getTime() - new Date(post.timestamp).getTime();
   const minutesAgo = Math.floor(timeAgo / (1000 * 60));
   const hoursAgo = Math.floor(minutesAgo / 60);
   const daysAgo = Math.floor(hoursAgo / 24);
   const displayTime = daysAgo > 0 ? `${daysAgo} days ago` : hoursAgo > 0 ? `${hoursAgo} hours ago` : `${minutesAgo} minutes ago`;
 
-  // Content processing for hashtags
   const processContent = (text: string) => {
     return text.split(' ').map((word, i) => {
       if (word.startsWith('#')) {
@@ -62,7 +60,6 @@ export default function PostCard({ post }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(post.currentUserReaction === 'gm');
   const totalLikes = (post.reactions.gm || 0) + (post.reactions.fire || 0) + (post.reactions.laugh || 0);
 
-  // Sync isLiked if post data changes (e.g., after a fresh fetch)
   useEffect(() => {
     setIsLiked(post.currentUserReaction === 'gm');
   }, [post.currentUserReaction]);
@@ -73,7 +70,6 @@ export default function PostCard({ post }: PostCardProps) {
       return;
     }
     
-    // Optimistic Update
     const { reactToPost } = require('../lib/features/postsSlice');
     dispatch(reactToPost({ 
       postId: post.id, 
@@ -81,7 +77,6 @@ export default function PostCard({ post }: PostCardProps) {
       decrement: isLiked 
     }));
     
-    // Toggle state
     setIsLiked(!isLiked);
 
     try {
@@ -96,7 +91,6 @@ export default function PostCard({ post }: PostCardProps) {
       });
     } catch (err) {
       console.error("Reaction failed:", err);
-      // Rollback on failure
       dispatch(reactToPost({ 
         postId: post.id, 
         reactionType: 'gm',
@@ -146,7 +140,6 @@ export default function PostCard({ post }: PostCardProps) {
       
       await tipAuthor(post.authorAddress, amount, currentAddress);
       
-      // SYNC: Update Supabase Post Stats
       try {
         await fetch('/api/posts/sync', {
           method: 'POST',
@@ -159,7 +152,6 @@ export default function PostCard({ post }: PostCardProps) {
 
       toast.success(`Successfully tipped ${amount} STX!`, { id: 'tip' });
       
-      // SYNC: Immediately refresh stats to show reputation gain
       const { fetchOnChainStats } = require('../lib/features/userSlice');
       dispatch(fetchOnChainStats(currentAddress) as any);
     } catch (err: any) {
@@ -189,7 +181,6 @@ export default function PostCard({ post }: PostCardProps) {
           });
           setBoostWeight(prev => prev + 1);
 
-          // SYNC: Update Supabase Post Stats
           fetch('/api/posts/sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
