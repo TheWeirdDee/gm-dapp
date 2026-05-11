@@ -23,7 +23,6 @@ export default function GMButton() {
   const dispatch = useDispatch();
   const { address, isPro, currentBlockHeight, streak, points, lastGm, avatar } = useSelector((state: RootState) => state.user);
 
-  // 1. CALENDAR-DAY COOLDOWN (LocalStorage)
   useEffect(() => {
     if (!address) return;
     const today = new Date().toISOString().split('T')[0];
@@ -33,11 +32,9 @@ export default function GMButton() {
     }
   }, [address]);
 
-  // 2. BLOCK-HEIGHT COOLDOWN
   const blocksToWait = lastGm > 0 ? 144 - (currentBlockHeight - lastGm) : 0;
   const isChainCooldown = lastGm > 0 && (currentBlockHeight === 0 || blocksToWait > 0);
   
-  // Final decision: if either local or chain says we're cooling down
   const isCooldownActive = localCooldown || isChainCooldown;
 
 
@@ -66,7 +63,6 @@ export default function GMButton() {
           localStorage.setItem(`gm_date_${address}`, today);
           setLocalCooldown(true);
 
-          // 1. Record in Supabase for Hybrid Feed
           try {
              await getSupaClient().from('posts').insert([{
                 address: address,
@@ -79,13 +75,11 @@ export default function GMButton() {
 
           const pointsToAdd = isPro ? 10 : 5;
           
-          // 2. Optimistic Stats Update
           dispatch(updateStats({
             streak: (streak || 0) + 1,
             points: (points || 0) + pointsToAdd
           }));
 
-          // 3. Optimistic Feed/Chart Update
           const { addOptimisticPost } = require('../lib/features/postsSlice');
           dispatch(addOptimisticPost({
             id: `temp-gm-${Date.now()}`,
@@ -111,7 +105,6 @@ export default function GMButton() {
         onCancel: () => setState('idle'),
       };
 
-      // Transition to wallet interaction state
       setState('wallet_open');
       await callContract(options);
     } catch (error: any) {
@@ -122,7 +115,6 @@ export default function GMButton() {
         setLocalCooldown(true);
         dispatch(fetchOnChainStats(address!) as any);
         
-        // Show success state instead of error for a smoother UX
         setState('success');
         setTimeout(() => {
           setState('idle');
