@@ -23,7 +23,6 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 1. Verify Local Session Token
     const token = authHeader.split(' ')[1];
     if (!process.env.LOCAL_SESSION_SECRET) {
       throw new Error('LOCAL_SESSION_SECRET is not configured');
@@ -32,10 +31,8 @@ export async function POST(
     const { payload } = await jose.jwtVerify(token, secret);
     const sessionAddress = payload.address as string;
 
-    // 2. Toggle Reaction logic via Service Role
     const supabase = getServiceRoleClient();
     
-    // Check if user already reacted
     const { data: existing } = await supabase
       .from('post_reactions')
       .select('id, reaction_type')
@@ -45,7 +42,6 @@ export async function POST(
 
     if (existing) {
       if (existing.reaction_type === reactionType) {
-        // SAME REACTION -> DELETE (Unlike)
         const { error: deleteError } = await supabase
           .from('post_reactions')
           .delete()
@@ -53,7 +49,6 @@ export async function POST(
         
         if (deleteError) throw deleteError;
       } else {
-        // DIFFERENT REACTION -> UPDATE
         const { error: updateError } = await supabase
           .from('post_reactions')
           .update({ reaction_type: reactionType, updated_at: new Date().toISOString() })
@@ -62,7 +57,6 @@ export async function POST(
         if (updateError) throw updateError;
       }
     } else {
-      // NEW REACTION -> INSERT
       const { error: insertError } = await supabase
         .from('post_reactions')
         .insert({
@@ -74,7 +68,6 @@ export async function POST(
       if (insertError) throw insertError;
     }
 
-    // 4. Return updated counts
     const { data: counts, error: countError } = await supabase
       .from('post_reactions')
       .select('reaction_type')
