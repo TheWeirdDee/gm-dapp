@@ -4,7 +4,6 @@ import { Trophy, Flame, Star, Medal, ArrowUpRight, Crown, Circle } from 'lucide-
 import Link from 'next/link';
 import IdentityAvatar from './IdentityAvatar';
 
-// Helper for Nested Star Icon (Diamond Dev)
 const NestedStar = ({ className }: { className?: string }) => (
   <div className={`relative flex items-center justify-center ${className}`}>
     <Star className="h-5 w-5 fill-current opacity-20" />
@@ -13,7 +12,6 @@ const NestedStar = ({ className }: { className?: string }) => (
   </div>
 );
 
-// Helper for Vanguard Icon - 4 hollow concentric rings matching reference
 const NestedCircle = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 100 100" className={className}>
     <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" opacity="0.2" />
