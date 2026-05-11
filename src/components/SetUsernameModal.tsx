@@ -59,12 +59,10 @@ export default function SetUsernameModal({ isOpen, onClose }: SetUsernameModalPr
             setTxId(data.txId);
             setState('pending');
             
-            // 1. SAVE TO LOCALSTORAGE (Immediate Persistence)
             if (address) {
               localStorage.setItem(`username_${address}`, name.trim());
             }
 
-            // 2. UPSERT TO SUPABASE (Strict Persistence via Backend Proxy)
             if (address) {
               try {
                 const token = localStorage.getItem('gm_session_token');
@@ -84,7 +82,6 @@ export default function SetUsernameModal({ isOpen, onClose }: SetUsernameModalPr
               }
             }
             
-            // 3. Update Redux State
             dispatch(setUsername(name.trim()));
             
             if (address) {
