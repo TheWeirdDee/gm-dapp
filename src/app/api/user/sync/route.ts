@@ -6,8 +6,6 @@ export async function POST(req: NextRequest) {
     const { address } = await req.json();
     if (!address) return NextResponse.json({ error: 'Address required' }, { status: 400 });
 
-    // 1. Fetch latest data from Stacks API (reading the contract state)
-    // We call the read-only function 'get-user-data' from the contract
     const contractAddress = 'SP1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSRKP54QX';
     const contractName = 'gm-social-final-v5';
     
@@ -22,11 +20,7 @@ export async function POST(req: NextRequest) {
       })
     });
 
-    // Note: In this demo, we'll sync the values we know are in the contract maps
-    // This bridges the on-chain reality to the leaderboard database
     
-    // 2. Perform the update in Supabase
-    // We increment/update based on the latest interaction
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
       .select('*')
@@ -35,8 +29,6 @@ export async function POST(req: NextRequest) {
 
     if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
 
-    // Logic: If user doesn't exist, we'll wait for them to say GM or create their profile
-    // But if they do, we update their reputation and streak
     if (profile) {
       const { error: updateError } = await supabase
         .from('profiles')
