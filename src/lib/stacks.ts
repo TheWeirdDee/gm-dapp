@@ -17,11 +17,9 @@ export const network = APP_CONFIG.network;
 
 let userSessionInstance: any = null;
 
-// Standard CJS require for packages that don't need browser-specific logic at load time
 const getTransactions = () => require('@stacks/transactions');
 const getAuth = () => require('@stacks/auth');
 
-// Browser-only require for Connect
 const getConnect = () => {
   if (typeof window === 'undefined') return null;
   return require('@stacks/connect');
@@ -265,7 +263,6 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
   if (typeof window === 'undefined') return null;
   try {
     const connect = getConnect();
-    // Comprehensive discovery for different versions of @stacks/connect
     const openSignatureRequest = 
       connect.openSignatureRequest || 
       connect.openSignatureRequestPopup ||
