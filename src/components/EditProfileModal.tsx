@@ -49,7 +49,6 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
 
     setIsSaving(true);
     try {
-      // 1. Handle Username Change (On-Chain) if it changed
       if (newUsername && newUsername !== initialUsername && newUsername.length >= 3) {
         try {
           await callContract({
@@ -66,11 +65,9 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
           });
         } catch (stacksErr) {
           console.error('Stacks error:', stacksErr);
-          // Don't stop the whole process if username fails (might be taken)
         }
       }
 
-      // 2. Handle Bio & Avatar (Backend Proxy)
       const token = localStorage.getItem('gm_session_token');
       const response = await fetch('/api/profile/update', {
         method: 'POST',
@@ -92,7 +89,6 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
         throw new Error(errData.error || 'Failed to update profile');
       }
 
-      // Update local state
       dispatch(updateStats({ 
         bio, 
         username: newUsername,
