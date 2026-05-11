@@ -39,7 +39,6 @@ function ParticleSystem({
     const colorObjects = particleColors.map((c) => new THREE.Color(c));
 
     for (let i = 0; i < particleCount; i++) {
-      // Sphere distribution
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
       const r = Math.cbrt(Math.random()) * particleSpread;
