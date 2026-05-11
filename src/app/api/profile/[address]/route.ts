@@ -12,7 +12,6 @@ export async function GET(
 
     const supabase = getServiceRoleClient();
 
-    // 1. Fetch Profile Data
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('address, username, bio, avatar_url, website, created_at')
@@ -21,14 +20,11 @@ export async function GET(
 
     if (profileError) throw profileError;
 
-    // 2. Fetch Follower/Following Counts
-    // We count from the shadows index (Supabase)
     const [followersCount, followingCount] = await Promise.all([
       supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_address', targetAddress).then(res => res.count || 0),
       supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_address', targetAddress).then(res => res.count || 0)
     ]);
 
-    // 3. Check if observer follows target
     let isFollowing = false;
     if (observer && observer !== targetAddress) {
       const { data: followRecord } = await supabase
