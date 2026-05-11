@@ -62,7 +62,6 @@ export default function LandingContent() {
         const stxAddress = await authenticate();
         if (!stxAddress) return;
         
-        // Update Redux immediately
         dispatch(setAddress(stxAddress));
         
 
