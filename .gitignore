@@ -48,3 +48,6 @@ Clarinet.toml.bak
 *.tsbuildinfo
 next-env.d.ts
 .npmrc
+
+# private scripts and keys
+/scripts/private/
