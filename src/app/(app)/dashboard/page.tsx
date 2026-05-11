@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import Link from 'next/link';
 
-// Use dynamic import with ssr: false to bypass prerendering issues for the dashboard
 const DashboardContent = dynamic(() => import('@/app/(app)/dashboard/DashboardContent'), { 
   ssr: false,
   loading: () => (
@@ -19,8 +18,6 @@ const DashboardContent = dynamic(() => import('@/app/(app)/dashboard/DashboardCo
 export default function DashboardPage() {
   const { isConnected } = useSelector((state: RootState) => state.user);
 
-  // We still do a basic server-safe check for connection
-  // But the heavy logic is inside DashboardContent (Client Only)
   if (!isConnected) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
