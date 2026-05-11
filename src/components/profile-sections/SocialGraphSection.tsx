@@ -10,7 +10,6 @@ export default function SocialGraphSection() {
   const [activeTab, setActiveTab] = useState<'followers' | 'following'>('followers');
   const [search, setSearch] = useState('');
 
-  // Pools are empty until Supabase/Indexer integration
   const displayList: string[] = [];
   const displayCount = activeTab === 'followers' ? followers : following;
 
