@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Syne, Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
@@ -52,7 +51,6 @@ async function getInitialSession() {
     const { payload } = await jose.jwtVerify(token, secret);
     const address = payload.address as string;
 
-    // Fetch basic metadata for zero-flicker UI
     const supabase = getServiceRoleClient();
     const { data: profile } = await supabase
       .from('profiles')
