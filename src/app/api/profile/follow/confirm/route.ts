@@ -18,8 +18,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceRoleClient();
 
-    // 1. Record the "Shadow" Follow
-    // This provides instant index feedback while the chain is mining.
     const { error } = await supabase
       .from('follows')
       .upsert({
