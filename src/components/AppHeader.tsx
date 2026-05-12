@@ -139,7 +139,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                     <IdentityAvatar address={address} src={avatar} size="xs" className="h-9 w-9 !rounded-xl ring-2 ring-white/5 group-hover:ring-[var(--color-accent)]/30 transition-all" />
                     <div className="hidden sm:flex flex-col items-start">
                        <span className="text-[11px] font-black text-white tracking-tight leading-none mb-0.5">
-                         {username || `${address.substring(0, 4)}...${address.substring(address.length - 4)}`}
+                         {username || (address ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}` : 'Guest')}
                        </span>
                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest leading-none">Identity Node</span>
                     </div>
