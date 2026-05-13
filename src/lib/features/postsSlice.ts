@@ -22,12 +22,14 @@ const initialState: PostsState = {
 
 export const fetchPostsFromSupabase = createAsyncThunk(
   'posts/fetchFromSupabase',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
       const token = localStorage.getItem('gm_session_token');
+      if (!token) return { posts: [], nextCursor: null };
+
       const response = await fetch('/api/posts/feed?limit=20', {
         headers: {
-          'Authorization': token ? `Bearer ${token}` : ''
+          'Authorization': `Bearer ${token}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch feed');
@@ -37,6 +39,9 @@ export const fetchPostsFromSupabase = createAsyncThunk(
         nextCursor: data.nextCursor
       };
     } catch (err: any) {
+      if (err.message.toLowerCase().includes('invalid compact jws')) {
+        dispatch(logout());
+      }
       return rejectWithValue(err.message);
     }
   }
@@ -45,12 +50,14 @@ export const fetchPostsFromSupabase = createAsyncThunk(
 
 export const fetchPaginatedPosts = createAsyncThunk(
   'posts/fetchMore',
-  async (cursor: string, { rejectWithValue }) => {
+  async (cursor: string, { dispatch, rejectWithValue }) => {
     try {
       const token = localStorage.getItem('gm_session_token');
+      if (!token) return { posts: [], nextCursor: null };
+
       const response = await fetch(`/api/posts/feed?limit=20&cursor=${cursor}`, {
         headers: {
-          'Authorization': token ? `Bearer ${token}` : ''
+          'Authorization': `Bearer ${token}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch more posts');
@@ -60,6 +67,9 @@ export const fetchPaginatedPosts = createAsyncThunk(
         nextCursor: data.nextCursor
       };
     } catch (err: any) {
+      if (err.message.toLowerCase().includes('invalid compact jws')) {
+        dispatch(logout());
+      }
       return rejectWithValue(err.message);
     }
   }
@@ -96,6 +106,10 @@ export const createRealPost = createAsyncThunk(
 
     try {
       const token = localStorage.getItem('gm_session_token');
+      if (!token) {
+        throw new Error('No session token found. Please sign in again.');
+      }
+
       const response = await fetch('/api/posts/create', {
         method: 'POST',
         headers: {
@@ -114,7 +128,12 @@ export const createRealPost = createAsyncThunk(
         const errData = await response.json();
         const errMsg = errData.error || 'Failed to create post';
         
-        if (errMsg.toLowerCase().includes('exp') || errMsg.toLowerCase().includes('unauthorized') || response.status === 401) {
+        if (
+          errMsg.toLowerCase().includes('exp') || 
+          errMsg.toLowerCase().includes('unauthorized') || 
+          errMsg.toLowerCase().includes('invalid compact jws') ||
+          response.status === 401
+        ) {
           dispatch(logout());
           throw new Error('Your session has expired. Please sign in again.');
         }

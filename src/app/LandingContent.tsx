@@ -15,7 +15,17 @@ import {
   Heart
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useRouter } from 'next/navigation';
+import { RootState } from '@/lib/store';
+import { authenticate, signInWithWallet } from '@/lib/stacks';
+import { setAddress, setSessionToken } from '@/lib/features/userSlice';
+import toast from 'react-hot-toast';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function LandingContent() {
   const [stats, setStats] = useState({
@@ -23,6 +33,71 @@ export default function LandingContent() {
     totalGms: '842K',
     distributed: '45.2K STX'
   });
+
+  const sectionsRef = useRef<HTMLElement[]>([]);
+  const { isConnected } = useSelector((state: RootState) => state.user);
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    sectionsRef.current.forEach((section) => {
+      if (!section) return;
+      gsap.fromTo(
+        section,
+        { y: 50, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 85%',
+          },
+        }
+      );
+    });
+  }, []);
+
+  const addToRefs = (el: HTMLElement | null) => {
+    if (el && !sectionsRef.current.includes(el)) {
+      sectionsRef.current.push(el);
+    }
+  };
+
+  const handleHeroAction = async (e: React.MouseEvent) => {
+    if (!isConnected) {
+      e.preventDefault();
+      try {
+        console.log('--- LANDING HERO LOGIN INITIATED ---');
+        
+        const stxAddress = await authenticate();
+        if (!stxAddress) return;
+        
+        dispatch(setAddress(stxAddress));
+        
+        toast.loading('Verifying identity...', { id: 'auth' });
+        const authData: any = await signInWithWallet(stxAddress);
+        
+        if (!authData) {
+          console.log('--- LANDING AUTH CANCELLED ---');
+          toast.dismiss('auth');
+          return;
+        }
+
+        if (authData.token) {
+          dispatch(setSessionToken(authData.token));
+          toast.success("Identity Verified", { id: 'auth' });
+          router.push('/dashboard');
+        }
+      } catch (err: unknown) {
+        console.error('Landing Auth Crash:', err);
+        toast.error(err instanceof Error ? err.message : 'Login failed', { id: 'auth' });
+      }
+    } else {
+      router.push('/dashboard');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">

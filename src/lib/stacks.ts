@@ -291,18 +291,30 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
       throw new Error('Wallet signature function not found.');
     }
 
+    console.log('--- SIGN_IN: FETCHING NONCE FOR', address);
     const response = await fetch('/api/auth/nonce', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ address })
     });
+    
+    if (!response.ok) {
+      const errData = await response.json();
+      console.error('--- SIGN_IN: NONCE FETCH FAILED ---', errData);
+      throw new Error(errData.error || 'Failed to fetch nonce');
+    }
+
     const { nonce } = await response.json();
+    console.log('--- SIGN_IN: RECEIVED NONCE ---', nonce);
+
     return new Promise((resolve, reject) => {
+      console.log('--- SIGN_IN: OPENING SIGNATURE REQUEST ---');
       openSignatureRequest({
         message: `Sign in to GM DApp\nNonce: ${nonce}`,
         network: APP_CONFIG.network,
         appDetails,
         onFinish: async (data: any) => {
+          console.log('--- SIGN_IN: SIGNATURE FINISHED ---', data);
           try {
             const verifyRes = await fetch('/api/auth/verify', {
               method: 'POST',
@@ -314,16 +326,29 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
                 publicKey: data.publicKey
               })
             });
-            const { token } = await verifyRes.json();
-            resolve({ token });
-          } catch (err) {
-            reject(err);
+
+            if (!verifyRes.ok) {
+              const verifyErr = await verifyRes.json();
+              console.error('--- SIGN_IN: VERIFY FAILED ---', verifyErr);
+              throw new Error(verifyErr.error || 'Verification failed');
+            }
+
+            const authData = await verifyRes.json();
+            console.log('--- SIGN_IN: VERIFY SUCCESS ---', authData);
+            resolve(authData);
+          } catch (e: any) {
+            console.error('--- SIGN_IN: VERIFY CRASH ---', e);
+            reject(e);
           }
         },
-        onCancel: () => reject(new Error('Signature cancelled')),
+        onCancel: () => {
+          console.log('--- SIGNATURE CANCELLED BY USER ---');
+          resolve(null);
+        },
       });
     });
-  } catch (err) {
+  } catch (err: any) {
+    console.error('--- SIGN_IN: CORE CRASH ---', err);
     throw err;
   }
 };

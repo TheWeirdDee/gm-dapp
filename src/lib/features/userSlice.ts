@@ -105,7 +105,7 @@ const userSlice = createSlice({
     setBlockHeight(state, action: PayloadAction<number>) {
       state.currentBlockHeight = action.payload;
     },
-    setUserData(state, action: PayloadAction<{ address: string; profile: any }>) {
+    setUserData(state, action: PayloadAction<{ address: string; profile: any; isConnected?: boolean }>) {
       const stxAddressObj = action.payload.profile.stxAddress;
       const fallbackName = typeof stxAddressObj === 'string' 
         ? stxAddressObj 
@@ -113,7 +113,10 @@ const userSlice = createSlice({
 
       state.address = action.payload.address;
       state.profile = action.payload.profile;
-      state.isConnected = true;
+      
+      if (action.payload.isConnected !== undefined) {
+        state.isConnected = action.payload.isConnected;
+      }
       
       if (typeof window !== 'undefined') {
         localStorage.setItem('gm_user_address', action.payload.address);
@@ -239,9 +242,11 @@ const userSlice = createSlice({
         const token = action.payload;
         if (token && token.split('.').length === 3) {
           state.sessionToken = token;
+          state.isConnected = true;
           localStorage.setItem('gm_session_token', token);
         } else {
           state.sessionToken = null;
+          state.isConnected = false;
           localStorage.removeItem('gm_session_token');
         }
       }

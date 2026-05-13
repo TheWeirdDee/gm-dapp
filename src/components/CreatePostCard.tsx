@@ -26,7 +26,7 @@ export default function CreatePostCard() {
     setHasMounted(true);
   }, []);
   
-  const { address, isConnected, isPro, avatar, isOptimisticPro } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, isPro, avatar, isOptimisticPro, sessionToken } = useSelector((state: RootState) => state.user);
   const activePro = isPro || isOptimisticPro;
   const dispatch = useDispatch<AppDispatch>();
 
@@ -57,7 +57,7 @@ export default function CreatePostCard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!content.trim() && attachments.length === 0) || !address || isPosting) return;
+    if ((!content.trim() && attachments.length === 0) || !address || !sessionToken || isPosting) return;
     
     setIsPosting(true);
     try {
@@ -192,7 +192,7 @@ export default function CreatePostCard() {
 
                <button
                  onClick={handleSubmit}
-                 disabled={(!content.trim() && attachments.length === 0) || isPosting || isUploading}
+                 disabled={(!content.trim() && attachments.length === 0) || isPosting || isUploading || !sessionToken}
                  className="bg-white text-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-20 disabled:grayscale hover:bg-gray-200 active:scale-95 whitespace-nowrap min-w-[100px] flex items-center justify-center"
                >
                  {isPosting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Post'}

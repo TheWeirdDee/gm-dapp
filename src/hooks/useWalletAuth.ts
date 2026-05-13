@@ -25,24 +25,36 @@ export const useWalletAuth = () => {
       dispatch(setAddress(stxAddress));
       
       console.log('--- STARTING PHASE 2: SIGNATURE ---');
-      toast.loading('Verifying identity...', { id: 'auth' });
+      toast.loading('Phase 2: Verifying identity...', { id: 'auth' });
       
-      const authData = await signInWithWallet(stxAddress);
-      
-      if (authData?.token) {
-        console.log('--- PHASE 2 SUCCESS: JWT RECEIVED ---');
-        dispatch(setSessionToken(authData.token));
-        toast.success("Security Verification Successful", { id: 'auth' });
+      try {
+        const authData = await signInWithWallet(stxAddress);
         
-        setTimeout(() => {
-          if (window.location.pathname === '/') {
-            router.push('/dashboard');
-          } else {
-            window.location.reload();
-          }
-        }, 800);
+        if (!authData) {
+          console.warn('--- PHASE 2 ABORTED: NO AUTH DATA ---');
+          toast.error("Identity verification skipped", { id: 'auth' });
+          return null;
+        }
         
-        return { address: stxAddress, token: authData.token };
+        if (authData.token) {
+          console.log('--- PHASE 2 SUCCESS: JWT RECEIVED ---');
+          dispatch(setSessionToken(authData.token));
+          toast.success("Security Verification Successful", { id: 'auth' });
+          
+          setTimeout(() => {
+            if (window.location.pathname === '/') {
+              router.push('/dashboard');
+            } else {
+              window.location.reload();
+            }
+          }, 800);
+          
+          return { address: stxAddress, token: authData.token };
+        }
+      } catch (signErr: any) {
+        console.error('--- PHASE 2 ERROR ---', signErr);
+        toast.error('Identity verification failed: ' + signErr.message, { id: 'auth' });
+        return null;
       }
       
       return null;

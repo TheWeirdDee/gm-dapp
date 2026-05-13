@@ -19,7 +19,8 @@ function AuthHydrator({
   if (!mounted && initialUser) {
     dispatch(setUserData({
       address: initialUser.address,
-      profile: { stxAddress: initialUser.address } // Minimal profile to bridge hydration
+      profile: { stxAddress: initialUser.address },
+      isConnected: true
     }));
     
     dispatch(updateStats({
