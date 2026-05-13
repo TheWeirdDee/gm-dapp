@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
-import { updateProfile } from '@/lib/features/userSlice';
+import { updateStats } from '@/lib/features/userSlice';
 import IdentityAvatar from '@/components/IdentityAvatar';
 
 export default function SettingsContent() {
@@ -66,7 +66,7 @@ export default function SettingsContent() {
 
       if (error) throw error;
 
-      dispatch(updateProfile({
+      dispatch(updateStats({
         username: data.username,
         bio: data.bio,
         avatar: data.avatar_url
