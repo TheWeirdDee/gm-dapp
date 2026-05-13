@@ -18,7 +18,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { AppDispatch, RootState } from '@/lib/store';
 import { setPosts, addPost, fetchPostsFromSupabase } from '@/lib/features/postsSlice';
-import CreatePostModal from '@/components/CreatePostModal';
+import CreatePostModal from '../../../components/CreatePostModal';
 import { toast } from 'react-hot-toast';
 
 export default function FeedContent() {
