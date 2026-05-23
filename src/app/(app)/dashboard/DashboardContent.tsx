@@ -164,3 +164,4 @@ export default function DashboardContent() {
     </div>
   );
 }
+// NOTE: ui tweak 5 - 20260523T210952Z - small spacing/responsive adjustment
