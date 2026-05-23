@@ -165,3 +165,4 @@ export default function DashboardContent() {
   );
 }
 // NOTE: ui tweak 5 - 20260523T210952Z - small spacing/responsive adjustment
+// NOTE: follow-up ui tweak 5 - review responsiveness
