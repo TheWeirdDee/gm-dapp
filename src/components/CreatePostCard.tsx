@@ -20,6 +20,7 @@ export default function CreatePostCard() {
   const [attachments, setAttachments] = useState<{type: 'image' | 'video', url: string}[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -45,11 +46,17 @@ export default function CreatePostCard() {
     if (!file) return;
 
     setIsUploading(true);
+    setUploadError(null);
     try {
       const url = await uploadFile('media', file);
       if (url) {
         setAttachments([...attachments, { type, url }]);
+      } else {
+        setUploadError('Upload failed — check server configuration or storage bucket');
       }
+    } catch (err: any) {
+      console.error('File upload error:', err);
+      setUploadError(err?.message || 'Upload failed');
     } finally {
       setIsUploading(false);
     }
@@ -116,6 +123,10 @@ export default function CreatePostCard() {
                 </div>
               ))}
             </div>
+          )}
+
+          {uploadError && (
+            <div className="mt-3 text-sm text-red-400 font-medium">Upload error: {uploadError}</div>
           )}
 
           {/* Poll Creator UI */}
@@ -205,3 +216,4 @@ export default function CreatePostCard() {
   );
 }
 
+// NOTE: ui tweak 3 - 20260523T210951Z - small spacing/responsive adjustment
