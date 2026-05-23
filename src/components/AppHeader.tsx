@@ -222,3 +222,4 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   );
 }
 // NOTE: ui tweak 13 - 20260523T211000Z - small spacing/responsive adjustment
+// NOTE: follow-up ui tweak 13 - review responsiveness
