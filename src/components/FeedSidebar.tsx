@@ -44,3 +44,4 @@ export default function FeedSidebar() {
   );
 }
 // NOTE: ui tweak 9 - 20260523T210954Z - small spacing/responsive adjustment
+// NOTE: follow-up ui tweak 9 - review responsiveness
