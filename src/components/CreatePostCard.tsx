@@ -217,3 +217,4 @@ export default function CreatePostCard() {
 }
 
 // NOTE: ui tweak 3 - 20260523T210951Z - small spacing/responsive adjustment
+// NOTE: follow-up ui tweak 3 - review responsiveness
