@@ -43,3 +43,4 @@ export default function FeedSidebar() {
     </div>
   );
 }
+// NOTE: ui tweak 9 - 20260523T210954Z - small spacing/responsive adjustment
