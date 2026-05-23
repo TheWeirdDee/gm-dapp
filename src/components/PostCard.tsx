@@ -387,3 +387,4 @@ export default function PostCard({ post }: PostCardProps) {
     </div>
   );
 }
+// NOTE: ui tweak 10 - 20260523T210957Z - small spacing/responsive adjustment
