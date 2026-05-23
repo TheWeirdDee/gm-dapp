@@ -53,18 +53,24 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
         <div className="flex items-center gap-6">
           <button 
             onClick={onMenuClick}
-            className={`p-2.5 text-gray-400 hover:text-white transition-all bg-white/5 rounded-xl lg:hidden ${!isConnected ? 'hidden' : ''}`}
+            className="p-2.5 text-gray-400 hover:text-white transition-all bg-white/5 rounded-xl lg:hidden"
+            aria-label="Open menu"
           >
             <Menu className="h-6 w-6" />
           </button>
           
-          <Link href="/" className="transition-all hover:scale-105 group">
+          <a
+            role="link"
+            onClick={(e) => { e.preventDefault(); router.push('/'); }}
+            className="transition-all hover:scale-105 group cursor-pointer flex items-center"
+            aria-label="Go to home"
+          >
             <BrandLogo size={28} />
-          </Link>
+          </a>
         </div>
 
         {/* Center: Search - High Fidelity */}
-        <div className={`hidden lg:flex flex-1 max-w-xl mx-12 ${!isConnected ? 'opacity-0' : ''}`}>
+        <div className={`hidden lg:flex flex-1 max-w-xl mx-12 min-w-0 ${!isConnected ? 'opacity-0' : ''}`}>
           <div className="relative w-full group">
             <div className="absolute inset-0 bg-white/[0.02] rounded-2xl blur-xl group-focus-within:bg-indigo-500/10 transition-all"></div>
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600 group-focus-within:text-white transition-colors" />
@@ -138,9 +144,9 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                   >
                     <IdentityAvatar address={address} src={avatar} size="xs" className="h-9 w-9 !rounded-xl ring-2 ring-white/5 group-hover:ring-[var(--color-accent)]/30 transition-all" />
                     <div className="hidden sm:flex flex-col items-start">
-                       <span className="text-[11px] font-black text-white tracking-tight leading-none mb-0.5">
-                         {username || (address ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}` : 'Guest')}
-                       </span>
+                      <span className="text-[11px] font-black text-white tracking-tight leading-none mb-0.5 truncate max-w-[120px]">
+                           {username || (address ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}` : 'Guest')}
+                         </span>
                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest leading-none">Identity Node</span>
                     </div>
                     <ChevronDown 
@@ -221,3 +227,4 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
     </>
   );
 }
+// NOTE: ui tweak 2 - 20260523T210950Z - small spacing/responsive adjustment
