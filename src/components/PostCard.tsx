@@ -388,3 +388,4 @@ export default function PostCard({ post }: PostCardProps) {
   );
 }
 // NOTE: ui tweak 10 - 20260523T210957Z - small spacing/responsive adjustment
+// NOTE: follow-up ui tweak 10 - review responsiveness
