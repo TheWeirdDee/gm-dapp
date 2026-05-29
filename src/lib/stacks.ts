@@ -8,9 +8,12 @@ import { APP_CONFIG } from './config';
 import { toast } from 'react-hot-toast';
 import { store } from './store';
 import { addTransaction, updateTransactionStatus } from './features/txSlice';
+
+import { logDebug, logInfo, logWarn, logErrorLevel, logSecurityEvent } from './utils/logger';
 import { isValidStacksAddress } from './utils/validation';
 import { getEnvironmentConfig } from './utils/env';
 import { logError, getUserFriendlyMessage } from './utils/errors';
+
 
 export const appDetails = {
   name: 'GM DApp',
@@ -281,16 +284,24 @@ export const callContract = async (options: any) => {
     try {
       const userData = session.loadUserData();
       sessionAddress = userData.profile?.stxAddress?.[APP_CONFIG.isMainnet ? 'mainnet' : 'testnet'];
+    } catch (e: any) {
+      logWarn('stacks.getUserSession', 'SESSION ERROR', { error: e?.message });
     } catch (error) {
       logError('callContract - session load', error);
     }
   }
 
   if (storedAddress && sessionAddress && storedAddress !== sessionAddress) {
-    toast.error('Wallet mismatch! Please re-login.');
+    toast.error('Wallet account mismatch! Please re-login to Account ' + sessionAddress.substring(0, 8) + '...');
+    logSecurityEvent('Wallet', 'Account mismatch during contract call', 'high', { storedAddress, sessionAddress });
     return;
   }
 
+  logInfo('stacks.callContract', `contract call ${options.functionName}`);
+
+    toast.error('Wallet mismatch! Please re-login.');
+    return;
+  }
   try {
     await openContractCall({
       postConditionMode: 0x01,
@@ -300,11 +311,11 @@ export const callContract = async (options: any) => {
       appDetails,
       network: APP_CONFIG.network,
       onFinish: (data: any) => {
+        logInfo('stacks.callContract', 'TRANSACTION BROADCASTED', { txId: data.txId });
         if (!data.txId) {
           logError('callContract', new Error('No txId returned'));
           return;
         }
-
         store.dispatch(addTransaction({
           txId: data.txId,
           status: 'pending',
@@ -318,10 +329,13 @@ export const callContract = async (options: any) => {
         pollTransactionStatus(data.txId);
       },
       onCancel: () => {
+        logWarn('stacks.callContract', 'TRANSACTION CANCELLED');
         toast.error('Transaction cancelled by user.');
       }
     });
   } catch (err: any) {
+    logErrorLevel('stacks.callContract', 'CONTRACT CALL ERROR', undefined, err instanceof Error ? err : undefined);
+    toast.error('Failed to open wallet: ' + (err?.message || 'Unknown error'));
     logError('callContract', err);
     toast.error(getUserFriendlyMessage(err));
   }
@@ -429,6 +443,9 @@ export const tipAuthor = async (
     stxAddress: finalSender,
     postConditionMode: 0x01,
     postConditions: [postCondition],
+    onFinish: (data: any) => {
+      logInfo('stacks.tipAuthor', 'TIP BROADCASTED', { txId: data.txId });
+    }
   });
 };
 
@@ -453,9 +470,14 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
       connect.default?.openSignatureRequestPopup;
 
     if (!openSignatureRequest) {
-      throw new Error('Wallet signature not available');
+      logErrorLevel('stacks.signIn', 'SIGNATURE FUNCTION MISSING', { exports: Object.keys(connect) });
+      toast.error('Wallet signature function not found. Please try a different browser or update your wallet extension.');
+      throw new Error('Wallet signature function not found.');
     }
 
+    logDebug('stacks.signIn', `fetching nonce for ${address}`);
+      throw new Error('Wallet signature not available');
+    }
     const response = await fetch('/api/auth/nonce', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -464,17 +486,25 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
     });
 
     if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      logErrorLevel('stacks.signIn', 'NONCE FETCH FAILED', errData?.error ? { error: errData.error } : undefined);
       const errData = await response.json();
       throw new Error(errData.error || 'Failed to fetch nonce');
     }
 
     const { nonce } = await response.json();
+    logDebug('stacks.signIn', 'RECEIVED NONCE', { nonce: typeof nonce === 'string' ? '***' : nonce });
+
+    return new Promise((resolve, reject) => {
+      logDebug('stacks.signIn', 'OPENING SIGNATURE REQUEST');
 
     return new Promise((resolve, reject) => {
       openSignatureRequest({
         message: `Sign in to GM DApp\nNonce: ${nonce}`,
         network: APP_CONFIG.network,
         appDetails,
+          onFinish: async (data: any) => {
+          logDebug('stacks.signIn', 'SIGNATURE FINISHED');
         onFinish: async (data: any) => {
           try {
             if (!data.signature || !data.publicKey) {
@@ -494,11 +524,24 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
             });
 
             if (!verifyRes.ok) {
+              const verifyErr = await verifyRes.json().catch(() => ({}));
+              logErrorLevel('stacks.signIn', 'VERIFY FAILED', verifyErr?.error ? { error: verifyErr.error } : undefined);
+
               const verifyErr = await verifyRes.json();
+
               throw new Error(verifyErr.error || 'Verification failed');
             }
 
             const authData = await verifyRes.json();
+            logInfo('stacks.signIn', 'VERIFY SUCCESS');
+            resolve(authData);
+          } catch (e: any) {
+            logErrorLevel('stacks.signIn', 'VERIFY CRASH', undefined, e instanceof Error ? e : undefined);
+            reject(e);
+          }
+        },
+        onCancel: () => {
+          logInfo('stacks.signIn', 'SIGNATURE CANCELLED BY USER');
             resolve(authData);
           } catch (error: any) {
             logError('signInWithWallet - verify', error);
@@ -511,6 +554,7 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
       });
     });
   } catch (err: any) {
+    logErrorLevel('stacks.signIn', 'CORE CRASH', undefined, err instanceof Error ? err : undefined);
     logError('signInWithWallet', err, { address });
     throw err;
   }

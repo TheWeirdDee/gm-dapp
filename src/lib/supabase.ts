@@ -1,11 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
+import { logErrorLevel, logWarn, logInfo } from './utils/logger';
 import { getEnvironmentConfig, getServerEnvironmentConfig } from './utils/env';
 import { logError, createErrorResponse } from './utils/errors';
 import { isValidToken } from './utils/security';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
+if (!supabaseUrl || supabaseUrl.includes('placeholder') || !supabaseUrl.startsWith('http')) {
+  logErrorLevel('supabase', 'CRITICAL: NEXT_PUBLIC_SUPABASE_URL missing or invalid');
+}
+
+if (!supabaseAnonKey) {
+  logWarn('supabase', 'NEXT_PUBLIC_SUPABASE_ANON_KEY is missing; some features may not work in browser');
 // Validate environment at load time
 if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
   console.error('CRITICAL: NEXT_PUBLIC_SUPABASE_URL is missing or invalid');
@@ -118,6 +125,7 @@ export async function uploadFile(
 
     return url;
   } catch (error: any) {
+    logErrorLevel('supabase.uploadFile', `Upload error to ${bucket}`, undefined, error instanceof Error ? error : undefined);
     logError(`File upload to ${bucket}`, error);
     return null;
   }

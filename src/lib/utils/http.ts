@@ -152,6 +152,22 @@ export async function post<T = any>(
   data?: any,
   options?: FetchOptions
 ): Promise<FetchResponse<T>> {
+  let body: string | undefined;
+  try {
+    body = data === undefined ? undefined : JSON.stringify(data);
+  } catch (e) {
+    // Fallback: attempt to shallow-copy then stringify
+    try {
+      body = JSON.stringify(Object.assign({}, data));
+    } catch (err) {
+      body = undefined;
+    }
+  }
+
+  return secureFetch<T>(url, {
+    ...options,
+    method: 'POST',
+    body
   return secureFetch<T>(url, {
     ...options,
     method: 'POST',
@@ -167,6 +183,21 @@ export async function put<T = any>(
   data?: any,
   options?: FetchOptions
 ): Promise<FetchResponse<T>> {
+  let body: string | undefined;
+  try {
+    body = data === undefined ? undefined : JSON.stringify(data);
+  } catch (e) {
+    try {
+      body = JSON.stringify(Object.assign({}, data));
+    } catch (err) {
+      body = undefined;
+    }
+  }
+
+  return secureFetch<T>(url, {
+    ...options,
+    method: 'PUT',
+    body
   return secureFetch<T>(url, {
     ...options,
     method: 'PUT',

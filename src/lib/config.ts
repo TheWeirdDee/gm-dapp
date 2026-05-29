@@ -1,4 +1,18 @@
 import { STACKS_MAINNET, STACKS_TESTNET } from '@stacks/network';
+import { logWarn } from './utils/logger';
+
+const networkType = (process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet').trim();
+const IS_MAINNET = networkType === 'mainnet';
+
+const envSocialAddress = (process.env.NEXT_PUBLIC_SOCIAL_ADDRESS || '').trim();
+if (envSocialAddress && !/^S[P|T|M]/.test(envSocialAddress)) {
+  logWarn('config', 'NEXT_PUBLIC_SOCIAL_ADDRESS looks malformed');
+}
+
+export const APP_CONFIG = {
+  social: {
+    address: envSocialAddress || 'SP1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSRKP54QX',
+
 import { isValidStacksAddress, isValidContractName } from './utils/validation';
 
 const networkType = process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet';
@@ -17,7 +31,7 @@ export const APP_CONFIG = {
     address: TOKEN_ADDRESS,
     name: 'gm-social-token-v4',
   },
-
+  contractAddress: envSocialAddress || 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSVRTT2RF',
   contractAddress: SOCIAL_ADDRESS,
   contractName: 'gm-social-final-v1',
 
@@ -26,6 +40,9 @@ export const APP_CONFIG = {
 
   explorerUrl: IS_MAINNET 
     ? 'https://explorer.hiro.so' 
+
+    : 'https://explorer.hiro.so?chain=testnet',
+
     : 'https://testnet.hiro.so',
   
   defaultFee: 100000,
@@ -63,6 +80,14 @@ const validateConfig = (): void => {
 
 // Validate on import
 validateConfig();
+
+export const getExplorerLink = (id: string) => {
+  if (!id) return APP_CONFIG.explorerUrl;
+  const trimmed = id.trim();
+  const isAddress = /^S[A-Z0-9]/.test(trimmed);
+  const path = isAddress ? 'address' : 'txid';
+  const cleanId = isAddress || trimmed.startsWith('0x') ? trimmed : `0x${trimmed}`;
+  return `${APP_CONFIG.explorerUrl}/${path}/${cleanId}`;
 
 /**
  * Gets explorer link with validation
